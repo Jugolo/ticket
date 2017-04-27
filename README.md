@@ -6,4 +6,4 @@ you can self create field the user should fill and support input, select and tex
 
 to install go in the file install.sql and put it in phpmyadmin for create table
 create a user and go back to phpmyadmin and past this sql code 
-UPDATE `user` SET `groupid`='2' WHERE `id`='1'
+> UPDATE `user` SET `groupid`='2' WHERE `id`='1'
