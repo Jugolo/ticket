@@ -1,9 +1,9 @@
 <?php
-define("logo", "test.jpg");
-define("DB_HOST", "mysql27.unoeuro.com");
-define("DB_USER", "cowscript_dk");
-define("DB_PASS", "brS8I1wx56");
-define("DB_TABLE", "cowscript_dk_db4");
+//define("logo", "test.jpg");
+define("DB_HOST", "localhost");
+define("DB_USER", "root");
+define("DB_PASS", "");
+define("DB_TABLE", "ticket");
 session_start();
 function controleAutoLogin(){
   if(empty($_SESSION["uid"])){
