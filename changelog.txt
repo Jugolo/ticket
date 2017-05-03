@@ -1,0 +1,8 @@
+V1.1 - 3.5-2017
+--New--
+Append a top menu.
+Append a login botton on head menu and remove the page to login.
+Append a user button width menu where you can logout and remove the logout button on menu.
+Append a notice system to tell when there happens new thing on ticket
+--Bugfix--
+If there was a reason for the apply ticket not could be saves the user dont get the message only after page reload
