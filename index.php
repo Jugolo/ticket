@@ -78,7 +78,7 @@ spl_autoload_register(function($class){
   }
 });
 
-include "lib/tempelate.php";
+include "Lib/tempelate.php";
 include "ajax.php";
 
 if(!file_exists("config.php")){
