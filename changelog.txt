@@ -1,3 +1,14 @@
+V2.0 - 20.5-2017
+--New--
+Create a module system to finde the correct page
+Append 'admin_changed' to ticket table to better handle handling find unread ticket
+Append a notification system to better alert supportes about new thinks
+Append icon to show if there is any news in ticket
+Append install script (sry but it is vary simpel)
+--Change--
+Append autoloader system to handling include file
+Split index.php into diffrence file
+
 V1.2 - 5.5-2017
 --New--
 Append ajax call to get count of unseen tickets
