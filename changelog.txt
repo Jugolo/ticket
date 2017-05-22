@@ -1,3 +1,8 @@
+V2.3 - 22.5-2017
+--Change--
+Move create user to the Auth class
+--Bugfix--
+User could create account becuse wrong class handling
 V2.2 - 22.5-2017
 --Change--
 Move items in tempelate.php to the owen files in Lib and "two_container" in index.php
