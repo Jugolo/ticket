@@ -6,6 +6,7 @@ use Lib\Controler\Page\PageView as P;
 use Lib\Database;
 use Lib\Error;
 use Lib\Okay;
+use Lib\Age;
 
 class PageView implements P{
   public function body(){
@@ -15,8 +16,15 @@ class PageView implements P{
     }
   
     if($data["age"]){
-      if(!controle_age($data)){
-        return;
+      if(($respons = Age::controle($data["age"], $data["name"])) != Age::NO_ERROR){
+        switch($respons){
+          case AGE::GET_AGE:
+            Age::get_age($data["name"]);
+            return;
+          default:
+            header("location: ?view=apply");
+            exit;
+        }
       }
     }
   

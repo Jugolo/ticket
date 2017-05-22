@@ -95,41 +95,6 @@ if(!file_exists("config.php")){
 
 include 'config.php';
 
-function get_age(array $data){
-  if(!empty($_POST["bd"]) && !empty($_POST["bm"]) && !empty($_POST["by"])){
-    $db = Database::get();
-    $db->query("UPDATE `user` SET 
-                `birth_day`='".$db->escape(intval($_POST["bd"]))."',
-                `birth_month`='".$db->escape(intval($_POST["bm"]))."',
-                `birth_year`='".$db->escape(intval($_POST["by"]))."'
-               WHERE `id`=".user["id"]);
-    Okay::report("You birth day is now saved");
-    header("location: #");
-    exit;
-  }
-  echo "<form method='post' action='#'>";
-  echo "<h3>Please type your bith day to create the ticket to {$data["name"]}</h3>";
-  echo two_container("Birth day", "<input type='number' name='bd'>");
-  echo two_container("Birth month", "<input type='number' name='bm'>");
-  echo two_container("Birth year", "<input type='number' name='by'>");
-  echo "<input type='submit' value='Set you birth day'>";
-  echo "</form>";
-}
-
-function controle_age(array $data) : bool{
-  if(!user["birth_day"] || !user["birth_month"] || !user["birth_year"]){
-    get_age($data);
-    return false;
-  }
-  
-  if($data["age"] > Lib\Age::calculate(user["birth_day"], user["birth_month"], user["birth_year"])){
-    echo "<h3>Sorry you are to young to crate a ticket to {$data["name"]}</h3>";
-    return false;
-  }
-  
-  return true;
-}
-
 function doLogin(){
   $error = Error::count();
   if(empty($_POST["username"]) || !trim($_POST["username"])){
@@ -196,36 +161,8 @@ function doCreate(){
                         OR `email`='".$db->escape($_POST["email"])."'")->fetch();
     
     if(!$info){
-      $salt = Lib\User\Auth::randomString(200);
-      $gid = getStandartGroup()["id"];
-      $id = $db->query("INSERT INTO `user` (
-        `username`,
-        `password`,
-        `email`,
-        `salt`,
-        `isActivatet`,
-        `groupid`
-      ) VALUES (
-        '".$db->escape($_POST["create_username"])."',
-        '".$db->escape(Lib\User\Auth::salt_password($_POST["create_password"], $salt))."',
-        '".$db->escape($_POST["email"])."',
-        '".$db->escape($salt)."',
-        0,
-        ".$gid."
-      );");
-      Notification::getNotification(function(string $name) use($db, $id){
-        $db->query("INSERT INTO `notify_setting` VALUES ('{$id}', '{$db->escape($name)}');");
-      });
-       mail($_POST["email"], "Please activate you new account", "Hallo ".$_POST["create_username"]."
-You has just create an account and to be sure this email is belong to you, you need to confirm it with visit the link below.
-If you dont has create an account you dont need to do anythink. 
-".geturl()."?salt=".urlencode($salt)."&email=".urlencode($_POST["email"])."
-Best regards from us", implode("\r\n", [
-        "MIME-Version: 1.0",
-        "Content-Type: text/plain; charset=utf8",
-        "from:support@".$_SERVER["SERVER_NAME"],
-        ]));
-      Html::okay("You account is created. Please look in you email for activate it");
+      Lib\User\Auth::createUser($_POST["create_username"], $_POST["create_password"], $_POST["email"], false);
+      Okay::report("You account is created. Please look in you email for activate it");
       if(is_ajax()){
         ajax_var("create", true);
       }
@@ -566,7 +503,7 @@ window.onerror = function(msg, url, line, col, error) {
         ?>
       </div>
       <div id='copy'>
-        <a href='http://cowscript.dk'>CowScript</a>  2017 - All Rights Reserved
+        <a href='http://ticket.cowscript.dk/ticket'>CowScript</a>  2017 - All Rights Reserved
       </div>
     </div>
   </body>

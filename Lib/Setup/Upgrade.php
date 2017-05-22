@@ -46,8 +46,10 @@ class Upgrade{
     if(count($buffer) <= 1){
       return $buffer;
     }
-    echo "<pre>";
-    print_r($buffer);
-    exit("</pre>");
+    usort($buffer, function($a, $b){
+      return version_compare($a->version, $b->version);
+    });
+    
+    return $buffer;
   }
 }
