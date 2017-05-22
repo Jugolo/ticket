@@ -1,3 +1,9 @@
+V2.2 - 22.5-2017
+--Change--
+Move items in tempelate.php to the owen files in Lib and "two_container" in index.php
+V2.1 - 20.5-2017
+--Bugfix--
+When dawnload it from github.com it could not find out the diffrence betwen 'Lib' and 'lib'
 V2.0 - 20.5-2017
 --New--
 Create a module system to finde the correct page

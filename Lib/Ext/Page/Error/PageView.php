@@ -3,6 +3,7 @@ namespace Lib\Ext\Page\Error;
 
 use Lib\Controler\Page\PageView as P;
 use Lib\Database;
+use Lib\Html\Table;
 use Lib\Database\DatabaseFetch;
 
 class PageView implements P{
@@ -19,18 +20,16 @@ class PageView implements P{
       return;
     }
     
-    $table = new \Table();
+    $table = new Table();
     $table->className("style");
     $table->newColummen();
     $this->setHeader($table);
     $self = $this;
-    $query->render(function($row) use($table, $self){
-      $self->setBody($table, $row);
-    });
+    $query->render([$this, "setBody"], $table);
     $table->output();
   }
   
-  private function setBody(\Table $table, DatabaseFetch $item){
+  public function setBody(DatabaseFetch $item, Table $table){
     $table->newColummen();
     $table->td($item->errno);
     $table->td($item->errstr);
@@ -39,7 +38,7 @@ class PageView implements P{
     $table->td($item->errtime);
   }
   
-  private function setHeader(\Table $table){
+  private function setHeader(Table $table){
     $table->th("Type");
     $table->th("Message");
     $table->th("File");

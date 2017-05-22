@@ -2,6 +2,8 @@
 namespace Lib\Ext\Page\Group\Sub;
 
 use Lib\Database;
+use Lib\Error;
+use Lib\Okay;
 
 class Standart{
   public static function body(){
@@ -12,10 +14,10 @@ class Standart{
     $db = Database::get();
     $db->query("UPDATE `group` SET `isStandart`=1 WHERE `id`='".(int)$_GET["gid"]."'");
     if($db->affected() == 0){
-      html_error("Unknown group");
+      Error::report("Unknown group");
     }else{
       $db->query("UPDATE `group` SET `isStandart`=0 WHERE `id` <> '".(int)$_GET["gid"]."' AND `isStandart`=1");
-      html_okay("The group is now the standart group");
+      Okay::report("The group is now the standart group");
     }
     header("location: ?view=handleGroup");
     exit;

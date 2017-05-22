@@ -1,8 +1,10 @@
 <?php
 namespace Lib\Setup;
 
+use Lib\Error;
+
 class Main{
-  const SETUP_VERSION = "V2.0";
+  const SETUP_VERSION = "V2.2";
   
   public static function controle(){
     if(is_ajax()){
@@ -12,9 +14,9 @@ class Main{
     if(self::needInstall()){
       Install::install();
     }elseif(self::needUpgrade()){
-      
+      Upgrade::upgrade();
     }else{
-      html_error("Please remove setup dir 'Lib/Setup'");
+      Error::report("Please remove setup dir 'Lib/Setup'");
     }
   }
   
@@ -23,6 +25,6 @@ class Main{
   }
   
   private static function needUpgrade() : bool{
-    return false;
+    return version_compare(Main::SETUP_VERSION, \Lib\Config::get("version"), '>');
   }
 }

@@ -19,17 +19,15 @@ function ajax_output(){
       break;
       case "null":break;
       default:
-        html_error("Unknown ajax request");
+        Lib\Error::report("Unknown ajax request");
     }
     
-    if(html_error_count() != 0){
-      ajax_var("error", $_SESSION["error"]);
-      unset($_SESSION["error"]);
+    if(Lib\Error::count() != 0){
+      ajax_var("error", Lib\Error::toArray());
     }
     
-    if(html_okay_count() != 0){
-      ajax_var("okay", $_SESSION["okay"]);
-      unset($_SESSION["okay"]);
+    if(Lib\Okay::toArray() != 0){
+      ajax_var("okay", Lib\Okay::toArray());
     }
     header('Content-Type: application/json');
     echo json_encode($_SESSION["ajax"]);

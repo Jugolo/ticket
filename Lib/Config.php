@@ -12,12 +12,22 @@ class Config{
     return "";
   }
   
+  public static function set(string $name, string $value){
+    $db = Database::get();
+    if(self::get($name)){
+      $db->query("UPDATE `config` SET `value`='{$db->escape($value)}' WHERE `name`='{$db->escape($name)}'");
+    }else{
+      $db->query("INSERT INTO `config` VALUES ('{$db->escape($name)}', '{$db->escape($value)}');");
+    }
+    self::$item[$name] = $value;
+  }
+  
   private static function ensureInit(){
     if(!self::$item){
-      $query = Database::get()->query("SELECT `key`, `value` FROM `config`");
+      $query = Database::get()->query("SELECT `name`, `value` FROM `config`");
       self::$item = [];
       while($row = $query->fetch()){
-        self::$item[$row->key] = $row->value;
+        self::$item[$row->name] = $row->value;
       }
     }
   }

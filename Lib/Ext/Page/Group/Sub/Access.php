@@ -2,6 +2,8 @@
 namespace Lib\Ext\Page\Group\Sub;
 
 use Lib\Database;
+use Lib\Error;
+use Lib\Okay;
 
 class Access{
   public static function body(){
@@ -77,9 +79,9 @@ class Access{
         $sql[] = "`".$key."`='".intval($value)."'";
       }
       Database::get()->query("UPDATE `group` SET ".implode(",", $sql)." WHERE `id`='".$group["id"]."'");
-      html_okay("Access updated");
+      Okay::report("Access updated");
     }else{
-      html_okay("No update detected");
+      Error::report("No update detected");
     }
   
     header("location: ?view=handleGroup&sub=Access&gid=".$group["id"]);

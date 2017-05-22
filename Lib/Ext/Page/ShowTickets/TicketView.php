@@ -7,6 +7,9 @@ use Lib\Database;
 use Lib\Database\DatabaseFetch;
 use Lib\Ext\Notification\NewTicket;
 use Lib\Ext\Notification\NewComment;
+use Lib\Error;
+use Lib\Okay;
+use Lib\Html\Table;
 
 class TicketView{
   public static function body(DatabaseFetch $data){
@@ -37,7 +40,7 @@ class TicketView{
     if($query->count() == 0){
       echo "<h3>No data avaribel</h3>";
     }else{
-      $table = new \Table();
+      $table = new Table();
       $table->style = "width:100%;border-collapse:collapse;";
       $query->render(function($row) use($table){
         self::setItem($table, $row);
@@ -73,7 +76,7 @@ class TicketView{
   
   private static function createComments(DatabaseFetch $data){
     if(empty($_POST["comments"])){
-      html_error("Missing message");
+      Error::report("Missing message");
     }else{
       $public = $data->uid == user["id"] || !empty($_POST["public"]);
       $db = Database::get();
@@ -87,7 +90,7 @@ class TicketView{
                   );");
       $db->query("UPDATE `ticket` SET `admin_changed`=NOW(), `comments`=comments+1".($public ? ", `user_changed`=NOW()" : "")." WHERE `id`='{$data->id}'");
       NewComment::createNotify($data->id, $data->uid);
-      html_okay("Comments saved");
+      Okay::report("Comments saved");
       header("location: #");
       exit;
     }
@@ -128,7 +131,7 @@ class TicketView{
     echo "</div>";
   }
   
-  private static function setItem(\Table $table, DatabaseFetch $data){
+  private static function setItem(Table $table, DatabaseFetch $data){
     $table->newColummen();
     if($data->type != 2){
       $table->th($data->text)->style = "border:1px solid black;background-color:blue;color:white;";

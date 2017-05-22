@@ -2,8 +2,11 @@
 namespace Lib\Ext\Page\HandleTickets;
 
 use Lib\Controler\Page\PageView as P;
+use Lib\Html\Table;
 use Lib\Database;
 use Lib\Database\DatabaseFetch;
+use Lib\Error;
+use Lib\Okay;
 
 class PageView implements P{
   public function body(){
@@ -17,7 +20,7 @@ class PageView implements P{
   private function setting(){
     $data = $this->getData();
     if(!$data){
-      html_error("Unknown catagory");
+      Error::report("Unknown catagory");
       header("location: ?view=".$_GET["view"]);
       exit;
     }
@@ -82,7 +85,7 @@ class PageView implements P{
       echo "<h3>No input yet</h3>";
     }else{
       $self = $this;
-      $table = new \Table();
+      $table = new Table();
       $table->style = "width:100%;border-collapse:collapse;";
       $table->newColummen();
       $table->th("Name")->style = "border:1px solid grey;background-color:blue;";
@@ -119,14 +122,14 @@ class PageView implements P{
       $buffer[] = "`{$name}`=".$value;
     }
     Database::get()->query("UPDATE `catogory` SET ".implode(", ", $buffer)." WHERE `id`='{$id}'");
-    html_okay("Setting is updated");
+    Okay::report("Setting is updated");
     header("location: #");
     exit;
   }
   
   public function deleteInput(int $id){
     Database::get()->query("DELETE FROM `category_item` WHERE `id`='{$id}'");
-    html_okay("input is deleted");
+    Okay::report("input is deleted");
     header("location: ?view={$_GET["view"]}&catogory=".$_GET["catogory"]);
     exit;
   }
@@ -134,15 +137,15 @@ class PageView implements P{
   public function appendInput(int $id){
     $error_count = html_error_count();
     if(empty($_POST["name"]) || !trim($_POST["name"])){
-      html_error("Missing input name");
+      Error::report("Missing input name");
     }
     
     if(empty($_POST["type"]) || $_POST["type"] < 0 || $_POST["type"] > 3){
-      html_error("Missing input type");
+      Error::report("Missing input type");
     }
     
     if(empty($_POST["placeholder"]) || !trim($_POST["placeholder"])){
-      html_error("Missing placeholder");
+      Error::report("Missing placeholder");
     }
     
     if($error_count == html_error_count()){
@@ -154,13 +157,13 @@ class PageView implements P{
                    '{$db->escape($_POST["name"])}',
                    '{$db->escape($_POST["placeholder"])}'
                  );");
-      html_okay("The input is saved");
+      Okay::report("The input is saved");
     }
     header("location: #");
     exit;
   }
   
-  public function renderInput(DatabaseFetch $row, \Table $table){
+  public function renderInput(DatabaseFetch $row, Table $table){
     $table->newColummen();
     
     $table->th($row->text)->style = "border:1px solid grey";
@@ -229,9 +232,9 @@ class PageView implements P{
     
     $db->query("UPDATE `catogory` SET `open`='".($data->open == 1 ? '0' : '1')."' WHERE `id`='{$id}'");
     if($data->open == 1){
-      html_okay("The category is now closed");
+      Okay::report("The category is now closed");
     }else{
-      html_okay("The category is now open");
+      Okay::report("The category is now open");
     }
     
     header("location: ?view=".$_GET["view"]);
@@ -249,13 +252,13 @@ class PageView implements P{
     }
     $db->query("DELETE FROM `ticket` WHERE `cid`='{$id}'");
     $db->query("DELETE FROM `catogory` WHERE `id`='{$id}'");
-    html_okay("The category is now deleted");
+    Okay::report("The category is now deleted");
   }
   
   private function create(string $name){
     $db = Database::get();
     $db->query("INSERT INTO `catogory` VALUES (NULL, '{$db->escape($name)}', 0, NULL);");
-    html_okay("Category is created");
+    Okay::report("Category is created");
     header("location: #");
     exit;
   }

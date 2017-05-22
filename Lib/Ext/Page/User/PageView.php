@@ -3,6 +3,7 @@ namespace Lib\Ext\Page\User;
 
 use Lib\Controler\Page\PageView as P;
 use Lib\Database;
+use Lib\Okay;
 
 class PageView implements P{
   public function body(){
@@ -36,7 +37,7 @@ class PageView implements P{
     $db->query("DELETE FROM `user` WHERE `id`='".$id."'");
     $db->query("DELETE FROM `notify` WHERE `uid`='{$id}'");
     $db->query("DELETE FROM `notify_setting` WHERE `uid`='{$id}'");
-    html_okay("The user is now deleted");
+    Okay::report("The user is now deleted");
     header("location: ?view=users");
     exit;
   }
@@ -63,7 +64,7 @@ class PageView implements P{
   
     if(!empty($_GET["gid"])){
       updateUserGroup($user, $_GET["gid"]);
-      html_okay("The users group is now updated");
+      Okay::report("The users group is now updated");
       header("location: ?view=users&sub=group&uid=".$_GET["uid"]);
       exit;
     }

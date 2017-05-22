@@ -23,9 +23,9 @@ class MysqliResult{
     return new DatabaseFetch($result);
   }
   
-  public function render($callback){
+  public function render($callback, ...$arg){
     while($row = $this->fetch()){
-      call_user_func($callback, $row);
+      call_user_func_array($callback, array_merge([$row], $arg));
     }
   }
   

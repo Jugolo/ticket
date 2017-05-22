@@ -4,6 +4,8 @@ namespace Lib\Ext\Page\Apply;
 use Lib\Ext\Notification\NewTicket;
 use Lib\Controler\Page\PageView as P;
 use Lib\Database;
+use Lib\Error;
+use Lib\Okay;
 
 class PageView implements P{
   public function body(){
@@ -55,16 +57,16 @@ class PageView implements P{
     $saver = new SaveInputs($data["id"]);
     while($row = $query->fetch()){
       if(!array_key_exists($row->id, $_POST)){
-        html_error("Missing '".htmlentities($row->text)."'");
+        Error::report("Missing '".htmlentities($row->text)."'");
         $errcount++;
       }elseif($row->type != 3 && !trim($_POST[$row->id])){
-        html_error("Missing '".htmlentities($row->text)."'");
+        Error::report("Missing '".htmlentities($row->text)."'");
         $errcount++;
       }elseif($row->type == 3){
         $count = count(($option = explode(",", $row->placeholder)))-1;
         $value = intval($_POST[$row->id]);
         if($value < 0 || $value > $count){
-          html_error("Missing '".htmlentities($row->text)."'");
+          Error::report("Missing '".htmlentities($row->text)."'");
           $errcount++;
         }else{
           $sqlBuffer[] = "INSERT INTO `ticket_value` (`hid`, `text`, `type`, `value`) VALUES (%%hid%%, '".$db->escape($row->text)."', '".$row->type."', '".$db->escape($option[$value])."')";
@@ -78,7 +80,7 @@ class PageView implements P{
     
     if($errcount !== 0 || count($sqlBuffer) == 0){
       if(count($sqlBuffer) == 0){
-        html_error("Could not save a empty ticket");
+        Error::report("Could not save a empty ticket");
       }
       $saver->save();
       header("location: ?view=apply&to=".$data["id"]);
@@ -86,14 +88,14 @@ class PageView implements P{
     }else{
       $id = $db->query("INSERT INTO `ticket` (`cid`, `uid`, `comments`, `created`, `user_changed`, `admin_changed`) VALUES ('".$data["id"]."', '".user["id"]."', '0', NOW(), NOW(), NOW())");
       if($db->multi_query(str_replace("(%%hid%%,", "('".$id."',", implode(";\r\n", $sqlBuffer)))){
-        html_okay("You ticket is saved");
+        Okay::report("You ticket is saved");
         NewTicket::notify($id, $data["name"]);
         header("location: ?view=tickets&ticket_id=".$id);
         exit;
       }else{
         //sql get wrong
         $db->query("DELETE FROM `ticket` WHERE `id`='".$id."'");
-        html_error("Sorry we could not save you application");
+        Error::report("Sorry we could not save you application");
         header("location: ?view=apply&to=".$data["id"]);
         exit;
       }

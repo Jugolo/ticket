@@ -5,12 +5,15 @@ use Lib\Controler\Page\PageView as P;
 use Lib\Database;
 use Lib\User\Auth;
 use Lib\Age;
+use Lib\Error;
+use Lib\Html\Table;
+use Lib\Okay;
 
 class PageView implements P{
   public function body(){
     $user = $this->getUser();
     if(!$user){
-      html_error("Could not find the user");
+      Error::report("Could not find the user");
       notfound();
       return;
     }
@@ -28,7 +31,7 @@ class PageView implements P{
       echo "<h3>Profile for ".htmlentities($user->username)."</h3>";
     }
     
-    $table = new \Table();
+    $table = new Table();
     $table->style = "width:100%;border-collapse:collapse;";
     $table->newColummen();
     if($user->id == user["id"]){
@@ -49,7 +52,7 @@ class PageView implements P{
       echo "</form>";
       
       echo "<h3>Change you password</h3>";
-      $table = new \Table();
+      $table = new Table();
       $table->style = "border-collapse:collapse;width:100%;";
       $table->newColummen();
       $table->th("Password")->style = "border:1px solid grey;";
@@ -76,7 +79,7 @@ class PageView implements P{
       
       echo "<h3>Age.".($age ? " (".$age.")" : "")."</h3>";
       
-      $table = new \Table();
+      $table = new Table();
       $table->style = "border-collapse:collapse;width:100%;";
       $table->newColummen();
       $table->th("Birth day")->style = "border: 1px solid grey;";
@@ -120,28 +123,28 @@ class PageView implements P{
   }
   
   private function updateAge(){
-    $error = html_error_count();
+    $error = Error::count();
     
     if(empty($_POST["day"]) || !trim($_POST["day"]) || !is_numeric($_POST["day"])){
-      html_error("Missing birth day");
+      Error::report("Missing birth day");
     }
     
     if(empty($_POST["month"]) || !trim($_POST["month"]) || !is_numeric($_POST["month"])){
-      html_error("Missing month");
+       Error::report("Missing month");
     }
     
     if(empty($_POST["year"]) || !trim($_POST["year"]) || !is_numeric($_POST["year"])){
-      html_error("Missing year");
+       Error::report("Missing year");
     }
     
-    if($error == html_error_count()){
+    if($error == Error::count()){
       $db = Database::get();
       $db->query("UPDATE `user` SET 
                   `birth_day`   = '{$db->escape($_POST["day"])}',
                   `birth_month` = '{$db->escape($_POST["month"])}',
                   `birth_year`  = '{$db->escape($_POST["year"])}'
                  WHERE `id`='".user["id"]."'");
-      html_okay("Bith data is now updated");
+      Okay::report("Bith data is now updated");
     }
     
     header("location: #");
@@ -149,66 +152,66 @@ class PageView implements P{
   }
   
   private function updatePass(){
-    $count = html_error_count();
+    $count = Error::count();
     
     if(empty($_POST["password"]) || !trim($_POST["password"])){
-      html_error("Missing password");
+      Error::report("Missing password");
     }
     
     if(empty($_POST["repeat_password"]) || !trim($_POST["password"])){
-      html_error("Missing repeat password");
+      Error::report("Missing repeat password");
     }
     
-    if($count == html_error_count() && $_POST["password"] != $_POST["repeat_password"]){
-      html_error("They two password is not equel");
+    if($count == Error::count() && $_POST["password"] != $_POST["repeat_password"]){
+      Error::report("They two password is not equel");
     }
     
     if(empty($_POST["current_password"]) || !trim($_POST["current_password"])){
-      html_error("Missing your current password");
+      Error::report("Missing your current password");
     }
     
-    if($count == html_error_count() && salt_password($_POST["current_password"], user["salt"]) != user["password"]){
-      html_error("Wrong current passowrd");
+    if($count == Error::count() && Auth::salt_password($_POST["current_password"], user["salt"]) != user["password"]){
+      Error::report("Wrong current passowrd");
     }
     
-    if($count == html_error_count()){
+    if($count == Error::count()){
       $db = Database::get();
-      $db->query("UPDATE `user` SET `password`='{$db->escape(salt_password($_POST["password"], user["salt"]))}' WHERE `id`='".user["id"]."'");
-      html_okay("Password is now updated");                                         
+      $db->query("UPDATE `user` SET `password`='{$db->escape(Auth::salt_password($_POST["password"], user["salt"]))}' WHERE `id`='".user["id"]."'");
+      Okay::report("Password is now updated");                                         
     }
     header("location: #");
     exit;
   }
   
   private function updateProfile(){
-    $error = html_error_count();
+    $error = Error::count();
     
     if(empty($_POST["username"]) || !trim($_POST["username"])){
-      html_error("Missing username");
+      Error::report("Missing username");
     }
     
     if(empty($_POST["email"]) || !trim($_POST["email"])){
-      html_error("Missing email");
+      Error::report("Missing email");
     }
     
     if(empty($_POST["password"]) || !trim($_POST["password"])){
-      html_error("Missing controle password");
+      Error::report("Missing controle password");
     }
     
-    if($error == html_error_count()){
+    if($error == Error::count()){
       if($data = Auth::controleDetail($_POST["username"], $_POST["email"])){
-        html_error($data." is taken");
+        Error::report($data." is taken");
       }else{
-        $password = salt_password($_POST["password"], user["salt"]);
+        $password = Auth::salt_password($_POST["password"], user["salt"]);
         if($password == user["password"]){
           $db = Database::get();
           $db->query("UPDATE `user` SET 
                        `username`='{$db->escape($_POST["username"])}',
                        `email`='{$db->escape($_POST["email"])}'
                       WHERE `id`='".user["id"]."'");
-          html_okay("Your profile is now updated");
+          Okay::report("Your profile is now updated");
         }else{
-          html_error("Controle password was wrong");
+          Error::report("Controle password was wrong");
         }
       }
     }

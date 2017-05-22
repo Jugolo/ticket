@@ -3,6 +3,9 @@ use Lib\Controler\Page\PageControler;
 use Lib\Controler\Page\PageInfo;
 use Lib\Database;
 use Lib\Ext\Notification\Notification;
+use Lib\Error;
+use Lib\Okay;
+
 define("BASE", dirname(__FILE__)."/");
 set_include_path(BASE);
 
@@ -44,7 +47,7 @@ set_error_handler(function($errno, $errstr, $errfile, $errline){
   if(defined("user")){
     $group = getUsergroup(user["groupid"]);
     if($group["showError"] == 1){
-      html_error($errstr);
+      Error::report($errstr);
     }
   }
 });
@@ -78,8 +81,13 @@ spl_autoload_register(function($class){
   }
 });
 
-include "Lib/tempelate.php";
 include "ajax.php";
+
+function two_container(string $first, string $two, array $options = []) : string{
+  $tag = !empty($options["tag"]) ? $option["tag"] : "span";
+  $tag2class = !empty($options["tag2class"]) ? " class='".$options["tag2class"]."'" : "";
+  return "<div class='two_container'><{$tag}>{$first}</{$tag}><{$tag}{$tag2class}>{$two}</{$tag}></div>";
+}
 
 if(!file_exists("config.php")){
   Lib\Setup\Main::controle();
@@ -95,7 +103,7 @@ function get_age(array $data){
                 `birth_month`='".$db->escape(intval($_POST["bm"]))."',
                 `birth_year`='".$db->escape(intval($_POST["by"]))."'
                WHERE `id`=".user["id"]);
-    html_okay("You birth day is now saved");
+    Okay::report("You birth day is now saved");
     header("location: #");
     exit;
   }
@@ -123,30 +131,31 @@ function controle_age(array $data) : bool{
 }
 
 function doLogin(){
-  $error = html_error_count();
+  $error = Error::count();
   if(empty($_POST["username"]) || !trim($_POST["username"])){
-    html_error("Missing username");
+    Error::report("Missing username");
   }
   
   if(empty($_POST["password"]) || !trim($_POST["password"])){
-    html_error("Missing password");
+    Error::report("Missing password");
   }
   
-  if(html_error_count() == $error){
+  if(Error::count() == $error){
     $db = Database::get();
     $row = $db->query("SELECT `id`, `password`, `salt`, `isActivatet` FROM `user` WHERE `username`='".$db->escape($_POST["username"])."'")->fetch();
     if($row){
       if(Lib\User\Auth::salt_password($_POST["password"], $row->salt) == $row->password){
         if($row->isActivatet == 1){
           $_SESSION["uid"] = $row->id;
+          Okay::report("You are now login");
         }else{
-          html_error("You account is not activatet yet!");
+          Error::report("You account is not activatet yet!");
         }
       }else{
-        html_error("Faild to find username or/and password");
+        Error::report("Faild to find username or/and password");
       }
     }else{
-      html_error("Failed to find username or/and password");
+      Error::report("Failed to find username or/and password");
     }
   }
   header("location: #");
@@ -154,32 +163,32 @@ function doLogin(){
 }
 
 function doCreate(){
-  $error = html_error_count();
+  $error = Error::count();
   if(empty($_POST["create_username"]) || !trim($_POST["create_username"])){
-    html_error("Missing username");
+    Error::report("Missing username");
   }
   
   $p = $r = true;
   
   if(empty($_POST["create_password"]) || !trim($_POST["create_password"])){
-    html_error("Missing password");
+    Error::report("Missing password");
     $p = false;
   }
   
   if(empty($_POST["repeat_password"]) || !trim($_POST["repeat_password"])){
-    html_error("Missing repeat password");
+    Error::report("Missing repeat password");
     $r = false;
   }
   
   if($p && $r && $_POST["repeat_password"] != $_POST["create_password"]){
-    html_error("The two password is not the same");
+    Error::report("The two password is not the same");
   }
   
   if(empty($_POST["email"]) || !trim($_POST["email"])){
-    html_error("Missing email");
+    Error::report("Missing email");
   }
   
-  if($error == html_error_count()){
+  if($error == Error::count()){
     $db = Database::get();
     $info = $db->query("SELECT `id`
                         FROM `user`
@@ -216,7 +225,7 @@ Best regards from us", implode("\r\n", [
         "Content-Type: text/plain; charset=utf8",
         "from:support@".$_SERVER["SERVER_NAME"],
         ]));
-      html_okay("You account is created. Please look in you email for activate it");
+      Html::okay("You account is created. Please look in you email for activate it");
       if(is_ajax()){
         ajax_var("create", true);
       }
@@ -224,7 +233,7 @@ Best regards from us", implode("\r\n", [
       if(is_ajax()){
         ajax_var("create", false);
       }
-      html_error("The username or/and email is taken.");
+      Error::report("The username or/and email is taken.");
     }
   }elseif(is_ajax()){
     ajax_var("create", false);
@@ -243,10 +252,10 @@ function doActivate(){
                       AND `salt`='".$db->escape($_GET["salt"])."'
                       AND `isActivatet`=0")->fetch();
   if(!$info){
-    html_error("Could not find the account. Maby it is already activated?");
+    Error::report("Could not find the account. Maby it is already activated?");
   }else{
     $db->query("UPDATE `user` SET `isActivatet`=1 WHERE `id`=".$info->id);
-    html_okay("The account is now activated and you can now login");
+    Okay::report("The account is now activated and you can now login");
   }
   
   header("location: ?view=front");
@@ -341,7 +350,7 @@ function unreadtickets(){
 
 function getMenu(){
   echo "<div id='menu'".(defined("logo") ? "" : " class='nologo'").">";
-  $table = new Table();
+  $table = new Lib\Html\Table();
   $table->id = "menu_table";
   $table->newColummen();
   $table->th("<a href='?view=front'>Front</a>", true);
@@ -392,8 +401,8 @@ window.onerror = function(msg, url, line, col, error) {
     <script src='js/system.js'></script>
     <script>
       function onload(){
-        <?php getHtmlError(); ?> 
-        <?php getHtmlOkay(); ?> 
+        <?php Error::toJavascript(); ?> 
+        <?php Okay::toJavascript(); ?> 
         CowTicket.init();
       }
       
