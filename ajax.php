@@ -25,10 +25,8 @@ function ajax_output(){
     if(Lib\Error::count() != 0){
       ajax_var("error", Lib\Error::toArray());
     }
+    ajax_var("okay", Lib\Okay::toArray());
     
-    if(Lib\Okay::toArray() != 0){
-      ajax_var("okay", Lib\Okay::toArray());
-    }
     header('Content-Type: application/json');
     echo json_encode($_SESSION["ajax"]);
     unset($_SESSION["ajax"]);
