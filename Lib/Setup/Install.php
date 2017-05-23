@@ -113,7 +113,8 @@ class Install{
     
     $db->query("INSERT INTO `group` VALUES (1, 'User',  1, 0, 0, 0, 0, 0, 0),
                                               (2, 'Admin', 0, 1, 1, 1, 1, 1, 1);");
-    $db->query("INSERT INTO `config` VALUES ('version', '".Main::SETUP_VERSION."');");
+    $db->query("INSERT INTO `config` VALUES ('version', '".Main::SETUP_VERSION."'),
+                                            ('standart_group', '1');");
     $id =Auth::createUser(
       $_POST["username"],
       $_POST["password"],
@@ -171,7 +172,6 @@ class Install{
         "group"    => "CREATE TABLE IF NOT EXISTS `group` (
                          `id` int(11) NOT NULL AUTO_INCREMENT,
                          `name` varchar(255) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
-                         `isStandart` int(1) NOT NULL,
                          `showTicket` int(1) NOT NULL,
                          `changeGroup` int(1) NOT NULL,
                          `handleGroup` int(1) NOT NULL,
