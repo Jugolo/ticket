@@ -6,9 +6,11 @@ use Lib\Database;
 class Track{
   public static function track(int $ticket_id, int $user_id){
     $db = Database::get();
-    $db->query("UPDATE `ticket_track` SET `visit`=NOW() WHERE `tid`='".$ticket_id."' AND `uid`='".$user_id."'");
-    if($db->affected() == 0){
+    $count = $db->query("SELECT COUNT(`tid`) AS number FROM `ticket_track` WHERE `tid`='".$ticket_id."' AND `uid`='".$user_id."'")->fetch();
+    if($count->number == 0){
       $db->query("INSERT INTO `ticket_track` VALUES ('".$user_id."', '".$ticket_id."', NOW());");
+    }else{
+      $db->query("UPDATE `ticket_track` SET `visit`=NOW() WHERE `tid`='".$ticket_id."' AND `uid`='".$user_id."'");
     }
   }
   

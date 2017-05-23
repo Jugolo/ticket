@@ -22,17 +22,17 @@ class Database{
       return true;
     }
     
-    if(!defined("db_driver")){
+    if(!defined("IN_SETUP") && !defined("db_driver")){
       trigger_error("Missing defined value 'db_driver' to tell wich database driver to use", E_USER_ERROR);
       return false;
     }
-    
-    if(!file_exists(BASE."Lib/Database/".db_driver.".php")){
-      trigger_error("Missing database driver '".db_driver."'", E_USER_ERROR);
+    $driver = defined("IN_SETUP") ? $_SESSION["setup"]["db_driver"] : db_driver;
+    if(!file_exists(BASE."Lib/Database/".$driver.".php")){
+      trigger_error("Missing database driver '".$driver."'", E_USER_ERROR);
       return false;
     }
     
-    $name = "Lib\\Database\\".db_driver;
+    $name = "Lib\\Database\\".$driver;
     $driver = new $name();
     if($driver instanceof DatabaseDriver){
       self::$db = $driver;

@@ -135,7 +135,7 @@ class PageView implements P{
   }
   
   public function appendInput(int $id){
-    $error_count = html_error_count();
+    $error_count = Error::count();
     if(empty($_POST["name"]) || !trim($_POST["name"])){
       Error::report("Missing input name");
     }
@@ -148,7 +148,7 @@ class PageView implements P{
       Error::report("Missing placeholder");
     }
     
-    if($error_count == html_error_count()){
+    if($error_count == Error::count()){
       $db = Database::get();
       $db->query("INSERT INTO `category_item` VALUES (
                    NULL,

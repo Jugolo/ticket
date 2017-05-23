@@ -19,7 +19,7 @@ class Notification{
     $dir = opendir($pages);
     while($name = readdir($dir)){
       if($name != "Notification.php" && $name != "." && $name != ".." && is_file($pages.$name)){
-        call_user_func($callback, "Lib\\Ext\\Notification\\".$name);
+        call_user_func($callback, "Lib\\Ext\\Notification\\".substr($name, 0, strrpos($name, ".")));
       }
     }
     closedir($dir);

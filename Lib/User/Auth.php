@@ -3,6 +3,7 @@ namespace Lib\User;
 
 use Lib\Database;
 use Lib\Ext\Notification\Notification;
+use Lib\Config;
 
 class Auth{
   public static function controleDetail(string $username, string $email){
@@ -48,7 +49,7 @@ class Auth{
         '".$db->escape($email)."',
         '".$db->escape($salt)."',
         '".($isActivated ? '1' : '0')."',
-        ".getStandartGroup()["id"]."
+        '".Config::get("standart_group")."'
       );");
     Notification::getNotification(function(string $name) use($db, $id){
         $db->query("INSERT INTO `notify_setting` VALUES ('{$id}', '{$db->escape($name)}');");
@@ -64,5 +65,6 @@ Best regards from us", implode("\r\n", [
         "from:support@".$_SERVER["SERVER_NAME"],
         ])); 
     }
+    return $id;
   }
 }

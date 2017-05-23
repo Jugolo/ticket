@@ -107,7 +107,7 @@ function doLogin(){
   
   if(Error::count() == $error){
     $db = Database::get();
-    $row = $db->query("SELECT `id`, `password`, `salt`, `isActivatet` FROM `user` WHERE `username`='".$db->escape($_POST["username"])."'")->fetch();
+    $row = $db->query("SELECT `id`, `password`, `salt`, `isActivatet` FROM `user` WHERE LOWER(`username`)='".$db->escape(strtolower($_POST["username"]))."'")->fetch();
     if($row){
       if(Lib\User\Auth::salt_password($_POST["password"], $row->salt) == $row->password){
         if($row->isActivatet == 1){
@@ -154,13 +154,7 @@ function doCreate(){
   }
   
   if($error == Error::count()){
-    $db = Database::get();
-    $info = $db->query("SELECT `id`
-                        FROM `user`
-                        WHERE `username`='".$db->escape($_POST["create_username"])."'
-                        OR `email`='".$db->escape($_POST["email"])."'")->fetch();
-    
-    if(!$info){
+    if(Lib\User\Auth::controleDetail($_POST["create_username"], $_POST["email"]) == null){
       Lib\User\Auth::createUser($_POST["create_username"], $_POST["create_password"], $_POST["email"], false);
       Okay::report("You account is created. Please look in you email for activate it");
       if(is_ajax()){
@@ -254,7 +248,7 @@ if(defined("user") && user["id"] == "1"){
 }
 
 function geturl(){
-  return $_SERVER["HTTP_ORIGIN"].$_SERVER["SCRIPT_NAME"];
+  return "http://".$_SERVER['HTTP_HOST'].$_SERVER['PHP_SELF'];
 }
 
 function getStandartGroup(){
@@ -264,25 +258,9 @@ function getStandartGroup(){
 function getContext(){
   $page = PageControler::getPage();
   if(!$page){
-    trigger_error("Missing page viewer for: ".$_GET["view"], E_USER_ERROR);
     return;
   }
   $page->body();
-}
-
-function unreadtickets(){
-  $sql = "SELECT COUNT(ticket.id) AS id
-          FROM `ticket`
-          LEFT JOIN `ticket_track` ON ticket.id=ticket_track.tid AND ticket_track.uid='".user["id"]."'
-          WHERE (ticket_track.tid IS NULL OR ticket_track.tid IS NOT NULL AND ticket_track.visit<ticket.user_changed)";
-  
-  $group = getUsergroup(user["groupid"]);
-  $db = database();
-  if($group["showTicket"] == "0"){
-    $sql .= " AND ticket.uid='".$db->real_escape_string(user["id"])."'";
-  }
-  
-  return $db->query($sql)->fetch_assoc()["id"];
 }
 
 function getMenu(){
@@ -464,6 +442,8 @@ window.onerror = function(msg, url, line, col, error) {
                 <a href='#' onclick='toggleLoginMethod();'>Or create account</a>
               </div>
             </div>
+          </form>
+          <form method='post' action='#'>
             <div class='createAccount'>
               <h3>Create account</h3>
               <div>

@@ -5,7 +5,7 @@ use Lib\Database;
 use Lib\Database\DatabaseFetch;
 
 class NewComment{
-  public static function createNotify(int $hid, int $creater){
+  public static function createNotify(int $hid, int $creater, bool $isPublic){
     $db = Database::get();
     $query = $db->query("SELECT notify_setting.uid
                          FROM `notify_setting`
@@ -17,6 +17,9 @@ class NewComment{
     while($row = $query->fetch()){
       if($row->uid != user["id"]){
         if($row->uid == $creater){
+          if(!$isPublic){
+           continue; 
+          }
           $found = true;
         }
         
@@ -24,7 +27,7 @@ class NewComment{
       }
     }
     
-    if(!$found && $creater != user["id"]){
+    if(!$found && $creater != user["id"] && $isPublic){
       $row = $db->query("SELECT COUNT(`uid`) AS uid
                            FROM `notify_setting` 
                            WHERE `uid`='{$creater}' 

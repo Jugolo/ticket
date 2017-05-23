@@ -5,7 +5,22 @@ class Mysqli extends DatabaseDriver{
   private $db;
   
   public function __construct(){
-    $this->db = new \mysqli(DB_HOST, DB_USER, DB_PASS, DB_TABLE);
+    if(defined("IN_SETUP") && !empty($_SESSION["setup"])){
+      $db = [
+          $_SESSION["setup"]["db_host"],
+          $_SESSION["setup"]["db_user"],
+          $_SESSION["setup"]["db_password"],
+          $_SESSION["setup"]["db_table"]
+        ];
+    }else{
+     $db = [
+         DB_HOST,
+         DB_USER,
+         DB_PASS,
+         DB_TABLE
+       ];
+    }
+    $this->db = new \mysqli($db[0], $db[1], $db[2], $db[3]);
     if(!$this->hasError()){
       $this->db->set_charset("utf8"); 
     }else{

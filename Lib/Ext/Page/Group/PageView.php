@@ -4,6 +4,7 @@ namespace Lib\Ext\Page\Group;
 use Lib\Controler\Page\PageView as P;
 use Lib\Database;
 use Lib\Okay;
+use Lib\Config;
 
 class PageView implements P{
   public function body(){
@@ -13,11 +14,12 @@ class PageView implements P{
     if(!empty($_POST["name"])){
       $this->create($_POST["name"]);
     }
-    $query = Database::get()->query("SELECT `id`, `name`, `isStandart` FROM `group`");
+    $standart = Config::get("standart_group");
+    $query = Database::get()->query("SELECT `id`, `name` FROM `group`");
     while($row = $query->fetch()){
       echo two_container($row->name, "<a href='?view=handleGroup&sub=Delete&gid=".$row->id."'>Delete group</a> 
       <a href='?view=handleGroup&sub=Access&gid=".$row->id."'>Change access</a>".(
-      $row->isStandart == 1 ? "" : " <a href='?view=handleGroup&sub=Standart&gid={$row->id}'>Set standart</a>"
+      $row->id == $standart ? "" : " <a href='?view=handleGroup&sub=Standart&gid={$row->id}'>Set standart</a>"
       ));
     }
   
@@ -47,14 +49,12 @@ class PageView implements P{
      $db = Database::get();
      $id = $db->query("INSERT INTO `group` (
       `name`,
-      `isStandart`,
       `showTicket`,
       `changeGroup`,
       `handleGroup`,
       `showProfile`
     ) VALUES (
       '".$db->escape($_POST["name"])."',
-      '0',
       '0',
       '0',
       '0',

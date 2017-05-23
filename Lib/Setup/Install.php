@@ -2,13 +2,13 @@
 namespace Lib\Setup;
 
 use Lib\User\Auth;
+use Lib\Database;
 use Lib\Ext\Notification\Notification;
 
 class Install{
   private static $okay = false;
   
   public static function install(){
-    define("IN_SETUP", true);
     switch(empty($_GET["step"]) ? "1" : $_GET["step"]){
       case "1":
         self::information();
@@ -109,33 +109,18 @@ class Install{
       self::$okay = false;
       return;
     }
+    $db = Database::get();
     
-    $mysql = new \mysqli(
-      $_SESSION["setup"]["db_host"],
-      $_SESSION["setup"]["db_user"],
-      $_SESSION["setup"]["db_password"],
-      $_SESSION["setup"]["db_table"]
-      );
-    
-    $mysql->query("INSERT INTO `group` VALUES (1, 'User',  1, 0, 0, 0, 0, 0, 0),
+    $db->query("INSERT INTO `group` VALUES (1, 'User',  1, 0, 0, 0, 0, 0, 0),
                                               (2, 'Admin', 0, 1, 1, 1, 1, 1, 1);");
-    $mysql->query("INSERT INTO `config` VALUES ('version', '".Main::SETUP_VERSION."');");
-    $salt = Auth::randomString(200);
-    $mysql->query("INSERT INTO `user` VALUES (
-                    1,
-                    '{$mysql->real_escape_string($_POST["username"])}',
-                    '{$mysql->real_escape_string(Auth::salt_password($_POST["password"], $salt))}',
-                    '{$mysql->real_escape_string($_POST["email"])}',
-                    '{$mysql->real_escape_string($salt)}',
-                    1,
-                    2,
-                    NULL,
-                    NULL,
-                    NULL
-                   );");
-         Notification::getNotification(function(string $name) use($mysql){
-           $mysql->query("INSERT INTO `notify_setting` VALUES ('1', '{$mysql->real_escape_string($name)}');");
-         });
+    $db->query("INSERT INTO `config` VALUES ('version', '".Main::SETUP_VERSION."');");
+    $id =Auth::createUser(
+      $_POST["username"],
+      $_POST["password"],
+      $_POST["email"],
+      true
+      );
+    $db->query("UPDATE `user` SET `groupid`='2' WHERE `id`='{$id}'");
     header("location: ?step=5");
     exit;
   }
@@ -247,17 +232,12 @@ class Install{
                      PRIMARY KEY (`id`)
                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8;"
       ];
-    $mysqli = new \mysqli(
-      $_SESSION["setup"]["db_host"],
-      $_SESSION["setup"]["db_user"],
-      $_SESSION["setup"]["db_password"],
-      $_SESSION["setup"]["db_table"]
-      );
+    $db = Database::get();
     
     echo "<h3 style='color:green;text-align:center;'>Create tables</h3><br><br>";
     self::$okay = true;
     foreach($table as $name => $sql){
-      if($mysqli->query($sql)){
+      if($db->query($sql)){
         echo "<span style='color:green'>Created '{$name}'</span><br>";
       }else{
         self::$okay = false;
@@ -331,7 +311,8 @@ class Install{
         "db_host"     => $_POST["host"],
         "db_user"     => $_POST["user"],
         "db_password" => $_POST["password"],
-        "db_table"    => $_POST["table"]
+        "db_table"    => $_POST["table"],
+        "db_driver"   => "Mysqli"
       ];
     header("location: ?step=3");
     exit;

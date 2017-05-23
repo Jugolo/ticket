@@ -89,7 +89,7 @@ class TicketView{
                     '".$db->escape($_POST["comments"])."'
                   );");
       $db->query("UPDATE `ticket` SET `admin_changed`=NOW(), `comments`=comments+1".($public ? ", `user_changed`=NOW()" : "")." WHERE `id`='{$data->id}'");
-      NewComment::createNotify($data->id, $data->uid);
+      NewComment::createNotify($data->id, $data->uid, $public);
       Okay::report("Comments saved");
       header("location: #");
       exit;

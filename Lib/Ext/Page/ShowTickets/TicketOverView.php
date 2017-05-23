@@ -30,6 +30,7 @@ class TicketOverView{
                            LEFT JOIN `ticket_track` ON ticket_track.tid=ticket.id AND ticket_track.uid='".user["id"]."'
                            LEFT JOIN `user` ON user.id=ticket.uid
                            WHERE ticket.uid<>'".user["id"]."'
+                           GROUP BY ticket.id
                            ORDER BY ticket.admin_changed DESC");
       if($query->count() != 0){
         echo "<fieldset class='ticket_overview'>";

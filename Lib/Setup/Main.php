@@ -4,7 +4,7 @@ namespace Lib\Setup;
 use Lib\Error;
 
 class Main{
-  const SETUP_VERSION = "V2.3";
+  const SETUP_VERSION = "V2.4";
   
   public static function controle(){
     if(is_ajax()){
@@ -12,6 +12,7 @@ class Main{
     }
       
     if(self::needInstall()){
+      define("IN_SETUP", true);
       Install::install();
     }elseif(self::needUpgrade()){
       Upgrade::upgrade();
