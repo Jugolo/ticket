@@ -87,7 +87,7 @@ class PageView implements P{
     }
     
     if($errcount !== 0 || count($sqlBuffer) == 0){
-      if(count($sqlBuffer) == 0){
+      if(count($sqlBuffer) == 0 && $errcount == 0){
         Error::report("Could not save a empty ticket");
       }
       $saver->save();
