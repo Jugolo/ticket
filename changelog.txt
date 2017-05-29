@@ -1,3 +1,6 @@
+V2.6 - ?.?-2017
+--Bugfix--
+Remove unused function call to getStandartGroup. this will also remove a error (Illegal string offset 'id')
 V2.5 - 29.5-2017
 --Bugfix--
 Fixed install script there try to create group width old colummens in group table.(Thanks to Stengade)
