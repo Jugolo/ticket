@@ -111,8 +111,8 @@ class Install{
     }
     $db = Database::get();
     
-    $db->query("INSERT INTO `group` VALUES (1, 'User',  1, 0, 0, 0, 0, 0, 0),
-                                              (2, 'Admin', 0, 1, 1, 1, 1, 1, 1);");
+    $db->query("INSERT INTO `group` VALUES (1, 'User',  0, 0, 0, 0, 0, 0),
+                                              (2, 'Admin', 1, 1, 1, 1, 1, 1);");
     $db->query("INSERT INTO `config` VALUES ('version', '".Main::SETUP_VERSION."'),
                                             ('standart_group', '1');");
     $id =Auth::createUser(
