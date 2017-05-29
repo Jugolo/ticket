@@ -252,7 +252,7 @@ function geturl(){
 }
 
 function getStandartGroup(){
-  return Database::get()->query("SELECT * FROM `group` WHERE `isStandart`='1'")->fetch()->toArray();
+  return Lib\Config::get("standart_group");
 }
 
 function getContext(){
