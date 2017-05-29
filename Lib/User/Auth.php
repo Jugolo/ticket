@@ -34,7 +34,6 @@ class Auth{
   
   public static function createUser(string $username, string $raw_password, string $email, bool $isActivated){
     $salt = self::randomString(200);
-    $gid = getStandartGroup()["id"];
     $db = Database::get();
     $id = $db->query("INSERT INTO `user` (
         `username`,
