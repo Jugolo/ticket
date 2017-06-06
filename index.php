@@ -315,6 +315,7 @@ window.onerror = function(msg, url, line, col, error) {
     <script src='less.js'></script>
     <script src='js/system.js'></script>
     <script>
+      var isUser = <?php echo defined("user") ? "true" : "false"; ?>;
       function onload(){
         <?php Error::toJavascript(); ?> 
         <?php Okay::toJavascript(); ?> 
