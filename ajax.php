@@ -39,4 +39,5 @@ function updateAjax(&$ajax){
     ajax_var("unread_ticket", Lib\Ticket\Track::unread());
     ajax_var("notify", Lib\Ext\Notification\Notification::ajax());
   }
+  ajax_var("is_user", defined("user"));
 }
