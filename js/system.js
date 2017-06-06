@@ -42,8 +42,15 @@ var CowTicket = {
   
   controleUpdate : function(){
     this.ajax("update", {notify_id : this.notify_id}, function(a){
-      this.updateUnread(a.unread_ticket);
-      this.updateNotify(a.notify);
+      if(isUser != a.is_user){
+        location.reload(); 
+      }
+      if(a.unread_ticket){
+        this.updateUnread(a.unread_ticket);
+      }
+      if(a.notify){
+        this.updateNotify(a.notify);
+      }
       var self = this;
       setTimeout(function(){
         self.controleUpdate();
