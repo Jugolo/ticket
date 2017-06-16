@@ -1,5 +1,7 @@
-V2.6 - ?.?-2017
+V2.6 - 16.7-2017
 --Bugfix--
+Append 'isUser' to ajax update call to avoid session expired error
+
 Remove unused function call to getStandartGroup. this will also remove a error (Illegal string offset 'id')
 V2.5 - 29.5-2017
 --Bugfix--
