@@ -15,7 +15,7 @@ function ajax_output(){
   if(is_ajax()){
     switch($_GET["_ajax"]){
       case "update":
-        updateAjax($ajax);
+        updateAjax();
       break;
       case "null":break;
       default:
@@ -34,7 +34,7 @@ function ajax_output(){
   }
 }
 
-function updateAjax(&$ajax){
+function updateAjax(){
   if(defined("user")){
     ajax_var("unread_ticket", Lib\Ticket\Track::unread());
     ajax_var("notify", Lib\Ext\Notification\Notification::ajax());
