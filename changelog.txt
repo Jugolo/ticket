@@ -1,3 +1,8 @@
+V2.7 - ?.?-?
+--Bugfix--
+Ensure the page controler exists and containe the needed class exists
+Remove the $ajax in ajax.php it is never used and there for it was removed.
+
 V2.6 - 16.7-2017
 --Bugfix--
 Append 'isUser' to ajax update call to avoid session expired error
