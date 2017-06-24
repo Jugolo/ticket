@@ -13,6 +13,7 @@ class Config{
   }
   
   public static function set(string $name, string $value){
+    self::ensureInit();
     $db = Database::get();
     if(self::get($name)){
       $db->query("UPDATE `config` SET `value`='{$db->escape($value)}' WHERE `name`='{$db->escape($name)}'");
