@@ -484,7 +484,7 @@ window.onerror = function(msg, url, line, col, error) {
         ?>
       </div>
       <div id='copy'>
-        <a href='http://ticket.cowscript.dk/ticket'>CowScript</a>  2017 - All Rights Reserved
+        <a href='http://ticket.cowscript.dk/'>CowScript</a>  2017 - All Rights Reserved
       </div>
     </div>
   </body>
