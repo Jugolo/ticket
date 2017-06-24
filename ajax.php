@@ -1,6 +1,4 @@
 <?php
-$ajax = [];
-
 $_SESSION["ajax"] = [];
 
 function is_ajax(){
