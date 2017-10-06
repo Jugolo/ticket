@@ -1,0 +1,11 @@
+Please activate you new account
+
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf8
+
+Hallo {{username}}
+
+You has just create an account and to be sure this email is belong to you, you need to confirm it with visit the link below.
+If you dont has create an account you dont need to do anythink.
+{{link}}
+Best regards from us

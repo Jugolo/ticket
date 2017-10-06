@@ -7,6 +7,7 @@ use Lib\Database;
 use Lib\Database\DatabaseFetch;
 use Lib\Error;
 use Lib\Okay;
+use Lib\Config;
 
 class PageView implements P{
   public function body(){
@@ -207,6 +208,16 @@ class PageView implements P{
       echo "</form>";
     echo "</fieldset>";
     
+    ?>
+    <script>
+        function onCatOptionSelect(dom, id){
+          if(dom.value){
+            location.href = "?view=<?php echo $_GET["view"]; ?>&"+dom.value+"="+id;
+          }
+        }
+    </script>
+    <?php
+    
     echo "<fieldset>";
       echo "<legend>Category</legend>";
       Database::get()->query("SELECT * FROM `catogory`")->render([$this, "render"]);
@@ -219,7 +230,15 @@ class PageView implements P{
      $item[] = "<a href='?view={$_GET["view"]}&catogory={$row->id}'>Setting</a>";
      $item[] = "<a href='?view={$_GET["view"]}&open={$row->id}'>".($row->open != 1 ? "Open" : "Close")."</a>";
      $item[] = "<a href='?view={$_GET["view"]}&delete={$row->id}'>Delete</a>";
-     echo two_container($row->name, implode(" ", $item));
+     $mitem = [
+       "<select onchange='onCatOptionSelect(this, {$row->id})';>",
+       "<option value=''></option>",
+       "<option value='catogory'>Setting</option>",
+       "<option value='open'>".($row->open != 1 ? "Open" : "Close")."</option>",
+       "<option value='delete'>Delete</option>",
+       "</select>"
+     ];
+     echo two_container($row->name, "<div class='non-mobile'>".implode(" ", $item)."</div><div class='mobile'>".implode(" ", $mitem)."</div>");
     echo "</div>";
   }
   
@@ -232,9 +251,11 @@ class PageView implements P{
     
     $db->query("UPDATE `catogory` SET `open`='".($data->open == 1 ? '0' : '1')."' WHERE `id`='{$id}'");
     if($data->open == 1){
+      Config::set("cat_open", Config::get("cat_open")-1);
       Okay::report("The category is now closed");
     }else{
       Okay::report("The category is now open");
+      Config::set("cat_open", Config::get("cat_open")+1);
     }
     
     header("location: ?view=".$_GET["view"]);
@@ -243,6 +264,14 @@ class PageView implements P{
   
   private function delete(int $id){
     $db = Database::get();
+    $data = $db->query("SELECT * FROM `catogory` WHERE `id`='".$id."'")->fetch();
+    if(!$data){
+      Error::report("No catogroy found to delete");
+      return;
+    }
+    if($data->open != 0){
+     Config::set("cat_open", Config::get("cat_open")-1);
+    }
     $db->query("DELETE FROM `category_item` WHERE `cid`='{$id}'");
     $query = $db->query("SELECT `id` FROM `ticket` WHERE `cid`='{$id}'");
     while($row = $query->fetch()){

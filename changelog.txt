@@ -1,7 +1,14 @@
-V2.7 - ?.?-?
---Bugfix--
-Ensure the page controler exists and containe the needed class exists
-Remove the $ajax in ajax.php it is never used and there for it was removed.
+V3.0 - 6.10.2017
+--New--
+Send email to user when a new ticket is created or on new comments. 
+Open and close option to tickets. 
+BB code is avarible on comments. 
+Smylie on comments 
+Split errors in pages
+Delete error message.
+Make the site more mobile frindly
+--Change--
+Move top menu to left.
 
 V2.6 - 16.7-2017
 --Bugfix--

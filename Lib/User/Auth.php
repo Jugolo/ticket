@@ -4,6 +4,7 @@ namespace Lib\User;
 use Lib\Database;
 use Lib\Ext\Notification\Notification;
 use Lib\Config;
+use Lib\Email;
 
 class Auth{
   public static function controleDetail(string $username, string $email){
@@ -54,15 +55,10 @@ class Auth{
         $db->query("INSERT INTO `notify_setting` VALUES ('{$id}', '{$db->escape($name)}');");
     });
     if(!$isActivated){
-     mail($email, "Please activate you new account", "Hallo ".$username."
-You has just create an account and to be sure this email is belong to you, you need to confirm it with visit the link below.
-If you dont has create an account you dont need to do anythink. 
-".geturl()."?salt=".urlencode($salt)."&email=".urlencode($email)."
-Best regards from us", implode("\r\n", [
-        "MIME-Version: 1.0",
-        "Content-Type: text/plain; charset=utf8",
-        "from:support@".$_SERVER["SERVER_NAME"],
-        ])); 
+      $emails = new Email();
+      $emails->pushArg("username", $username);
+      $emails->pushArg("link", geturl()."?salt=".urlencode($salt)."&email=".urlencode($email));
+      $emails->send("account_create", $email);
     }
     return $id;
   }

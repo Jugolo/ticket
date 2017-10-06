@@ -1,0 +1,8 @@
+New ticket is created
+
+MIME-Version: 1.0
+Content-type: text/plain; charset=utf8
+
+Hallo {{username}}
+
+A new ticket is created in category "{{ticket_category}}" And waiting to a review

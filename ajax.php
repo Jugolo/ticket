@@ -1,4 +1,6 @@
 <?php
+$ajax = [];
+
 $_SESSION["ajax"] = [];
 
 function is_ajax(){
@@ -13,7 +15,7 @@ function ajax_output(){
   if(is_ajax()){
     switch($_GET["_ajax"]){
       case "update":
-        updateAjax();
+        updateAjax($ajax);
       break;
       case "null":break;
       default:
@@ -32,7 +34,7 @@ function ajax_output(){
   }
 }
 
-function updateAjax(){
+function updateAjax(&$ajax){
   if(defined("user")){
     ajax_var("unread_ticket", Lib\Ticket\Track::unread());
     ajax_var("notify", Lib\Ext\Notification\Notification::ajax());

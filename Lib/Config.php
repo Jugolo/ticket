@@ -13,9 +13,8 @@ class Config{
   }
   
   public static function set(string $name, string $value){
-    self::ensureInit();
     $db = Database::get();
-    if(self::get($name)){
+    if(array_key_exists($name, self::$item)){
       $db->query("UPDATE `config` SET `value`='{$db->escape($value)}' WHERE `name`='{$db->escape($name)}'");
     }else{
       $db->query("INSERT INTO `config` VALUES ('{$db->escape($name)}', '{$db->escape($value)}');");

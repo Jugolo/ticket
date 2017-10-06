@@ -10,6 +10,8 @@ use Lib\Ext\Notification\NewComment;
 use Lib\Error;
 use Lib\Okay;
 use Lib\Html\Table;
+use Lib\Bbcode\Parser;
+use Lib\Email;
 
 class TicketView{
   public static function body(DatabaseFetch $data){
@@ -20,8 +22,15 @@ class TicketView{
     if(!empty($_POST["create"])){
       self::createComments($data);
     }
+    if($group["closeTicket"] == 1 && !empty($_GET["close"]) && $data->uid != user["id"]){
+      self::changeOpningState($data->open != 1, $data->id);
+    }
     echo "<fieldset>";
     echo "<legend>Information</legend>";
+    if($group["closeTicket"] == 1 && $data->uid != user["id"]){
+      echo two_container("Change opning state", "<a href='?view=tickets&ticket_id=".$data->id."&close=true'>".($data->open == 1 ? "Close" : "Open")."</a>");
+      echo "<hr>";
+    }
     echo two_container("Category", $data->name);
     if($group["showProfile"] == 1){
       echo two_container("From", "<a href='?view=profile&user={$data->uid}'>{$data->username}</a>");
@@ -48,34 +57,49 @@ class TicketView{
       $table->output();
     }
     echo "</fieldset>";
-    
+    Parser::getJavascript();
     echo "<fieldset>";
      echo "<legend>Comments</legend>";
      self::getComments($data);
     echo "</fieldset>";
     
-    echo "<form method='post' action='#'>";
-    echo "<fieldset>";
-      echo "<legend>Create comment</legend>";
-      echo "<div>";
+    if($data->open == 1){
+      echo "<form method='post' action='#'>";
+      echo "<fieldset>";
+        echo "<legend>Create comment</legend>";
         echo "<div>";
-          echo "<textarea id='comment' name='comments'></textarea>";
-        echo "</div>";
-        echo "<div>";
-          echo "<input type='submit' name='create' value='Create comments'>";
-        echo "</div>";
-        if($data->uid != user["id"]){
           echo "<div>";
-           echo "Public <input type='checkbox' name='public' value='yes' class='leave'>";
+            echo "<textarea id='comment' name='comments'></textarea>";
           echo "</div>";
-        }
-      echo "</div>";
-    echo "</fieldset>";
-    echo "</form>";
+          echo "<div>";
+            echo "<input type='submit' name='create' value='Create comments'>";
+          echo "</div>";
+          if($data->uid != user["id"]){
+            echo "<div>";
+             echo "Public <input type='checkbox' name='public' value='yes' class='leave'>";
+            echo "</div>";
+          }
+        echo "</div>";
+       echo "</fieldset>";
+      echo "</form>";
+    }
+  }
+  
+  private static function changeOpningState(bool $open, $id){
+    Database::get()->query("UPDATE `ticket` SET `open`='".($open ? 1 : 0)."' WHERE `id`='{$id}'");
+    if($open){
+      Okay::report("Ticket is now open"); 
+    }else{
+      Okay::report("Ticket is now closed");
+    }
+    header("location: ?view=tickets&ticket_id=".$id);
+    exit;
   }
   
   private static function createComments(DatabaseFetch $data){
-    if(empty($_POST["comments"])){
+    if($data->open != 1){
+      Error::report("You can not comments on closed ticket");
+    }elseif(empty($_POST["comments"])){
       Error::report("Missing message");
     }else{
       $public = $data->uid == user["id"] || !empty($_POST["public"]);
@@ -91,8 +115,29 @@ class TicketView{
       $db->query("UPDATE `ticket` SET `admin_changed`=NOW(), `comments`=comments+1".($public ? ", `user_changed`=NOW()" : "")." WHERE `id`='{$data->id}'");
       NewComment::createNotify($data->id, $data->uid, $public);
       Okay::report("Comments saved");
+      self::sendEmailOnComment($data, $public);
       header("location: #");
       exit;
+    }
+  }
+  
+  private static function sendEmailOnComment(DatabaseFetch $data, bool $public){
+    $email = new Email();
+    $db = Database::get();
+    $query = $db->query("SELECT user.username, user.email
+                         FROM `user`
+                         LEFT JOIN `group` ON user.groupid=group.id
+                         LEFT JOIN `comment` ON comment.uid=user.id
+                         WHERE group.showTicket='1'
+                         AND comment.tid='{$data->id}'
+                         ".($public ? "" : "AND user.id <> '{$data->uid}'")."
+                         AND user.id<>'".user["id"]."'
+                         GROUP BY user.id");
+    while($row = $query->fetch()){
+      $email->pushArg("creator", $row->username);
+      $email->pushArg("category", $data->name);
+      $email->pushArg("my_username", user["username"]);
+      $email->send("new_comment", $row->email);
     }
   }
   
@@ -125,7 +170,8 @@ class TicketView{
         echo "</ul>";
       echo "</div>";
       echo "<div class='message'>";
-       echo nl2br(htmlentities($data->message));
+       $parser = new Parser($data->message);
+       echo $parser->getHtml();
       echo "</div>";
       echo "<div class='clear'></div>";
     echo "</div>";

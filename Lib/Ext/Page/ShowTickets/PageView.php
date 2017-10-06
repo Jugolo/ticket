@@ -15,7 +15,7 @@ class PageView implements P{
   }
   
   private function getTicketData(int $id){
-    $data = Database::get()->query("SELECT ticket.id, ticket.uid, catogory.name, catogory.age, user.username, user.birth_day, user.birth_month, user.birth_year
+    $data = Database::get()->query("SELECT ticket.id, ticket.open, ticket.uid, catogory.name, catogory.age, user.username, user.birth_day, user.birth_month, user.birth_year
     FROM `ticket`
     LEFT JOIN `catogory` ON catogory.id=ticket.cid
     LEFT JOIN `user` ON user.id=ticket.uid

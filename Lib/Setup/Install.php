@@ -111,10 +111,11 @@ class Install{
     }
     $db = Database::get();
     
-    $db->query("INSERT INTO `group` VALUES (1, 'User',  0, 0, 0, 0, 0, 0),
-                                              (2, 'Admin', 1, 1, 1, 1, 1, 1);");
+    $db->query("INSERT INTO `group` VALUES (1, 'User',  0, 0, 0, 0, 0, 0, 0),
+                                              (2, 'Admin', 1, 1, 1, 1, 1, 1, 1);");
     $db->query("INSERT INTO `config` VALUES ('version', '".Main::SETUP_VERSION."'),
-                                            ('standart_group', '1');");
+                                            ('standart_group', '1'),
+                                            ('cat_open', '0');");
     $id =Auth::createUser(
       $_POST["username"],
       $_POST["password"],
@@ -178,6 +179,7 @@ class Install{
                          `handleTickets` tinyint(1) NOT NULL,
                          `showError` int(1) NOT NULL,
                          `showProfile` int(1) NOT NULL,
+                         `closeTicket` int(1) NOT NULL,
                          PRIMARY KEY (`id`)
                        ) ENGINE=InnoDB DEFAULT CHARSET=utf8;",
         "notify"   => "CREATE TABLE IF NOT EXISTS `notify` (
@@ -203,6 +205,7 @@ class Install{
                         `created` datetime NOT NULL,
                         `user_changed` datetime NOT NULL,
                         `admin_changed` datetime NOT NULL,
+                        `open` int(1) NOT NULL,
                         PRIMARY KEY (`id`)
                       ) ENGINE=InnoDB DEFAULT CHARSET=utf8;",
          "ticket_track" => "CREATE TABLE IF NOT EXISTS `ticket_track` (

@@ -1,0 +1,9 @@
+New comment on a ticket
+
+MIME-Version: 1.0
+Content-type: text/plain; charset=utf8
+
+Hallo {{my_username}}
+
+There is just been created a comment from "{{creator}}" in ticket there belong to "{{category}}"
+Please log in the ticket system to see what the user has writen.

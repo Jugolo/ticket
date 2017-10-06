@@ -7,6 +7,7 @@ use Lib\Database;
 use Lib\Error;
 use Lib\Okay;
 use Lib\Age;
+use Lib\Email;
 
 class PageView implements P{
   public function body(){
@@ -94,10 +95,11 @@ class PageView implements P{
       header("location: ?view=apply&to=".$data["id"]);
       exit;
     }else{
-      $id = $db->query("INSERT INTO `ticket` (`cid`, `uid`, `comments`, `created`, `user_changed`, `admin_changed`) VALUES ('".$data["id"]."', '".user["id"]."', '0', NOW(), NOW(), NOW())");
+      $id = $db->query("INSERT INTO `ticket` (`cid`, `uid`, `comments`, `created`, `user_changed`, `admin_changed`, `open`) VALUES ('".$data["id"]."', '".user["id"]."', '0', NOW(), NOW(), NOW(), '1')");
       if($db->multi_query(str_replace("(%%hid%%,", "('".$id."',", implode(";\r\n", $sqlBuffer)))){
         Okay::report("You ticket is saved");
         NewTicket::notify($id, $data["name"]);
+        $this->sendEamilToAdmin($data["name"]);
         header("location: ?view=tickets&ticket_id=".$id);
         exit;
       }else{
@@ -116,24 +118,33 @@ class PageView implements P{
       return;
     }
     
-    $query = Database::get()->query("SELECT `id`, `name` FROM `catogory` WHERE `open`='1'");
-    if($query->count() === 0){
+    $query = Database::get()->query("SELECT `id`, `name`, `age` FROM `catogory` WHERE `open`='1'");
+    
+    $options = "";
+    $count = 0;
+    $lastID = 0;
+    while($row = $query->fetch()){
+      if($row->age && !empty(user["birth_day"])){
+        if(Age::calculate(user["birth_day"], user["birth_month"], user["birth_year"]) < $row->age){
+         continue; 
+        }
+      }
+      $options .= "<option value='{$row->id}'>{$row->name}</option>";
+      $lastID = $row->id;
+      $count++;
+    }
+         
+    if($count == 0){
       echo "<h3>No catgory is avarible.</h3>";
-      return;
+      return;   
     }
     
-    if($query->count() === 1){
-      //there are only one item wee select this for the user
-      header("location: ?view=apply&to=".$query->fetch()->id);
+    if($count == 1){
+      header("location: ?view=apply&to=".$lastID);
       exit;
     }
     
     echo "<form method='get' action='?view=apply'>";
-    $options = "";
-    while($row = $query->fetch()){
-      $options .= "<option value='{$row->id}'>{$row->name}</option>";
-    }
-    
     echo two_container("Select to", "<select name='to'>{$options}</select>");
     echo "<input type='hidden' name='view' value='apply'>";
     echo "<input type='submit' value='Select'>";
@@ -146,5 +157,20 @@ class PageView implements P{
       return $data->toArray();
     }
     return null;
+  }
+  
+  private function sendEamilToAdmin(string $catName){
+    $email = new Email();
+    $db = Database::get();
+    $query = $db->query("SELECT user.username, user.email
+                         FROM `user`
+                         LEFT JOIN `group` ON user.groupid=group.id
+                         WHERE group.showTicket='1'
+                         AND user.id<>'".user["id"]."'");
+    while($row = $query->fetch()){
+      $email->pushArg("username",        $row->username);
+      $email->pushArg("ticket_category", $catName);
+      $email->send("new_ticket",         $row->email);
+    }
   }
 }

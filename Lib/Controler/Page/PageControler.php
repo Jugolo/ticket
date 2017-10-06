@@ -47,16 +47,6 @@ class PageControler{
         }
         $class = get_class($info);
         $class = substr($class, 0, strrpos($class, "\\")+1)."PageView";
-        if(!class_exists($class)){
-          $file  = str_replace("\\", "/", $class).".php";
-          if(!file_exists($file)){
-            return;
-          }
-          include $file;
-          if(!class_exists($class)){
-           return; 
-          }
-        }
         $view = new $class();
         if($view instanceof PageView){
           return $view;

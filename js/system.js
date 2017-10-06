@@ -1,6 +1,10 @@
 var CowDom = {
   remove : function(dom){
     dom.parentNode.removeChild(dom);
+  },
+  
+  isVisible : function(dom){
+    return dom.offsetParent != null;
   }
 }
 
@@ -14,7 +18,7 @@ var CowMenuItem = (function(){
   };
   
   CowMenuItem.prototype.name = function(){
-    return /\?view=(.*?)$/.exec(this.link().href)[1];
+    return this.node.className.substr(5);
   };
   
   return CowMenuItem;
@@ -26,7 +30,7 @@ var CowMenu = {
       return;
     }
     
-    var dom = document.getElementById("menu_table").getElementsByTagName("th");
+    var dom = document.getElementById("menu_table").getElementsByTagName("li");
     for(var i=0;i<dom.length;i++){
       callback(new CowMenuItem(dom[i]));
     }
@@ -38,6 +42,11 @@ var CowTicket = {
     this.notify_id = 0;
     this.dom = CowDom;
     this.controleUpdate();
+  },
+  
+  toggleMenu : function(){
+    var menu = document.getElementById("left-menu");
+    menu.style.display = CowDom.isVisible(menu) ? "none" : "block";
   },
   
   controleUpdate : function(){
@@ -110,8 +119,16 @@ var CowTicket = {
     }
     
     container.appendChild(dom);
+    var timeout = null;
+    dom.onclick = function(){
+      CowDom.remove(dom);
+      if(container.getElementsByTagName("div").length == 0){
+        CowDom.remove(container);
+      }
+      clearTimeout(timeout);
+    };
     
-    setTimeout(function(){
+    timeout = setTimeout(function(){
       CowDom.remove(dom);
       if(container.getElementsByTagName("div").length == 0){
         CowDom.remove(container);
@@ -132,12 +149,20 @@ var CowTicket = {
     }
     
     container.appendChild(dom);
-    setTimeout(function(){
+    var timeout = setTimeout(function(){
       CowDom.remove(dom);
       if(container.getElementsByTagName("div").length == 0){
         CowDom.remove(container);
       }
     }, 5000);
+    
+    dom.onclick = function(){
+      CowDom.remove(dom);
+      if(container.getElementsByTagName("div").length == 0){
+        CowDom.remove(container);
+      }
+      clearTimeout(timeout);
+    };
   },
   
   updateUnread : function(count){
@@ -215,3 +240,24 @@ var CowTicket = {
     ajax.send(post);
   }
 };
+
+var CowUrl = {
+  init : function(){
+    var url = decodeURIComponent(window.location.search.substring(1)).split("&");
+    this.param = {};
+    for(var i=0;i<url.length;i++){
+      var data = url[i].split("=");
+      this.param[data[0]] = data[1];
+    }
+  },
+  
+  get : function(name){
+    if(typeof this.param[name] === "undefined"){
+      return "";
+    }
+    
+    return this.param[name];
+  }
+};
+
+CowUrl.init();

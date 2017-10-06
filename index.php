@@ -264,18 +264,12 @@ function getContext(){
 }
 
 function getMenu(){
-  echo "<div id='menu'".(defined("logo") ? "" : " class='nologo'").">";
-  $table = new Lib\Html\Table();
-  $table->id = "menu_table";
-  $table->newColummen();
-  $table->th("<a href='?view=front'>Front</a>", true);
-  PageControler::getPageInfo(function(PageInfo $page) use($table){
+  echo "<li><a href='?view=front'>Front</a></li>";
+  PageControler::getPageInfo(function(PageInfo $page){
     if($page->name() !== "front" && $page->menuVisible()){
-      $table->th("<a href='?view=".urlencode($page->name())."'>".htmlentities($page->title())."</a>", true);
+      echo "<li class='menu_{$page->name()}'><a href='?view=".urlencode($page->name())."'>".htmlentities($page->title())."</a></li>";
     }
   });
-  $table->output();
-  echo "</div>";
 }
 if(is_ajax()){
   ajax_output();
@@ -288,6 +282,7 @@ ob_start();
     <link rel="stylesheet/less" type="text/css" href="style/main.less">
     <title>Ticket system</title>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script type="text/javascript">
 window.onerror = function(msg, url, line, col, error) {
    // Note that col & error are new to the HTML 5 spec and may not be 
@@ -325,14 +320,14 @@ window.onerror = function(msg, url, line, col, error) {
       function toggle(identify){
         var el = document.querySelectorAll(identify);
         for(var i=0;i<el.length;i++){
-          el[i].style.display = el[i].offsetParent == null ? "block" : "none";
+          el[i].style.display = CowDom.isVisible(el[i]) ? "none" : "block";
         }
       }<?php if(!defined("user")){ ?>
       
       function toggleLoginMethod(){
         var login = document.getElementsByClassName("login")[0];
         var create = document.getElementsByClassName("createAccount")[0];
-        if(login.offsetParent == null){
+        if(!CowDom.isVisible(login)){
           login.style.display = "block";
           create.style.display = "none";
         }else{
@@ -400,6 +395,9 @@ window.onerror = function(msg, url, line, col, error) {
   </head>
   <body onload='onload();'>
     <div id="headmenu">
+      <div class='hide head' id='menu-state' onclick='CowTicket.toggleMenu();'>
+        &#9776;
+      </div>
       <?php if(defined("user")){ ?>
       <div class='head'>
         <button onclick="toggle('#user_menu');"><?php echo htmlentities(user["username"]); ?></button>
@@ -413,7 +411,7 @@ window.onerror = function(msg, url, line, col, error) {
         </div>
       </div>
       <div class='head'>
-        <div class='button' onclick="toggle('#notify_menu');">
+        <div class='button' onclick="if(document.getElementsByClassName('notifi_count')[0].innerHTML != 0)toggle('#notify_menu');">
           <div class='notifi_text'>
             Noticaftion
             <div class='notifi_count'>0</div>
@@ -472,19 +470,25 @@ window.onerror = function(msg, url, line, col, error) {
       <?php } ?>    
       <div class='clear'></div>
     </div>
+    <div id='left-menu'>
+      <ul id='menu_table'>
+        <?php
+        getMenu();
+        ?>
+      </ul>
+    </div>
     <div id='container'>
       <?php if(defined("logo")){?>
       <div id='logo' style="background-image: url('<?php echo logo; ?>');">
       </div>
-      <?php }
-      getMenu(); ?> 
+      <?php } ?>
       <div id='area'>
         <?php
         getContext();
         ?>
       </div>
       <div id='copy'>
-        <a href='http://ticket.cowscript.dk/'>CowScript</a>  2017 - All Rights Reserved
+        <a href='http://ticket.cowscript.dk/ticket'>CowScript</a>  2017 - All Rights Reserved
       </div>
     </div>
   </body>

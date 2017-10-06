@@ -31,6 +31,7 @@ class Access{
     echo two_container("Admin ticket", "<input type='checkbox' name='handleTickets'".($group["handleTickets"] == 1 ? " checked" : "").">");
     echo two_container("Show error", "<input type='checkbox' name='showError'".($group["showError"] == 1 ? " checked" : "").">");
     echo two_container("Show other profile", "<input type='checkbox' name='showProfile'".($group["showProfile"] == 1 ? " checked" : "").">");
+    echo two_container("Close/open tickets", "<input type='checkbox' name='closeTicket'.".($group["closeTicket"] == 1 ? " checked" : "").">");
     echo "<div><input type='submit' name='update' value='Update access'></div>";
     echo "</form>";
   }
@@ -71,6 +72,12 @@ class Access{
       $update["showProfile"] = "1";
     }elseif(empty($_POST["showProfile"]) && $group["showProfile"] == 1){
       $update["showProfile"] = "0";
+    }
+    
+    if(!empty($_POST["closeTicket"]) && $group["closeTicket"] == 0){
+      $update["closeTicket"] = "1";
+    }elseif(empty($_POST["closeTicket"]) && $group["showProfile"] == 1){
+      $update["closeTicket"] = "0";
     }
   
     if(count($update) > 0){

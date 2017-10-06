@@ -17,6 +17,10 @@ class TableRow{
     $this->attribute[$key] = $value;
   }
   
+  public function setClass(string $names){
+    $this->attribute["class"] = $names;
+  }
+  
   public function output(){
     echo "<".$this->tag.$this->getAttribute().">".($this->clean ? $this->value : htmlentities($this->value))."</".$this->tag.">";
   }
