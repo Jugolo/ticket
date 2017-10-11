@@ -5,6 +5,8 @@ use Lib\Database;
 use Lib\Ext\Notification\Notification;
 use Lib\Error;
 use Lib\Okay;
+use Lib\Config;
+use Lib\Plugin\Plugin;
 
 define("BASE", dirname(__FILE__)."/");
 set_include_path(BASE);
@@ -218,6 +220,7 @@ function controleAutoLogin(){
   }
   
   define("user", $info->toArray());
+  define("group", getUsergroup($info->groupid));
 }
 
 function updateUserGroup(Lib\Database\DatabaseFetch $user, $id){
@@ -239,6 +242,7 @@ function notfound(){
   echo "The request page was not found....";
 }
 
+Plugin::init();
 controleAutoLogin();
 
 if(defined("user") && user["id"] == "1"){
@@ -280,7 +284,7 @@ ob_start();
 <html>
   <head>
     <link rel="stylesheet/less" type="text/css" href="style/main.less">
-    <title>Ticket system</title>
+    <title>Ticket system * <?php echo Config::get("system_name"); ?></title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script type="text/javascript">
@@ -400,17 +404,6 @@ window.onerror = function(msg, url, line, col, error) {
       </div>
       <?php if(defined("user")){ ?>
       <div class='head'>
-        <button onclick="toggle('#user_menu');"><?php echo htmlentities(user["username"]); ?></button>
-        <div id='user_menu' class='menu'>
-          <div class='center'>
-            <a href='?view=profile'>Profile</a>
-          </div>
-          <div class='center'>
-            <a href='?view=front&logout=<?php echo urlencode(session_id()); ?>'>Logout</a>
-          </div>
-        </div>
-      </div>
-      <div class='head'>
         <div class='button' onclick="if(document.getElementsByClassName('notifi_count')[0].innerHTML != 0)toggle('#notify_menu');">
           <div class='notifi_text'>
             Noticaftion
@@ -421,56 +414,69 @@ window.onerror = function(msg, url, line, col, error) {
              
         </div>
       </div>
-      <?php }else{ ?>
-      <div class='head'>
-        <button id='login' onclick='toggle("#login_menu");'>Login</button>
-        <div id='login_menu' class='menu'>
-          <form method='post' action='#'>
-            <div class='login'>
-              <h3>Login</h3>
-              <div>
-                <input type='text' name='username' placeholder='Username'>
-              </div>
-              <div>
-                <input type='password' name='password' placeholder='Password'>
-              </div>
-              <div>
-                <input type='submit' name='login' value='Login'>
-              </div>
-              <div class='right'>
-                <a href='#' onclick='toggleLoginMethod();'>Or create account</a>
-              </div>
-            </div>
-          </form>
-          <form method='post' action='#'>
-            <div class='createAccount'>
-              <h3>Create account</h3>
-              <div>
-                <input type='text' name='create_username' id='create_username' placeholder='Username'>
-              </div>
-              <div>
-                <input type='password' name='create_password' id='create_password' placeholder='Password'>
-              </div>
-              <div>
-                <input type='password' name='repeat_password' id='repeat_password' placeholder='Repeat password'>
-              </div>
-              <div>
-                <input type='email' name='email' id='email' placeholder='email'>
-              </div>
-              <div>
-                <input type='submit' name='createaccount' value='Create account' onclick='return CowTicket.createUser()'>
-              </div>
-              <div class='right'>
-                <a href='#' onclick='toggleLoginMethod()'>Or login</a>
-              </div>
-            </div>
-          </form>
-        </div>
+      <?php } ?>
+      <div class='title'>
+        <?php
+        echo Config::get("system_name");
+        if(defined("group") && group["changeSystemName"] == 1){
+          echo " <a href='?view=front&changeSystemName=true'>(Change system name)</a>";
+        }
+        ?>
       </div>
-      <?php } ?>    
       <div class='clear'></div>
     </div>
     <div id='left-menu'>
+      <div class="user">
+        <?php if(defined("user")){ ?>
+        <div class="title"><?php echo user["username"]; ?></div>
+        <ul>
+          <li><a href="?view=profile">Profile</a></li>
+          <li><a href="?view=front&logout=<?php echo session_id(); ?>">Log out</a></li>
+        </ul>
+        <?php }else{ ?>
+        <div class="login">
+          <div class="title">Login</div>
+          <form method="post" action="#">
+            <div>
+              <input type="text" name="username" placeholder="User name">
+            </div>
+            <div>
+              <input type="password" name="password" placeholder="Password">
+            </div>
+            <div>
+              <input type="submit" name="login" value="Login now">
+            </div>
+          </form>
+          <div>
+            <a href="#" onclick="toggleLoginMethod();">Or create account</a>
+          </div>
+        </div>
+        <div class="createAccount">
+          <div class="title">Create account</div>
+          <div>
+            <input type="username" id="create_username" name="create_username" placeholder="User name">
+          </div>
+          <div>
+            <input type="password" id="create_password" name="create_password" placeholder="Password">  
+          </div>
+          <div>
+            <input type="password" id="repeat_password" name="repeat_password" placeholder="Repeat password">
+          </div>
+          <div>
+            <input type="email" id="email" name="email" placeholder="Email">
+          </div>
+          <div>
+            <input type='submit' name='createaccount' value='Create account' onclick='return CowTicket.createUser()'>
+          </div>
+          <div>
+            <a href="#" onclick="toggleLoginMethod();">Or login</a>
+          </div>
+        </div>
+        <div class="agree">
+          Width this action i accept <a href="?view=agree" target="_blank">this</a>
+        </div>
+        <?php } ?>
+      </div>
       <ul id='menu_table'>
         <?php
         getMenu();

@@ -8,6 +8,7 @@ use Lib\Database\DatabaseFetch;
 use Lib\Error;
 use Lib\Okay;
 use Lib\Config;
+use Lib\Plugin\Plugin;
 
 class PageView implements P{
   public function body(){
@@ -270,17 +271,9 @@ class PageView implements P{
       return;
     }
     if($data->open != 0){
-     Config::set("cat_open", Config::get("cat_open")-1);
+     Config::set("cat_open", intval(Config::get("cat_open"))-1);
     }
-    $db->query("DELETE FROM `category_item` WHERE `cid`='{$id}'");
-    $query = $db->query("SELECT `id` FROM `ticket` WHERE `cid`='{$id}'");
-    while($row = $query->fetch()){
-      $db->query("DELETE FROM `ticket_track` WHERE `tid`='{$row->id}'");
-      $db->query("DELETE FROM `ticket_value` WHERE `hid`='{$row->id}'");
-      $db->query("DELETE FROM `comment` WHERE `tid`='{$row->id}'");
-    }
-    $db->query("DELETE FROM `ticket` WHERE `cid`='{$id}'");
-    $db->query("DELETE FROM `catogory` WHERE `id`='{$id}'");
+    Plugin::trigger_event("system.category.delete", $data);
     Okay::report("The category is now deleted");
   }
   

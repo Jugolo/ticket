@@ -12,6 +12,7 @@ use Lib\Okay;
 use Lib\Html\Table;
 use Lib\Bbcode\Parser;
 use Lib\Email;
+use Lib\User\Info;
 
 class TicketView{
   public static function body(DatabaseFetch $data){
@@ -32,11 +33,8 @@ class TicketView{
       echo "<hr>";
     }
     echo two_container("Category", $data->name);
-    if($group["showProfile"] == 1){
-      echo two_container("From", "<a href='?view=profile&user={$data->uid}'>{$data->username}</a>");
-    }else{
-      echo two_container("From", $data->username);
-    }
+    echo two_container("From", Info::userLink($data->uid, $data->username));
+    
     if($data->age){
       echo two_container("Age",    \Lib\Age::calculate($data->birth_day, $data->birth_month, $data->birth_year));
     }
@@ -104,13 +102,15 @@ class TicketView{
     }else{
       $public = $data->uid == user["id"] || !empty($_POST["public"]);
       $db = Database::get();
+      $parser = new Parser($_POST["comments"]);
       $db->query("INSERT INTO `comment` VALUES (
                     NULL,
                     '{$data->id}', 
                     '".user["id"]."', 
                     '".($public ? "1" : "0")."', 
                     NOW(),
-                    '".$db->escape($_POST["comments"])."'
+                    '".$db->escape($_POST["comments"])."',
+                    '{$db->escape($parser->getHtml())}'
                   );");
       $db->query("UPDATE `ticket` SET `admin_changed`=NOW(), `comments`=comments+1".($public ? ", `user_changed`=NOW()" : "")." WHERE `id`='{$data->id}'");
       NewComment::createNotify($data->id, $data->uid, $public);
@@ -143,7 +143,7 @@ class TicketView{
   
   private static function getComments(DatabaseFetch $data){
     $db = Database::get();
-    $query = $db->query("SELECT comment.message, comment.public, comment.created, user.username
+    $query = $db->query("SELECT comment.parsed_message, comment.public, comment.created, user.username
                          FROM `comment`
                          LEFT JOIN `user` ON user.id=comment.uid
                          WHERE `tid`='{$data->id}'".($data->uid == user["id"] ? " AND comment.public='1'" : ""));
@@ -170,8 +170,7 @@ class TicketView{
         echo "</ul>";
       echo "</div>";
       echo "<div class='message'>";
-       $parser = new Parser($data->message);
-       echo $parser->getHtml();
+       echo $data->parsed_message;
       echo "</div>";
       echo "<div class='clear'></div>";
     echo "</div>";

@@ -20,6 +20,11 @@ class NewTicket{
     });
   }
   
+  public static function onTicketDelete(int $id){
+    $db = Database::get();
+    $db->query("DELETE FROM `notify` WHERE `name`='{$db->escape(__CLASS__)}' AND `item_id`='{$id}'");
+  }
+  
   public static function markRead(int $item_id){
     Notification::markRead(user["id"], $item_id, __CLASS__);
   }

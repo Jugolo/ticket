@@ -7,3 +7,5 @@ Hallo {{my_username}}
 
 There is just been created a comment from "{{creator}}" in ticket there belong to "{{category}}"
 Please log in the ticket system to see what the user has writen.
+
+--{{config.system_name}}
