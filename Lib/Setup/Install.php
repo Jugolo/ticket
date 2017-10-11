@@ -79,6 +79,14 @@ class Install{
         <th>Email</th>
         <td><input type='email' name='email'><td>
       </tr>
+    </table>
+    <hr>
+    <h3 style='color:green;text-align:center;'>Default data in the system</h3>
+    <table>
+      <tr>
+        <th>System name</th>
+        <td><input type='text' name='system_name'></td>
+      </tr>
       <tr>
         <td colspan='2'>
           <input type='submit' name='create' value='Create data' style='width:100%'>
@@ -103,6 +111,9 @@ class Install{
     }elseif($_POST["password"] != $_POST["repeat_password"]){
       self::$okay = false;
       return;
+    }else if(empty($_POST["system_name"]) || !trim($_POST["system_name"])){
+      self::$okay = false;
+      return;
     }
     
     if(empty($_POST["email"]) || !trim($_POST["email"])){
@@ -111,11 +122,13 @@ class Install{
     }
     $db = Database::get();
     
-    $db->query("INSERT INTO `group` VALUES (1, 'User',  0, 0, 0, 0, 0, 0, 0),
-                                              (2, 'Admin', 1, 1, 1, 1, 1, 1, 1);");
+    $db->query("INSERT INTO `group` VALUES (1, 'User',  0, 0, 0, 0, 0, 0, 0, 0),
+                                           (2, 'Admin', 1, 1, 1, 1, 1, 1, 1, 1);");
     $db->query("INSERT INTO `config` VALUES ('version', '".Main::SETUP_VERSION."'),
                                             ('standart_group', '1'),
-                                            ('cat_open', '0');");
+                                            ('cat_open', '0'),
+                                            ('front', ''),
+                                            ('system_name', '{$db->escape($_POST["system_name"])}');");
     $id =Auth::createUser(
       $_POST["username"],
       $_POST["password"],
@@ -155,6 +168,7 @@ class Install{
                          `public` int(1) NOT NULL,
                          `created` datetime NOT NULL,
                          `message` text CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
+                         `parsed_message` text CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
                          PRIMARY KEY (`id`)
                        ) ENGINE=InnoDB DEFAULT CHARSET=utf8;",
         "config"   => "CREATE TABLE IF NOT EXISTS `config` (
@@ -180,6 +194,8 @@ class Install{
                          `showError` int(1) NOT NULL,
                          `showProfile` int(1) NOT NULL,
                          `closeTicket` int(1) NOT NULL,
+                         `changeFront` int(1) NOT NULL,
+                         `changeSystemName`, int(1) NOT NULL,
                          PRIMARY KEY (`id`)
                        ) ENGINE=InnoDB DEFAULT CHARSET=utf8;",
         "notify"   => "CREATE TABLE IF NOT EXISTS `notify` (

@@ -4,7 +4,7 @@ namespace Lib\Setup;
 use Lib\Error;
 
 class Main{
-  const SETUP_VERSION = "V3.0";
+  const SETUP_VERSION = "V3.1";
   
   public static function controle(){
     if(is_ajax()){

@@ -47,6 +47,13 @@ class PageControler{
         }
         $class = get_class($info);
         $class = substr($class, 0, strrpos($class, "\\")+1)."PageView";
+        //This lines is created becuse if there is page info file but no page view file we dont want to print it tp the screen
+        $file = str_replace("\\", "/", $class).".php";
+        if(!file_exists($file)){
+          trigger_error("Missing page file location on '{$file}'", E_USER_ERROR);
+          notfound();
+          return;
+        }
         $view = new $class();
         if($view instanceof PageView){
           return $view;

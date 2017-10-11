@@ -34,15 +34,18 @@ class Email{
     while(($line = fgets($f)) !== false){
       $message .= $line;
     }
-    $arg[] = "from:support@".$_SERVER["SERVER_NAME"];
+    $arg[] = "from:".Config::get("system_name")."@".$_SERVER["SERVER_NAME"];
     mail($to, $title, $this->parseMessage($message), implode("\r\n", $arg));
   }
   
   private function parseMessage(string $message){
     $arg = $this->arg;
     return preg_replace_callback(
-      "/\{\{([a-zA-Z_]*)\}\}/",
+      "/\{\{([a-zA-Z_.]*)\}\}/",
       function($m) use($arg){
+        if(strpos($m[1], "config.") === 0){
+           return Config::get(substr($m[1], 7));
+        }
         if(empty($arg[$m[1]])){
           return $m[0];
         }

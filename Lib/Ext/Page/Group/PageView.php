@@ -52,9 +52,19 @@ class PageView implements P{
       `showTicket`,
       `changeGroup`,
       `handleGroup`,
-      `showProfile`
+      `handleTickets`,
+      `showError`,
+      `showProfile`,
+      `closeTicket`,
+      `changeFront`,
+      `changeSystemName`
     ) VALUES (
       '".$db->escape($_POST["name"])."',
+      '0',
+      '0',
+      '0',
+      '0',
+      '0',
       '0',
       '0',
       '0',

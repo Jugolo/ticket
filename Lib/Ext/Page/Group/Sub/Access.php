@@ -32,6 +32,8 @@ class Access{
     echo two_container("Show error", "<input type='checkbox' name='showError'".($group["showError"] == 1 ? " checked" : "").">");
     echo two_container("Show other profile", "<input type='checkbox' name='showProfile'".($group["showProfile"] == 1 ? " checked" : "").">");
     echo two_container("Close/open tickets", "<input type='checkbox' name='closeTicket'.".($group["closeTicket"] == 1 ? " checked" : "").">");
+    echo two_container("Change front page", "<input type='checkbox' name='changeFront'".($group["changeFront"] == 1 ? " checked" : "").">");
+    echo two_container("Change system name", "<input type='checkbox' name='changeSystemName'".($group["changeSystemName"] == 1 ? " checked" : "").">");
     echo "<div><input type='submit' name='update' value='Update access'></div>";
     echo "</form>";
   }
@@ -78,6 +80,18 @@ class Access{
       $update["closeTicket"] = "1";
     }elseif(empty($_POST["closeTicket"]) && $group["showProfile"] == 1){
       $update["closeTicket"] = "0";
+    }
+    
+    if(!empty($_POST["changeFront"]) && $group["changeFront"] == 0){
+      $update["changeFront"] = "1";
+    }elseif(empty($_POST["changeFront"]) && $group["changeFront"] == 1){
+      $update["changeFront"] = "0";
+    }
+    
+    if(!empty($_POST["changeSystemName"]) && $group["changeSystemName"] == 0){
+      $update["changeSystemName"] = "1";
+    }elseif(empty($_POST["changeSystemName"]) && $group["changeSystemName"] == 1){
+      $update["changeSystemName"] = "0";
     }
   
     if(count($update) > 0){

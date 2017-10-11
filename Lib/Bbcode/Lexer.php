@@ -66,6 +66,9 @@ class Lexer{
         $url = $option ? : "#";
         $node->appendNode(self::render(new UrlNode($url), $token));
         break;
+      case "title":
+        $node->appendNode(self::render(new TitleNode(), $token));
+        break;
       default:
         $node->appendNode(new TextNode("[".$s."]"));
     }

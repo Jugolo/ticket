@@ -58,6 +58,10 @@ textarea.apply{
   
 }
 
+#frontTextarea{
+  height:350px;
+}
+
 .right{
   text-align: right;
 }
@@ -144,6 +148,9 @@ textarea.apply{
     margin:4px;
     margin-right:5px;
   }
+  .title{
+    font-weight: bolder;
+  }
   .menu{
     display:none;
     background-color: white;
@@ -154,13 +161,33 @@ textarea.apply{
       color: blue;
       margin:2px;
     }
-    .createAccount{
-      display:none;
-    }
   }
 }
 
 #left-menu{
+  .user{
+    border-bottom: 1px solid black;
+    input{
+      margin:0px;
+    }
+    li{
+      border-bottom: none;
+      a{
+        color:black;
+      }
+    }
+    ul{
+      margin-top: 5px;
+      margin-bottom: 5px;
+    }
+    .agree{
+      font-size:x-small;
+      margin-top: 10px;
+    }
+    .createAccount{
+      display:none;
+    }
+  }
   ul{
     padding:0px;
     margin:0px;
@@ -202,6 +229,10 @@ textarea.apply{
 
 .okay{
  color:green; 
+}
+
+#changeFrontLink{
+  float: right;
 }
 
 #container{
