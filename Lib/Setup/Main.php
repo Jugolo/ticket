@@ -5,7 +5,7 @@ use Lib\Report;
 use Lib\Ajax;
 
 class Main{
-  const SETUP_VERSION = "V3.1";
+  const SETUP_VERSION = "V3.2";
   
   public static function controle(){
     if(Ajax::isAjaxRequest()){
