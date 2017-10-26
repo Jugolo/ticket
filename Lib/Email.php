@@ -34,8 +34,16 @@ class Email{
     while(($line = fgets($f)) !== false){
       $message .= $line;
     }
-    $arg[] = "from:".Config::get("system_name")."@".$_SERVER["SERVER_NAME"];
+    $arg[] = "from:".$this->convertEmailName(Config::get("system_name"))."@".$_SERVER["SERVER_NAME"];
     mail($to, $title, $this->parseMessage($message), implode("\r\n", $arg));
+  }
+  
+  private function convertEmailName(string $name){
+    return str_replace([
+      " "
+      ], [
+      "_"
+      ], $name);
   }
   
   private function parseMessage(string $message){

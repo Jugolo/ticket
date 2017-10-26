@@ -3,10 +3,11 @@ use Lib\Controler\Page\PageControler;
 use Lib\Controler\Page\PageInfo;
 use Lib\Database;
 use Lib\Ext\Notification\Notification;
-use Lib\Error;
-use Lib\Okay;
+use Lib\Report;
 use Lib\Config;
 use Lib\Plugin\Plugin;
+use Lib\Ajax;
+use Lib\User\Auth;
 
 define("BASE", dirname(__FILE__)."/");
 set_include_path(BASE);
@@ -46,12 +47,8 @@ set_error_handler(function($errno, $errstr, $errfile, $errline){
     NOW()
   );");
   
-  if(defined("user")){
-    $group = getUsergroup(user["groupid"]);
-    if($group["showError"] == 1){
-      Error::report($errstr);
-    }
-  }
+  if(defined("user") && group["showError"] == 1)
+    Report::error($errstr);
 });
 
 register_shutdown_function(function(){
@@ -83,8 +80,6 @@ spl_autoload_register(function($class){
   }
 });
 
-include "ajax.php";
-
 function two_container(string $first, string $two, array $options = []) : string{
   $tag = !empty($options["tag"]) ? $option["tag"] : "span";
   $tag2class = !empty($options["tag2class"]) ? " class='".$options["tag2class"]."'" : "";
@@ -96,132 +91,6 @@ if(!file_exists("config.php")){
 }
 
 include 'config.php';
-
-function doLogin(){
-  $error = Error::count();
-  if(empty($_POST["username"]) || !trim($_POST["username"])){
-    Error::report("Missing username");
-  }
-  
-  if(empty($_POST["password"]) || !trim($_POST["password"])){
-    Error::report("Missing password");
-  }
-  
-  if(Error::count() == $error){
-    $db = Database::get();
-    $row = $db->query("SELECT `id`, `password`, `salt`, `isActivatet` FROM `user` WHERE LOWER(`username`)='".$db->escape(strtolower($_POST["username"]))."'")->fetch();
-    if($row){
-      if(Lib\User\Auth::salt_password($_POST["password"], $row->salt) == $row->password){
-        if($row->isActivatet == 1){
-          $_SESSION["uid"] = $row->id;
-          Okay::report("You are now login");
-        }else{
-          Error::report("You account is not activatet yet!");
-        }
-      }else{
-        Error::report("Faild to find username or/and password");
-      }
-    }else{
-      Error::report("Failed to find username or/and password");
-    }
-  }
-  header("location: #");
-  exit;
-}
-
-function doCreate(){
-  $error = Error::count();
-  if(empty($_POST["create_username"]) || !trim($_POST["create_username"])){
-    Error::report("Missing username");
-  }
-  
-  $p = $r = true;
-  
-  if(empty($_POST["create_password"]) || !trim($_POST["create_password"])){
-    Error::report("Missing password");
-    $p = false;
-  }
-  
-  if(empty($_POST["repeat_password"]) || !trim($_POST["repeat_password"])){
-    Error::report("Missing repeat password");
-    $r = false;
-  }
-  
-  if($p && $r && $_POST["repeat_password"] != $_POST["create_password"]){
-    Error::report("The two password is not the same");
-  }
-  
-  if(empty($_POST["email"]) || !trim($_POST["email"])){
-    Error::report("Missing email");
-  }
-  
-  if($error == Error::count()){
-    if(Lib\User\Auth::controleDetail($_POST["create_username"], $_POST["email"]) == null){
-      Lib\User\Auth::createUser($_POST["create_username"], $_POST["create_password"], $_POST["email"], false);
-      Okay::report("You account is created. Please look in you email for activate it");
-      if(is_ajax()){
-        ajax_var("create", true);
-      }
-    }else{
-      if(is_ajax()){
-        ajax_var("create", false);
-      }
-      Error::report("The username or/and email is taken.");
-    }
-  }elseif(is_ajax()){
-    ajax_var("create", false);
-  }
-  if(!is_ajax()){
-    header("location: #");
-    exit;
-  }
-}
-
-function doActivate(){
-  $db = Database::get();
-  $info = $db->query("SELECT `id`
-                      FROM `user`
-                      WHERE `email`='".$db->escape($_GET["email"])."'
-                      AND `salt`='".$db->escape($_GET["salt"])."'
-                      AND `isActivatet`=0")->fetch();
-  if(!$info){
-    Error::report("Could not find the account. Maby it is already activated?");
-  }else{
-    $db->query("UPDATE `user` SET `isActivatet`=1 WHERE `id`=".$info->id);
-    Okay::report("The account is now activated and you can now login");
-  }
-  
-  header("location: ?view=front");
-  exit;
-}
-
-function controleAuth(){
-  if(!empty($_POST["login"])){
-    doLogin();
-  }elseif(!empty($_POST["createaccount"])){
-    doCreate();
-  }elseif(!empty($_GET["salt"]) && !empty($_GET["email"])){
-    doActivate();
-  }
-}
-
-function controleAutoLogin(){
-  if(empty($_SESSION["uid"])){
-    controleAuth();
-    return;
-  }
-  
-  $db = Database::get();
-  $info = $db->query("SELECT * FROM `user` WHERE `id`='".$db->escape($_SESSION["uid"])."'")->fetch();
-  if(!$info){
-    unset($_SESSION["uid"]);
-    controleAuth();
-    return;
-  }
-  
-  define("user", $info->toArray());
-  define("group", getUsergroup($info->groupid));
-}
 
 function updateUserGroup(Lib\Database\DatabaseFetch $user, $id){
   Database::get()->query("UPDATE `user` SET `groupid`='".(int)$id."' WHERE `id`='".(int)$user->id."'");
@@ -243,7 +112,7 @@ function notfound(){
 }
 
 Plugin::init();
-controleAutoLogin();
+Auth::controleAuth();
 
 if(defined("user") && user["id"] == "1"){
   if(file_exists("./Lib/Setup/Main.php")){
@@ -262,21 +131,40 @@ function getStandartGroup(){
 function getContext(){
   $page = PageControler::getPage();
   if(!$page){
+    notfound();
     return;
   }
   $page->body();
 }
 
-function getMenu(){
-  echo "<li><a href='?view=front'>Front</a></li>";
-  PageControler::getPageInfo(function(PageInfo $page){
-    if($page->name() !== "front" && $page->menuVisible()){
-      echo "<li class='menu_{$page->name()}'><a href='?view=".urlencode($page->name())."'>".htmlentities($page->title())."</a></li>";
+function hasRight(array $request) : bool{
+  foreach($request as $key){
+    if(array_key_exists($key, group)){
+      return true;
     }
-  });
+  }
+  
+  return false;
 }
-if(is_ajax()){
-  ajax_output();
+
+/**
+ Return if the users has rights as admin. If the user is not login it will always return false! 
+*/
+function hasAdminAccess() : bool{
+  if(!defined("user")){
+    return false;
+  }
+  
+  return hasRight([
+    "showError",
+    "handleTickets",
+    "changeGroup",
+    "handleGroup",
+    ]);
+}
+
+if(Ajax::isAjaxRequest()){
+  Ajax::evulate();
 }
 ob_start();
 ?>
@@ -316,8 +204,10 @@ window.onerror = function(msg, url, line, col, error) {
     <script>
       var isUser = <?php echo defined("user") ? "true" : "false"; ?>;
       function onload(){
-        <?php Error::toJavascript(); ?> 
-        <?php Okay::toJavascript(); ?> 
+        <?php 
+        Report::toJavascript();
+        Report::unset();
+        ?> 
         CowTicket.init();
       }
       
@@ -375,13 +265,7 @@ window.onerror = function(msg, url, line, col, error) {
           }
           
           if(errorCount == 0){
-            this.ajax("null", {
-              create_username : username.value,
-              create_password : password.value,
-              repeat_password : rpassword.value,
-              email           : email.value,
-              createaccount   : "true"
-            }, function(a){
+            trigger_ajax("create_account", function(a){
               if(a.create){
                 toggle('#login_menu');
                 toggleLoginMethod();
@@ -390,6 +274,12 @@ window.onerror = function(msg, url, line, col, error) {
                 rpassword.value = "";
                 email.value = "";
               }
+            }, {
+              create_username : username.value,
+              create_password : password.value,
+              repeat_password : rpassword.value,
+              email           : email.value,
+              createaccount   : "true"
             });
           }
           return false;
@@ -417,7 +307,7 @@ window.onerror = function(msg, url, line, col, error) {
       <?php } ?>
       <div class='title'>
         <?php
-        echo Config::get("system_name");
+        echo "<a href='?view=front' style='color:blue'>".Config::get("system_name")."</a>";
         if(defined("group") && group["changeSystemName"] == 1){
           echo " <a href='?view=front&changeSystemName=true'>(Change system name)</a>";
         }
@@ -478,8 +368,32 @@ window.onerror = function(msg, url, line, col, error) {
         <?php } ?>
       </div>
       <ul id='menu_table'>
+        <li><a href='?view=front'>Front</a></li>
         <?php
-        getMenu();
+        if(defined("user")){
+          if(Config::get("cat_open") != 0){
+            echo "<li><a href='?view=apply'>Apply</a></li>";
+          }
+          echo "<li><a href='?view=tickets'>Tickets</a></li>";
+          if(hasAdminAccess()){
+            echo "<li><span class='pointer'>Admin</span>
+            <ul class='child'>";
+            if(group["showError"] == 1){
+              echo "<li><a href='?view=error'>Error</li>";
+            }
+            if(group["handleTickets"] == 1){
+               echo "<li><a href='?view=handleTickets'>Ticket</a></li>";
+            }
+            if(group["changeGroup"] == 1){
+               echo "<li><a href='?view=users'>User</a></li>";
+            }
+            if(group["handleGroup"] == 1){
+               echo "<li><a href='?view=handleGroup'>Group</a></li>";
+            }
+            echo "</ul>
+            </li>";
+          }
+        }
         ?>
       </ul>
     </div>

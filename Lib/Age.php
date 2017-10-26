@@ -1,9 +1,6 @@
 <?php
 namespace Lib;
 
-use Lib\Okay;
-use Lib\Error;
-
 class Age{
   const TO_YOUNG = 1;
   const NOT_USER = 2;
@@ -27,7 +24,7 @@ class Age{
     }
     
     if($age > self::calculate(user["birth_day"], user["birth_month"], user["birth_year"])){
-      Error::report("Sorry you are to young to create a ticket to ".$to);
+      Report::error("Sorry you are to young to create a ticket to ".$to);
       return self::TO_YOUNG;
     }
     return self::NO_ERROR;
@@ -41,7 +38,7 @@ class Age{
                 `birth_month`='".$db->escape(intval($_POST["bm"]))."',
                 `birth_year`='".$db->escape(intval($_POST["by"]))."'
                WHERE `id`=".user["id"]);
-      Okay::report("You birth day is now saved");
+      Report::okay("You birth day is now saved");
       header("location: #");
       exit;
     }

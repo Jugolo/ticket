@@ -22,6 +22,9 @@ If you found security failed you are welcommen to make a ticket <a href="http://
 <h3>Data there came from you</h3>
 All the data you send via this tool may not break you (or where this server is) contries law.<br>
 It is also not allow to push data to the system to trying to break it. If you will make test get a copy of this software and make test local.
+<h3>Email</h3>
+This site sending email to you when there happen somthing you have show you ware interestet in. this can be new comment on you ticket<br>
+
     <?php
   }
 }

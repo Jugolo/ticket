@@ -42,6 +42,24 @@ var CowTicket = {
     this.notify_id = 0;
     this.dom = CowDom;
     this.controleUpdate();
+    this.initLeftMenu();
+  },
+  
+  initLeftMenu : function(){
+    var li = document.getElementById("menu_table").getElementsByTagName("li");
+    for(var i=0;i<li.length;i++){
+      //controle if it has a child width class 'child'
+      if(li[i].getElementsByClassName("child").length > 0){
+        li[i].style.color = "blue";
+        //list after click :)
+        var dom = li[i].getElementsByClassName("child")[0];
+        dom.style.display = "none";
+        li[i].getElementsByClassName("pointer")[0].onclick = function(){
+          var dom = this.parentNode.getElementsByClassName("child")[0];
+          dom.style.display = CowDom.isVisible(dom) ? "none" : "block";
+        }
+      }
+    }
   },
   
   toggleMenu : function(){
@@ -50,21 +68,22 @@ var CowTicket = {
   },
   
   controleUpdate : function(){
-    this.ajax("update", {notify_id : this.notify_id}, function(a){
+    var self = this;
+    trigger_ajax("update", function(a){
       if(isUser != a.is_user){
         location.reload(); 
       }
       if(a.unread_ticket){
-        this.updateUnread(a.unread_ticket);
+        self.updateUnread(a.unread_ticket);
       }
       if(a.notify){
-        this.updateNotify(a.notify);
+        self.updateNotify(a.notify);
       }
-      var self = this;
+      
       setTimeout(function(){
         self.controleUpdate();
       }, 5000);
-    });
+    }, {notify_id : this.notify_id});
   },
   
   updateNotify : function(notify){
@@ -240,6 +259,40 @@ var CowTicket = {
     ajax.send(post);
   }
 };
+
+function trigger_ajax(command, callback, post){
+  var ajax = new XMLHttpRequest();
+  ajax.onreadystatechange = function(){
+    if(this.readyState == 4 && this.status == 200){
+      var json = null;
+      try{
+        json = JSON.parse(this.responseText);
+      }catch(e){
+        CowTicket.error("Json respons on ajax call failed. Please read the log");
+        console.log(e);
+        return;
+      }
+      for(var i=0;i<json.reports.ERROR.length;i++)
+        CowTicket.error(json.reports.ERROR[i]);
+      for(var i=0;i<json.reports.OKAY.length;i++)
+        CowTicket.okay(json.reports.OKAY[i]);
+      callback(json.data);
+    }
+  };
+  if(post){
+    ajax.open("POST", "?_ajax="+command, true);
+    ajax.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+  }else{
+    ajax.open("GET", "?_ajax="+command, true);
+  }
+  
+  ajax.send(post ? (function(){
+    var r = [];
+    for(var key in post)
+      r.push(key+"="+encodeURIComponent(post[key]));
+    return r.join("&");
+  })() : undefined);
+}
 
 var CowUrl = {
   init : function(){

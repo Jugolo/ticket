@@ -4,7 +4,7 @@ namespace Lib\Ext\Page\Front;
 use Lib\Controler\Page\PageView as P;
 use Lib\Config;
 use Lib\Bbcode\Parser;
-use Lib\Okay;
+use Lib\Report;
 
 class PageView implements P{
   public function body(){
@@ -15,21 +15,22 @@ class PageView implements P{
     }
     
     if(defined("user")){
+      if(group["changeFront"] == 1 && !empty($_GET["change"])){
+        $this->changeFront();
+        return;
+      }
+      if(group["changeSystemName"] == 1 && !empty($_GET["changeSystemName"])){
+         $this->changeSystemNameEditor();
+         return;
+      }
+      
       if(group["changeFront"] == 1){
-        if(!empty($_GET["change"])){
-          $this->changeFront();
-          return;
-        }
         echo "<div>";
           echo "<div id='changeFrontLink'>";
             echo "<a href='?view=front&change=yes'>Change front page</a>";
           echo "</div>";
           echo "<div class='clear'></div>";
         echo "</div>";
-      }
-      if(group["changeSystemName"] == 1 && !empty($_GET["changeSystemName"])){
-        $this->changeSystemNameEditor();
-        return;
       }
     }
     $parser = new Parser(Config::get("front"));
@@ -40,7 +41,7 @@ class PageView implements P{
   private function changeSystemNameEditor(){
     if(!empty($_POST["systemname"]) && trim($_POST["systemname"])){
       Config::set("system_name", $_POST["systemname"]);
-      Okay::report("System name is now updated");
+      Report::okay("System name is now updated");
       header("location: #");
       exit;
     }
@@ -53,7 +54,7 @@ class PageView implements P{
   private function changeFront(){
     if(!empty($_POST["changeFront"])){
       Config::set("front", $_POST["front"]);
-      Okay::report("The front page is updated");
+      Report::okay("The front page is updated");
       header("location: ?view=front");
       exit;
     }

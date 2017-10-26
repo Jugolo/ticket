@@ -1,13 +1,14 @@
 <?php
 namespace Lib\Setup;
 
-use Lib\Error;
+use Lib\Report;
+use Lib\Ajax;
 
 class Main{
   const SETUP_VERSION = "V3.1";
   
   public static function controle(){
-    if(is_ajax()){
+    if(Ajax::isAjaxRequest()){
       return;
     }
       
@@ -17,7 +18,7 @@ class Main{
     }elseif(self::needUpgrade()){
       Upgrade::upgrade();
     }else{
-      Error::report("Please remove setup dir 'Lib/Setup'");
+      Report::error("Please remove setup dir 'Lib/Setup'");
     }
   }
   

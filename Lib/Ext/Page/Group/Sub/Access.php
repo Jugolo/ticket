@@ -2,8 +2,7 @@
 namespace Lib\Ext\Page\Group\Sub;
 
 use Lib\Database;
-use Lib\Error;
-use Lib\Okay;
+use Lib\Report;
 
 class Access{
   public static function body(){
@@ -34,6 +33,11 @@ class Access{
     echo two_container("Close/open tickets", "<input type='checkbox' name='closeTicket'.".($group["closeTicket"] == 1 ? " checked" : "").">");
     echo two_container("Change front page", "<input type='checkbox' name='changeFront'".($group["changeFront"] == 1 ? " checked" : "").">");
     echo two_container("Change system name", "<input type='checkbox' name='changeSystemName'".($group["changeSystemName"] == 1 ? " checked" : "").">");
+    echo two_container("Show ticket log",    "<input type='checkbox' name='showTicketLog'".($group["showTicketLog"] == 1 ? " checked" : "").">");
+    echo two_container("Delete ticket",      "<input type='checkbox' name='deleteTicket'".($group["deleteTicket"] == 1 ? " checked" : "").">");
+    echo two_container("Delete comments",    "<input type='checkbox' name='deleteComment'".($group["deleteComment"] == 1 ? " checked" : "").">");
+    echo two_container("Activate users",     "<input type='checkbox' name='activateUser'".($group["activateUser"] == 1 ? " checked" : "").">");
+    echo two_container("View user log",      "<input type='checkbox' name='viewUserLog'".($group["viewUserLog"] == 1 ? " checked" : "").">");
     echo "<div><input type='submit' name='update' value='Update access'></div>";
     echo "</form>";
   }
@@ -93,6 +97,34 @@ class Access{
     }elseif(empty($_POST["changeSystemName"]) && $group["changeSystemName"] == 1){
       $update["changeSystemName"] = "0";
     }
+    
+    if(!empty($_POST["showTicketLog"]) && $group["showTicketLog"] == 0){
+      $update["showTicketLog"] = "1";
+    }elseif(empty($_POST["showTicketLog"]) && $group["showTicketLog"] == 1){
+      $update["showTicketLog"] = "0";
+    }
+    
+    if(!empty($_POST["deleteTicket"]) && $group["deleteTicket"] == 0){
+      $update["deleteTicket"] = "1";
+    }elseif(empty($_POST["deleteTicket"]) && $group["deleteTicket"] == 1){
+      $update["deleteTicket"] = "0";
+    }
+    
+    if(!empty($_POST["deleteComment"]) && $group["deleteComment"] == 0){
+      $update["deleteComment"] = "1";
+    }else if(empty($_POST["deleteComment"]) && $group["deleteComment"] == 1){
+      $update["deleteComment"] = "0";
+    }
+    
+    if(!empty($_POST["activateUser"]) && $group["activateUser"] == 0)
+      $update["activateUser"] = "1";
+    elseif(empty($_POST["activateUser"]) && $group["activateUser"] == 1)
+      $update["activateUser"] = "0";
+    
+    if(!empty($_POST["viewUserLog"]) && $group["viewUserLog"] == 0)
+      $update["viewUserLog"] = "1";
+    elseif(empty($_POST["viewUserLog"]) && $group["viewUserLog"] == 1)
+      $update["viewUserLog"] = "0";
   
     if(count($update) > 0){
       $sql = [];
@@ -100,9 +132,9 @@ class Access{
         $sql[] = "`".$key."`='".intval($value)."'";
       }
       Database::get()->query("UPDATE `group` SET ".implode(",", $sql)." WHERE `id`='".$group["id"]."'");
-      Okay::report("Access updated");
+      Report::okay("Access updated");
     }else{
-      Error::report("No update detected");
+      Report::error("No update detected");
     }
   
     header("location: ?view=handleGroup&sub=Access&gid=".$group["id"]);

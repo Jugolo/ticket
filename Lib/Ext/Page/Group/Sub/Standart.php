@@ -2,8 +2,7 @@
 namespace Lib\Ext\Page\Group\Sub;
 
 use Lib\Database;
-use Lib\Error;
-use Lib\Okay;
+use Lib\Report;
 use Lib\Config;
 
 class Standart{
@@ -13,7 +12,7 @@ class Standart{
       return;
     }
     Config::set("standart_group", $_GET["gid"]);
-    Okay::report("The group is now the standart group");
+    Report::okay("The group is now the standart group");
     header("location: ?view=handleGroup");
     exit;
   }

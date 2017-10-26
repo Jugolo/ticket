@@ -3,17 +3,17 @@ namespace Lib\Setup;
 
 use Lib\Config;
 
-use Lib\Error;
-use Lib\Okay;
+use Lib\Report;
 
 class Upgrade{
   public static function upgrade(){
     $upgrade = new Upgrade(function($c){
       if($c->upgrade()){
-        Okay::report("Upgraded to ".$c->version);
+        Config::set("version", $c->version);
+        Report::okay("Upgraded to ".$c->version);
         return true;
       }else{
-        Error::report("Failed to upgrade to ".$c->version);
+        Report::error("Failed to upgrade to ".$c->version);
         return false;
       }
     });
