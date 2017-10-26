@@ -122,8 +122,8 @@ class Install{
     }
     $db = Database::get();
     
-    $db->query("INSERT INTO `group` VALUES (1, 'User',  0, 0, 0, 0, 0, 0, 0, 0),
-                                           (2, 'Admin', 1, 1, 1, 1, 1, 1, 1, 1);");
+    $db->query("INSERT INTO `group` VALUES (1, 'User',  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+                                           (2, 'Admin', 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1);");
     $db->query("INSERT INTO `config` VALUES ('version', '".Main::SETUP_VERSION."'),
                                             ('standart_group', '1'),
                                             ('cat_open', '0'),
@@ -195,9 +195,23 @@ class Install{
                          `showProfile` int(1) NOT NULL,
                          `closeTicket` int(1) NOT NULL,
                          `changeFront` int(1) NOT NULL,
-                         `changeSystemName`, int(1) NOT NULL,
+                         `changeSystemName` int(1) NOT NULL,
+                         `showTicketLog` INT(1) NOT NULL,
+                         `deleteTicket` int(1) NOT NULL,
+                         `deleteComment` INT(1) NOT NULL,
+                         `activateUser` int(1) NOT NULL,
+                         `viewUserLog` int(1) NOT NULL,
                          PRIMARY KEY (`id`)
                        ) ENGINE=InnoDB DEFAULT CHARSET=utf8;",
+        "log"      => "CREATE TABLE IF NOT EXISTS `log` ( 
+                         `id` INT(11) NOT NULL AUTO_INCREMENT ,
+                         `type` VARCHAR(255) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL ,
+                         `created` DATETIME NOT NULL , `uid` INT(11) NOT NULL,
+                         `tid` INT(11) NOT NULL,
+                         `message` TEXT CHARACTER SET utf8 COLLATE utf8_bin NOT NULL, 
+                         `arg` TEXT CHARACTER SET utf8 COLLATE utf8_bin NULL, 
+                         PRIMARY KEY (`id`)
+                       ) ENGINE = InnoDB DEFAULT CHARSET=utf8;",
         "notify"   => "CREATE TABLE IF NOT EXISTS `notify` (
                          `id` int(11) NOT NULL AUTO_INCREMENT,
                          `uid` int(11) NOT NULL,

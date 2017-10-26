@@ -2,6 +2,7 @@
 namespace Lib\Ticket;
 
 use Lib\Database;
+use Lib\Ajax;
 
 class Track{
   public static function track(int $ticket_id, int $user_id){
@@ -12,6 +13,10 @@ class Track{
     }else{
       $db->query("UPDATE `ticket_track` SET `visit`=NOW() WHERE `tid`='".$ticket_id."' AND `uid`='".$user_id."'");
     }
+  }
+  
+  public static function ajaxUpdate(){
+    Ajax::set("unread_ticket", self::unread());
   }
   
   public static function unread() : int{

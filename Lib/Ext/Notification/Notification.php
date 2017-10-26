@@ -2,6 +2,7 @@
 namespace Lib\Ext\Notification;
 
 use Lib\Database;
+use Lib\Ajax;
 
 class Notification{
   public static function create(int $uid, int $item_id, string $name, string $link, string $message){
@@ -41,6 +42,6 @@ class Notification{
       }
     }
     
-    return $ajax;
+    Ajax::set("notify", $ajax);
   }
 }

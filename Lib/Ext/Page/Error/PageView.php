@@ -5,7 +5,7 @@ use Lib\Controler\Page\PageView as P;
 use Lib\Database;
 use Lib\Html\Table;
 use Lib\Database\DatabaseFetch;
-use Lib\Okay;
+use Lib\Report;
 
 class PageView implements P{
   function body(){
@@ -129,6 +129,6 @@ class PageView implements P{
     }
     
     Database::get()->query($queryString.implode(" OR ", $ids));
-    Okay::report("Errors message is now deleted");
+    Report::okay("Errors message is now deleted");
   }
 }

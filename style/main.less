@@ -2,6 +2,19 @@ html,body {
     height:100%;
 }
 
+#u_not_activate{
+  border: 1px solid black;
+  border-radius: 10px;
+  background-color: red;
+  padding: 10px;
+  font-weight: bolder;
+  text-align:center;
+}
+
+.pointer{
+  cursor:pointer;
+}
+
 .spoiler{
   border:1px solid black;
   padding: 10px;
@@ -194,6 +207,12 @@ textarea.apply{
     li{
       text-align:center;
       border-bottom:1px solid black;
+      ul.child{
+        margin-left: 10px;
+        li{
+          border-bottom: 0px;
+        }
+      }
       a{
         text-decoration: none;
         width:100%;
@@ -269,24 +288,39 @@ table.border{
 }
 
 .comments{
-  border:1px solid grey;
-  border-bottom:0;
-  .comment_item{
-    display: table;
-    border-bottom:1px solid grey;
-    width:100%;
-    .information{
-      display: table-cell;
-      width:150px;
-      border-right:1px solid grey;
-      background-color:blue;
-      ul{
-        padding:0;
-        list-style-type: none;
-      }
-    }
-    .message{
-      display: table-cell;
+ .item{
+   &.secret{
+    background-color:grey;
+   }
+   border:1px solid black;
+   margin:10px;
+   border-radius:10px;
+   position: relative;
+   min-height:50px;
+   .information{
+     border-right:1px solid black;
+     padding:10px;
+     box-sizing: border-box;
+     position:absolute;
+     left:0;
+     top:0;
+     width:22%;
+     height:100%;
+     .nick{
+       font-weight: bolder;
+     }
+     float:left;
+   }
+   .message{
+     box-sizing: border-box;
+     padding:10px;
+     float:right;
+     width: 77%;
+   }
+   .option{
+      border-top:1px solid black;
+      float:right;
+     width:77%;
     }
   }
 }
@@ -394,6 +428,21 @@ table.border{
 
   .non-mobile{
     display: none;
+  }
+
+  .comments .item{
+    .information{
+       width: 100%;
+       border-bottom:1px solid black;
+       border-right:0px;
+       position:initial;
+    }
+    .message{
+      width:100%;
+    }
+    .option{
+      width:100%;
+    }
   }
 }
 

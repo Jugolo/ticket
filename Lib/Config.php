@@ -26,6 +26,9 @@ class Config{
     if(!self::$item){
       $query = Database::get()->query("SELECT `name`, `value` FROM `config`");
       self::$item = [];
+      if(!$query){
+        return;
+      }
       while($row = $query->fetch()){
         self::$item[$row->name] = $row->value;
       }

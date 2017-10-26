@@ -3,7 +3,7 @@ namespace Lib\Ext\Page\Group;
 
 use Lib\Controler\Page\PageView as P;
 use Lib\Database;
-use Lib\Okay;
+use Lib\Report;
 use Lib\Config;
 
 class PageView implements P{
@@ -70,7 +70,7 @@ class PageView implements P{
       '0',
       '0'
     );");
-    Okay::report("The group is created");
+    Report::okay("The group is created");
     header("location: ?view=handleGroup&sub=Access&gid=".$id);
     exit;
   }

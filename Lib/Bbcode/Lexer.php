@@ -69,6 +69,15 @@ class Lexer{
       case "title":
         $node->appendNode(self::render(new TitleNode(), $token));
         break;
+      case "b":
+        $node->appendNode(self::render(new BNode(), $token));
+        break;
+      case "i":
+        $node->appendNode(self::render(new INode(), $token));
+        break;
+      case "u":
+        $node->appendNode(self::render(new UNode(), $token));
+        break;
       default:
         $node->appendNode(new TextNode("[".$s."]"));
     }

@@ -7,12 +7,13 @@ use Lib\Database;
 use Lib\Database\DatabaseFetch;
 use Lib\Ext\Notification\NewTicket;
 use Lib\Ext\Notification\NewComment;
-use Lib\Error;
-use Lib\Okay;
+use Lib\Report;
 use Lib\Html\Table;
 use Lib\Bbcode\Parser;
 use Lib\Email;
 use Lib\User\Info;
+use Lib\Log;
+use Lib\Plugin\Plugin;
 
 class TicketView{
   public static function body(DatabaseFetch $data){
@@ -26,11 +27,26 @@ class TicketView{
     if($group["closeTicket"] == 1 && !empty($_GET["close"]) && $data->uid != user["id"]){
       self::changeOpningState($data->open != 1, $data->id);
     }
+    if(group["deleteTicket"] == 1 && !empty($_GET["delete"]) && $data->uid != user["id"]){
+      self::deleteTicket($data->id);
+    }
+    if(group["deleteComment"] == 1 && !empty($_GET["deleteComment"]) && $data->uid != user["id"]){
+      self::deleteComment(intval($_GET["deleteComment"]), $data->id);
+    }
     echo "<fieldset>";
     echo "<legend>Information</legend>";
     if($group["closeTicket"] == 1 && $data->uid != user["id"]){
-      echo two_container("Change opning state", "<a href='?view=tickets&ticket_id=".$data->id."&close=true'>".($data->open == 1 ? "Close" : "Open")."</a>");
-      echo "<hr>";
+      $item = 0;
+      if(group["closeTicket"] == 1){
+        $item++;
+        echo two_container("Change opning state", "<a href='?view=tickets&ticket_id=".$data->id."&close=true'>".($data->open == 1 ? "Close" : "Open")."</a>");
+      }
+      if(group["deleteTicket"] == 1){
+        $item++;
+        echo two_container("Delete this ticket", "<a href='?view=tickets&ticket_id={$data->id}&delete=true'>Delete this ticket</a>");
+      }
+      if($item > 0)
+        echo "<hr>";
     }
     echo two_container("Category", $data->name);
     echo two_container("From", Info::userLink($data->uid, $data->username));
@@ -55,6 +71,19 @@ class TicketView{
       $table->output();
     }
     echo "</fieldset>";
+    
+    if(group["showTicketLog"] == 1){
+      $log = Log::getTicketLog($data->id);
+      if($log->size() > 0){
+        echo "<fieldset>";
+          echo "<legend>Log</legend>";
+          $log->render(function($time, $message){
+            echo "<div><i>[{$time}]</i>{$message}</div>";
+          });
+        echo "</fieldset>";
+      }
+    }
+    
     Parser::getJavascript();
     echo "<fieldset>";
      echo "<legend>Comments</legend>";
@@ -83,12 +112,35 @@ class TicketView{
     }
   }
   
+  private static function deleteComment(int $id, int $tid){
+    $result = Database::get()->query("SELECT comment.id, comment.tid, user.username 
+                                      FROM `comment` 
+                                      LEFT JOIN `user` ON user.id=comment.uid
+                                      WHERE comment.tid='{$tid}' AND comment.id='{$id}'")->fetch();
+    if(!$result){
+      Report::error("Unknown comment");
+      return;
+    }
+    Log::ticket($result->tid, "%s deleted a comment writet by %s", user["username"], $result->username);
+    Plugin::trigger_event("system.comment.delete", $result->id);
+    Report::okay("The ticket is deleted");
+  }
+  
+  private static function deleteTicket($id){
+    Plugin::trigger_event("system.ticket.delete", $id);
+    Report::okay("You have deleted the ticket");
+    header("location: ?view=tickets");
+    exit;
+  }
+  
   private static function changeOpningState(bool $open, $id){
     Database::get()->query("UPDATE `ticket` SET `open`='".($open ? 1 : 0)."' WHERE `id`='{$id}'");
     if($open){
-      Okay::report("Ticket is now open"); 
+      Report::okay("Ticket is now open");
+      Log::ticket($id, "%s open the ticket", user["username"]);
     }else{
-      Okay::report("Ticket is now closed");
+      Log::ticket($id, "%s closed the ticket", user["username"]);
+      Report::okay("Ticket is now closed");
     }
     header("location: ?view=tickets&ticket_id=".$id);
     exit;
@@ -96,9 +148,9 @@ class TicketView{
   
   private static function createComments(DatabaseFetch $data){
     if($data->open != 1){
-      Error::report("You can not comments on closed ticket");
+      Report::error("You can not comments on closed ticket");
     }elseif(empty($_POST["comments"])){
-      Error::report("Missing message");
+      Report::error("Missing message");
     }else{
       $public = $data->uid == user["id"] || !empty($_POST["public"]);
       $db = Database::get();
@@ -114,7 +166,7 @@ class TicketView{
                   );");
       $db->query("UPDATE `ticket` SET `admin_changed`=NOW(), `comments`=comments+1".($public ? ", `user_changed`=NOW()" : "")." WHERE `id`='{$data->id}'");
       NewComment::createNotify($data->id, $data->uid, $public);
-      Okay::report("Comments saved");
+      Report::okay("Comments saved");
       self::sendEmailOnComment($data, $public);
       header("location: #");
       exit;
@@ -143,7 +195,7 @@ class TicketView{
   
   private static function getComments(DatabaseFetch $data){
     $db = Database::get();
-    $query = $db->query("SELECT comment.parsed_message, comment.public, comment.created, user.username
+    $query = $db->query("SELECT comment.id, comment.parsed_message, comment.public, comment.created, user.username
                          FROM `comment`
                          LEFT JOIN `user` ON user.id=comment.uid
                          WHERE `tid`='{$data->id}'".($data->uid == user["id"] ? " AND comment.public='1'" : ""));
@@ -159,6 +211,22 @@ class TicketView{
   }
   
   public static function handleComments(DatabaseFetch $data, DatabaseFetch $ticket){
+    echo "<div class='item".(user["id"] != $ticket->uid && $data->get("public") == 0 ? " secret" : "")."'>";
+      echo "<div>";
+        echo "<div class='information'>";
+          echo "<div class='nick'>From: ".htmlentities($data->username)."</div>";
+          echo "<div class='time'>Created: {$data->created}</div>";
+        echo "</div>";
+        echo "<div class='message'>";
+          echo $data->parsed_message;
+        echo "</div>";
+      echo "</div>";
+      if(group["deleteComment"] == 1 && $ticket->uid != user["id"]){
+        echo "<div class='option'><a href='?view=tickets&ticket_id={$ticket->id}&deleteComment={$data->id}'>Delete</a></div>";
+      }
+    echo "<div class='clear'></div>";
+    echo "</div>";
+    return;
     echo "<div class='comment_item'>";
       echo "<div class='information'>";
         echo "<ul>";
@@ -172,8 +240,13 @@ class TicketView{
       echo "<div class='message'>";
        echo $data->parsed_message;
       echo "</div>";
-      echo "<div class='clear'></div>";
-    echo "</div>";
+      echo "<div class='clear'>";
+      if(user["id"] != $ticket->uid && group["deleteTicket"] == 1){
+        echo "<div class='option'>";
+          echo "<a href='?view=tickets&ticket_id={$ticket->id}&deleteComment={$data->id}'>Delete</a>";
+        echo "</div>";
+      }
+    echo "</div></div>";
   }
   
   private static function setItem(Table $table, DatabaseFetch $data){

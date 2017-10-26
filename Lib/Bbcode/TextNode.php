@@ -19,9 +19,16 @@ class TextNode implements BBNode{
   
   public function toHtml() : string{
     $cache = $this->smylie;
+    $this->str = preg_replace_callback("/(http:\/\/)?(www\.)?([a-zA-Z]*)\.([a-zA-Z]*)/", function($reg){
+      $url = $reg[0];
+      if(strpos($url, "http://") !== 0){
+        $url = "http://".$url;
+      }
+      return "<a href='{$url}' target='_blank'>{$reg[0]}</a>";
+    }, nl2br(htmlentities($this->str)));
     return preg_replace_callback("/(".$this->getRexExpSmylie().")/", function($code) use ($cache){
        return "<img src='{$cache[$code[0]]}' alt='{$code[0]}' class='smylie'>";
-    }, nl2br(htmlentities($this->str)));
+    }, $this->str);
   }
   
   private function getRexExpSmylie(){

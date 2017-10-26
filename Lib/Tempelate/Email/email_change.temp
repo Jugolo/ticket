@@ -1,0 +1,13 @@
+Please reactivate you account.
+
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf8
+
+Hallo {{username}}
+
+You has changed you email and to be sure it correct you account has been deactivated.
+the only thing you need to do is visit the link abov and you account will be activated.
+
+{{link}}
+
+--{{config.system_name}}

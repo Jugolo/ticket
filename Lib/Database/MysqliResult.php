@@ -14,7 +14,13 @@ class MysqliResult{
     return $this->result->num_rows;
   }
   
-  public function fetch(){
+  public function fetch($callback = null){
+    if(is_callable($callback)){
+      while($row = $this->result->fetch_array(MYSQLI_NUM)){
+        call_user_func_array($callback, $row);
+      }
+      return null;
+    }
     $result = $this->result->fetch_assoc();
     if(!$result){
       return null;

@@ -3,7 +3,8 @@ namespace Lib\Ext\Page\User;
 
 use Lib\Controler\Page\PageView as P;
 use Lib\Database;
-use Lib\Okay;
+use Lib\Report;
+use Lib\Plugin\Plugin;
 
 class PageView implements P{
   public function body(){
@@ -28,16 +29,12 @@ class PageView implements P{
     $db = Database::get();
     $db->query("DELETE FROM `comment` WHERE `uid`=".$id);
     $query = $db->query("SELECT `id` FROM `ticket` WHERE `uid`='".$id."'");
-    while($row = $query->fetch()){
-      $db->query("DELETE FROM `ticket_track` WHERE `tid`='".$row->id."'");
-      $db->query("DELETE FROM `ticket_value` WHERE `hid`='".$row->id."'");
-      $db->query("DELETE FROM `comment` WHERE `tid`='".$row->id."'");
-    }
-    $db->query("DELETE FROM `ticket` WHERE `uid`='".$id."'");
+    $query->render(function($row){
+      Plugin::trigger_event("system.ticket.delete", $row->id);
+    });
     $db->query("DELETE FROM `user` WHERE `id`='".$id."'");
-    $db->query("DELETE FROM `notify` WHERE `uid`='{$id}'");
     $db->query("DELETE FROM `notify_setting` WHERE `uid`='{$id}'");
-    Okay::report("The user is now deleted");
+    Report::okay("The user is now deleted");
     header("location: ?view=users");
     exit;
   }
@@ -64,7 +61,7 @@ class PageView implements P{
   
     if(!empty($_GET["gid"])){
       updateUserGroup($user, $_GET["gid"]);
-      Okay::report("The users group is now updated");
+      Report::okay("The users group is now updated");
       header("location: ?view=users&sub=group&uid=".$_GET["uid"]);
       exit;
     }
