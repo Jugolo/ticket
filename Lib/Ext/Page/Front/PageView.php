@@ -5,9 +5,11 @@ use Lib\Controler\Page\PageView as P;
 use Lib\Config;
 use Lib\Bbcode\Parser;
 use Lib\Report;
+use Lib\Cache;
+use Lib\Tempelate;
 
 class PageView implements P{
-  public function body(){
+  public function body(Tempelate $tempelate){
     if(defined("user") && !empty($_GET["logout"]) && $_GET["logout"] == session_id()){
       session_destroy();
       header("location: ?view=front");
@@ -16,52 +18,47 @@ class PageView implements P{
     
     if(defined("user")){
       if(group["changeFront"] == 1 && !empty($_GET["change"])){
-        $this->changeFront();
+        $this->changeFront($tempelate);
         return;
       }
       if(group["changeSystemName"] == 1 && !empty($_GET["changeSystemName"])){
-         $this->changeSystemNameEditor();
+         $this->changeSystemNameEditor($tempelate);
          return;
       }
-      
-      if(group["changeFront"] == 1){
-        echo "<div>";
-          echo "<div id='changeFrontLink'>";
-            echo "<a href='?view=front&change=yes'>Change front page</a>";
-          echo "</div>";
-          echo "<div class='clear'></div>";
-        echo "</div>";
-      }
     }
-    $parser = new Parser(Config::get("front"));
-    Parser::getJavascript();
-    echo $parser->getHtml();
+    //Parser::getJavascript($tempelate);
+    if(Cache::exists("front")){
+      $tempelate->put("front", Cache::get("front"));
+    }else{
+      $parser = new Parser(Config::get("front"), $tempelate);
+      $front = $parser->getHtml();
+      Cache::create("front", $front);
+      $tempelate->put("front", $front);
+    }
+    
+    $tempelate->render("front");
   }
   
-  private function changeSystemNameEditor(){
+  private function changeSystemNameEditor(Tempelate $tempelate){
     if(!empty($_POST["systemname"]) && trim($_POST["systemname"])){
       Config::set("system_name", $_POST["systemname"]);
       Report::okay("System name is now updated");
       header("location: #");
       exit;
     }
-    echo "<form method='post' action='#'>";
-    echo two_container("New system name", "<input type='text' name='systemname' value='".Config::get("system_name")."'>");
-    echo "<input type='submit' value='Change system name'>";
-    echo "</form>";
+    $tempelate->render("change_systenName");
   }
   
-  private function changeFront(){
-    if(!empty($_POST["changeFront"])){
-      Config::set("front", $_POST["front"]);
+  private function changeFront(Tempelate $tempelate){
+    if(!empty($_GET["update"])){
+      $front = empty($_POST["context"]) ? "" : $_POST["context"];
+      Config::set("front", $front);
+      Cache::delete("front");
       Report::okay("The front page is updated");
       header("location: ?view=front");
       exit;
     }
-    
-    echo "<form method='post' action='#'>";
-      echo "<textarea name='front' id='frontTextarea'>".Config::get("front")."</textarea>";
-      echo "<input type='submit' name='changeFront' value='Change'>";
-    echo "</form>";
+    $tempelate->put("front", Config::get("front"));
+    $tempelate->render("change_front");
   }
 }

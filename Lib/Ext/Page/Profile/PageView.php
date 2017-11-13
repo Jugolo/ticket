@@ -6,12 +6,12 @@ use Lib\Database;
 use Lib\User\Auth;
 use Lib\Age;
 use Lib\Report;
-use Lib\Html\Table;
 use Lib\Log;
 use Lib\Email;
+use Lib\Tempelate;
 
 class PageView implements P{
-  public function body(){
+  public function body(Tempelate $tempelate){
     $user = $this->getUser();
     if(!$user){
       Report::error("Could not find the user");
@@ -27,16 +27,37 @@ class PageView implements P{
       }elseif(!empty($_POST["birth"])){
         $this->updateAge();
       }
-      echo "<h3>Your profile</h3>";
     }else{
       if($user->isActivatet == 0){
         if(group["activateUser"] == 1 && !empty($_GET["activate"])){
           $this->activateUser($user->id);
         }
-        echo "<div id='u_not_activate'>This user is not activated yet".(group["activateUser"] == 1 ? " <a href='?view=profile&user={$_GET["user"]}&activate=true'>(Activate user)</a>" : "")."</div>";
+        $tempelate->put("not_activate", true);
       }
-      echo "<h3>Profile for ".htmlentities($user->username)."</h3>";
+      if(group["viewUserLog"] == 1){
+        $log = Log::getUserLog($user->id);
+        $logs = [];
+        $log->render(function($time, $message) use(&$logs){
+          $logs[] = [
+            "time"    => $time,
+            "message" => $message
+          ];
+        });
+        $tempelate->put("logs", $logs);
+      }
     }
+    
+    $tempelate->put("profile_username", $user->username);
+    $tempelate->put("uid",              $user->id);
+    $tempelate->put("email",            $user->email);
+    $tempelate->put("age",              $user->birth_day ? Age::calculate($user->birth_day, $user->birth_month, $user->birth_year) : "Unknown");
+    $tempelate->put("day",              $user->birth_day);
+    $tempelate->put("month",            $user->birth_month);
+    $tempelate->put("year",             $user->birth_year);
+    $tempelate->put("group",            $user->name);
+    
+    $tempelate->render($user->id == user["id"] ? "owen_profile" : "other_profile");
+    return;
     
     $table = new Table();
     $table->style = "width:100%;border-collapse:collapse;";
@@ -140,7 +161,10 @@ class PageView implements P{
   
   private function getUser(){
     $db = Database::get();
-    return $db->query("SELECT * FROM `user` WHERE `id`='{$db->escape(!empty($_GET['user']) ? $_GET["user"] : user["id"])}'")->fetch();
+    return $db->query("SELECT user.*, group.name
+                       FROM `user`
+                       LEFT JOIN `group` ON group.id=user.groupid
+                       WHERE user.id='{$db->escape(!empty($_GET['user']) ? $_GET["user"] : user["id"])}'")->fetch();
   }
   
   private function updateAge(){

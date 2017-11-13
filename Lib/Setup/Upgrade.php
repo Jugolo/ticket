@@ -2,21 +2,42 @@
 namespace Lib\Setup;
 
 use Lib\Config;
-
 use Lib\Report;
+use Lib\Log;
 
 class Upgrade{
   public static function upgrade(){
+    //wee remove all cache to ensure new thinks to work
+    self::purgeCache();
     $upgrade = new Upgrade(function($c){
       if($c->upgrade()){
         Config::set("version", $c->version);
         Report::okay("Upgraded to ".$c->version);
+        if(version_compare(\Lib\Config::get("version"), "V3.3", '>')){
+          Log::system("System upgraded to %s", $c->version);
+        }
         return true;
       }else{
         Report::error("Failed to upgrade to ".$c->version);
         return false;
       }
     });
+  }
+  
+  private static function purgeCache(){
+    $dir = "Lib/Temp/";
+    if(!is_dir($dir)){
+      mkdir($dir);
+    }
+    $stream = opendir($dir);
+    while($item = readdir($stream)){
+      if($item == "." || $item == "..")
+        continue;
+      
+      if(is_dir($dir.$item))
+        exit("Please remove {$dir}{$item}");
+      unlink($dir.$item);
+    }
   }
   
   public function __construct($callback){

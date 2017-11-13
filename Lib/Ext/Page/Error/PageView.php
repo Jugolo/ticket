@@ -3,17 +3,16 @@ namespace Lib\Ext\Page\Error;
 
 use Lib\Controler\Page\PageView as P;
 use Lib\Database;
-use Lib\Html\Table;
 use Lib\Database\DatabaseFetch;
 use Lib\Report;
+use Lib\Tempelate;
 
 class PageView implements P{
-  function body(){
-    $info = new Info();
-    if(!$info->menuVisible()){
-      notfound();
+  function body(Tempelate $tempelate){
+    if(!empty($_GET["id"]) && $data = $this->getData(intval($_GET["id"]))){
+      $this->showError($data, $tempelate);
+      return;
     }
-    
     $page = !empty($_GET["ep"]) && is_numeric($_GET["ep"]) ? intval($_GET["ep"]) : 0;
     $db = Database::get();
     
@@ -23,101 +22,29 @@ class PageView implements P{
       $page = round($count/30);
     }
     
-    $link = "";
+    $link = [];
     for($i=max($page-10, 0);$i<min($page+10, $count/30);$i++){
-      if($i == $page){
-        $link .= " ".($i+1);
-      }else{
-        $link .= " <a href='?view=error&ep={$i}'>".($i+1)."</a>";
-      }
+      $link[] = [
+        "isCurrent" => $i == $page,
+        "link"      => "?view=error&ep=".$i,
+        "name"      => $i+1
+        ];
     }
+    $tempelate->put("links", $link);
     
-    $query = $db->query("SELECT * FROM `error` LIMIT {$page}, 30");
-    
-    if($query->count() === 0){
-      echo "<h3>No error detected</h3>";
-      return;
-    }
+    $query = $db->query("SELECT `id`, `errstr` FROM `error` LIMIT {$page}, 30");
     
     if(!empty($_POST["delete"]) && !empty($_POST["errorSelect"])){
       $this->deleteErrors();
       header("location: #");
       exit;
     }
-    
-    $table = new Table();
-    $table->className("style");
-    $table->newColummen();
-    $this->setHeader($table);
-    $self = $this;
-    $query->render([$this, "setBody"], $table);
-    $this->setScript();
-    echo "<form action='#' method='post'>";
-    echo "<div style='padding:5px;'>";
-    echo "<a href='#' onclick='selectAll();'>Select all</a> / ";
-    echo "<a href='#' onclick='unselectAll();'>Unselect all</a> ";
-    echo "<span id='delete_selected' class='hide'><button name='delete' value='delete'>Delete selected</button></span>";
-    echo "</div>";
-    $table->output();
-    echo $link;
-    echo "</form>";
-  }
-  
-  public function setBody(DatabaseFetch $item, Table $table){
-    $table->newColummen();
-    $table->td("<input type='checkbox' name='errorSelect[]' onclick='onErrorSelectChange();' class='es' value='{$item->id}'>", true);
-    $table->td($item->errno);
-    $table->td($item->errstr);
-    $table->td($item->errfile);
-    $table->td($item->errline);
-    $table->td($item->errtime);
-  }
-  
-  private function setHeader(Table $table){
-    $table->th("Select");
-    $table->th("Type");
-    $table->th("Message");
-    $table->th("File");
-    $table->th("Line");
-    $table->th("Reported");
-  }
-  
-  private function setScript(){
-    ?>
-    <script>
-      function selectAll(){
-        var input =  document.getElementsByClassName("es");
-        for(var i=0;i<input.length;i++){
-          if(!input[i].checked){
-            input[i].checked = true; 
-          }
-        }
-        onErrorSelectChange();
-      }
-      
-      function unselectAll(){
-        var input = document.getElementsByClassName("es");
-        for(var i=0;i<input.length;i++){
-          input[i].checked = false; 
-        }
-        onErrorSelectChange();
-      }
-      
-      function onErrorSelectChange(){
-        document.getElementById("delete_selected").style.display = errorSelected() ? "inline-block" : "none";
-      }
-      
-      function errorSelected(){
-        var input = document.getElementsByClassName("es");
-        for(var i=0;i<input.length;i++){
-          if(input[i].checked){
-            return true; 
-          }
-        }
-        return false;
-      }
-    </script>
-    <?php
+    $errors = [];
+    while($row = $query->fetch()){
+      $errors[] = $row->toArray();
+    }
+    $tempelate->put("system_error", $errors);
+    $tempelate->render("error");
   }
   
   private function deleteErrors(){
@@ -130,5 +57,43 @@ class PageView implements P{
     
     Database::get()->query($queryString.implode(" OR ", $ids));
     Report::okay("Errors message is now deleted");
+  }
+  
+  private function showError($data, $tempelate){
+    $tempelate->put("file",    $data->errfile);
+    $tempelate->put("line",    $data->errline);
+    $tempelate->put("time",    $data->errtime);
+    $tempelate->put("message", $data->errstr);
+    
+    $file = file($data->errfile);
+    $lines = [];
+    $max = min(count($file), $data->errline+10)-1;
+    $min = max(1, $data->errline-10)-1;
+    
+    for($i=$min;$i<$max;$i++){
+      $lines[] = [
+        "line"   => $file[$i],
+        "number" => $i+1
+        ];
+    }
+    $tempelate->put("lines", $lines);
+    
+    $db = Database::get();
+    $query = $db->query("SELECT `id`, `errstr`
+                         FROM `error`
+                         WHERE `id`<>'{$data->id}'
+                         AND `errstr`='{$db->escape($data->errstr)}'
+                         AND `errline`='{$db->escape($data->errline)}'
+                         AND `errfile`='{$db->escape($data->errfile)}'");
+    $other_error = [];
+    while($row = $query->fetch())
+      $other_error[] = $row->toArray();
+    $tempelate->put("other_error", $other_error);
+    
+    $tempelate->render("show_error");
+  }
+  
+  private function getData(int $id){
+    return Database::get()->query("SELECT * FROM `error` WHERE `id`='{$id}'")->fetch();
   }
 }
