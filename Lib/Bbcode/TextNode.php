@@ -19,7 +19,7 @@ class TextNode implements BBNode{
   
   public function toHtml() : string{
     $cache = $this->smylie;
-    $this->str = preg_replace_callback("/(http:\/\/)?(www\.)?([a-zA-Z]*)\.([a-zA-Z]*)/", function($reg){
+    $this->str = preg_replace_callback("/(http:\/\/)?(www\.)?([a-zA-Z]*)\.([a-zA-Z]{2,6})/", function($reg){
       $url = $reg[0];
       if(strpos($url, "http://") !== 0){
         $url = "http://".$url;

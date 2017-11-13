@@ -12,15 +12,4 @@ class Parser{
   public function getHtml(){
     return $this->dom->toHtml();
   }
-  
-  public static function getJavascript(){
-   ?>
-   <script>
-     function spoiler_click(obj){
-       var context = obj.parentNode.getElementsByClassName("spoiler_context")[0];
-       context.style.display = CowDom.isVisible(context) ? "none" : "block";
-     }
-   </script>
-   <?php
-  }
 }

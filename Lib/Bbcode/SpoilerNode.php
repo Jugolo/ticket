@@ -14,7 +14,7 @@ class SpoilerNode implements BBNode{
   }
   
   public function toHtml() : string{
-    $str = "<div class='spoiler'><div class='spoiler_title' onclick='spoiler_click(this);'>".htmlentities($this->title)."</div><div class='spoiler_context'>";
+    $str = "<div class='spoiler'><div class='spoiler_title' onclick='var sd = this.parentNode.getElementsByClassName(\"spoiler_context\")[0]; sd.style.display = sd.offsetParent == null ? \"block\" : \"none\";'>".htmlentities($this->title)."</div><div class='spoiler_context'>";
     foreach($this->stack as $node){
       $str .= $node->toHtml();
     }
