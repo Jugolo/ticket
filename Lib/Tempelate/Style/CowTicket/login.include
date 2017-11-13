@@ -1,0 +1,42 @@
+<div id='root-left-login' class='box'>
+  <div class='title'>Login</div>
+  <form action="#" method="post">
+    <div>
+      <span class='label'>Username</span><input type='text' name='username'>
+    </div>
+    <div>
+      <span class='label'>Password</span><input type='password' name='password'>
+    </div>
+    <div>
+      <a href='?view=agree' target='_blank' class='agree'>When i login i agree width this</a>
+    </div>
+    <div>
+      <input type='submit' name='login' value='Login' class='last'>
+    </div>
+  </form>
+</div>
+<div id='root-left-create' class='box'>
+  <div class='title'>
+    Create account
+  </div>
+  <form action='#' method='post'>
+    <div>
+      <span class='label'>Username</span><input type='text' name='username'>
+    </div>
+    <div>
+      <span class='label'>Password</span><input type='password' name='password'>
+    </div>
+    <div>
+      <span class='label'>Repeat</span><input type='password' name='repeat_password'>
+    </div>
+    <div>
+      <span class='label'>Email</span><input type='email' name='email'>
+    </div>
+    <div>
+      <a href='?view=agree' target='_blank' class='agree'>Width creation I accept this</a>
+    </div>
+    <div>
+      <input type='submit' name='createaccount' value='Create account' class='last'>
+    </div>
+  </form>
+</div>

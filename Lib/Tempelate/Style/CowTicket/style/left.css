@@ -1,0 +1,73 @@
+#root-left{
+  position: absolute;
+  top:50px;
+  left:0px;
+  width:150px;
+  bottom:0px;
+  background-color: #EAEAEA;
+  padding:5px;
+}
+
+#root-left input{
+  width:50px;
+  margin:0px;
+  margin-top:0px;
+  border-radius:0px;
+  border-bottom:0px;
+  border-right:0px;
+  outline: none;
+  vertical-align: baseline;
+  font-size: 15px;
+  padding:0px;
+  width:49.1%;
+}
+
+#root-left input[type="submit"]{
+  width:100%;
+  -webkit-appearance: none;
+  background-color: white;
+}
+
+#root-left .label{
+  height: 19px;
+  border-bottom: 0px;
+}
+
+#root-left .box{
+  border:1px solid black;
+  border-radius:10px;
+  margin-top: 5px;
+}
+
+#root-left .box .last{
+  border-radius: 0 0 10px 10px;
+}
+
+
+#root-left .box .title{
+  text-align:center;
+  border-bottom: 1px solid black;
+  background-color: #2C2525;
+  color: white;
+  border-radius: 10px 10px 0 0;
+}
+
+#root-left .box.link-box a{
+  display: block;
+  width:100%;
+  height:20px;
+  text-align: center;
+  border-bottom: 1px solid black;
+}
+
+#root-left .box.link-box a:last-child{
+  border-bottom:0px;
+}
+
+.agree{
+  height:11px;
+  font-size: 9px;
+  padding:0px;
+  margin:0px;
+  display:block;
+}

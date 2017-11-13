@@ -1,0 +1,39 @@
+!-if not texteditor_script-!
+!-set texteditor_script=true-!
+<script>
+  function insertBB(e, type){
+    var editor = e.parentNode.parentNode.parentNode.getElementsByClassName("editor")[0].getElementsByTagName("textarea")[0];
+    if(editor.selection){
+      editor.focus();
+      var range = document.selection.createRange();
+      range.text = "["+type+"] [/"+type+"]";
+    }else if(editor.selectionStart || editor.selectionStart == '0'){
+      var start = editor.selectionStart;
+      var end = editor.selectionEnd;
+      editor.value = editor.value.substr(0, start)+"["+type+"] [/"+type+"]"+editor.value.substr(end);
+    }
+  }
+</script>
+!-endblock-!
+<div class='editor-container'>
+  <div class='menu'>
+    <div>
+      <a href="#" title="Insert B tag in the editor" onclick="insertBB(this, 'b');">B</a>
+      <a href="#" title="Insert U tag in the editor" onclick="insertBB(this, 'u');">U</a>
+      <a href="#" title="Insert I tag in the editor" onclick="insertBB(this, 'I');">I</a>
+    </div>
+    <div>
+      <a href="#" title="Insert color code in the editor" onclick="insertBB(this, 'color');">Color</a>
+      <a href="#" title="Insert title element in the editor" onclick="insertBB(this, 'title');">Title</a>
+      <a href="#" title="Insert url link to the editor" onclick="insertBB(this, 'url');">Url</a>
+      <a href="#" title="Insert spoiler to the editor" onclick="insertBB(this, 'spoiler');">Spoiler</a>
+    </div>
+  </div>
+  <div class='clear'></div>
+  <div class='editor'>
+    <textarea name="!-if texteditor_name-!!-texteditor_name-!!-else-!context!-endblock-!">!-texteditor_context-!</textarea>
+  </div>
+  <div class='submit'>
+    <input type="submit" value="Submit"!-if texteditor_submitname-! name='!-texteditor_submitname-!'!-endblock-!>
+  </div>
+</div>

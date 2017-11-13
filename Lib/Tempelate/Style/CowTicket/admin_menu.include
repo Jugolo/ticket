@@ -1,0 +1,23 @@
+!-if access showError or access handleTickets or access changeGroup or access handleGroup or access viewSystemLog or access handleTempelate-!
+<div class='box link-box'>
+  <div class='title'>Admin</div>
+  !-if access showError-!
+  <a href='?view=error'>Error</a>
+  !-endblock-!
+  !-if access handleTickets-!
+  <a href='?view=handleTickets'>Ticket</a>
+  !-endblock-!
+  !-if access changeGroup-!
+  <a href='?view=users'>User</a>
+  !-endblock-!
+  !-if access handleGroup-!
+  <a href='?view=handleGroup'>Group</a>
+  !-endblock-!
+  !-if access viewSystemLog-!
+  <a href='?view=systemLog'>System log</a>
+  !-endblock-!
+  !-if access handleTempelate-!
+  <a href='?view=tempelate'>Tempelate</a>
+  !-endblock-!
+</div>
+!-endblock-!

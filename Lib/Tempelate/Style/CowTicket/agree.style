@@ -1,0 +1,8 @@
+!-include head-!
+!-foreach rules as key : value-!
+<div class='box'>
+  <div class='title'>!-key-!</div>
+  !-echo value-!
+</div>
+!-endblock-!
+!-include buttom-!

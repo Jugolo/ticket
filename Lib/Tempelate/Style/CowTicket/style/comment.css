@@ -1,0 +1,37 @@
+.comment{
+  border:1px solid black;
+  border-radius:10px;
+  margin:5px;
+}
+
+.comment .comment-secret{
+  border-bottom: 1px solid black;
+  text-align: center;
+  font-weight: bolder;
+}
+
+.comment .comment-body{
+  padding:0px;
+  margin:0px;
+}
+
+.comment .comment-body .comment-information{
+  float: left;
+  width: 30%;
+}
+
+.comment .comment-body .comment-information ul{
+  list-style-type: none;
+  padding: 0px;
+  margin:0px;
+}
+
+.comment .comment-body .comment-message{
+  width: calc(70% - 1px);
+  float: left;
+}
+
+.comment .comment-admin{
+  padding-left: 10px;
+  border-top:1px solid black;
+}

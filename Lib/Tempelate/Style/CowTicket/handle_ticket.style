@@ -1,0 +1,76 @@
+!-addCss style.table-!
+!-addCss style.input-!
+!-addScript script.handle_ticket-!
+!-include head-!
+<div class='box'>
+  <div class='title'>Create input</div>
+  <form action='#' method='post'>
+    <table class='table-fill'>
+      <tr>
+        <th>Name</th>
+        <td><input type='text' name='name' class='input'></td>
+      </tr>
+      <tr>
+        <th>Type</th>
+        <td>
+          <select name='type' class='input' onchange='HandleTicket.createTypeChange(this.value)'>
+            <option value='1'>Input</option>
+            <option value='2'>Textarea</option>
+            <option value='3'>Select</option>
+          </select>
+        </td>
+      </tr>
+      <tr>
+        <th id='input-placeholder'>Placeholder</th>
+        <td><input type='text' name='placeholder' class='input'></td>
+      </tr>
+      <tr>
+        <td colspan='2'><input type='submit' name='append' value='Create' class='input'></td>
+      </tr>
+    </table>
+  </form>
+</div>
+<div class='box'>
+  <div class='title'>Category item</div>
+  !-if item-!
+  <table class='makeup-table'>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Placeholder/Options</th>
+      <th>Delete</th>
+    </tr>
+  !-foreach item as input-!
+    <tr>
+      <th>!-input["text"]-!</th>
+      <td>!-if input["type"] == 1-!
+      Input
+      !-elseif input["type"] == 2-!
+      Textarea
+      !-else-!
+      Select
+      !-endblock-!</td>
+      <td>!-input["placeholder"]-!</td>
+      <td><a href='?view=handleTickets&catogory=!-category_id-!&delete=!-input["id"]-!'>Delete</a></td>
+    </tr>
+  !-endblock-!
+  </table>
+  !-else-!
+  <div class='information'>No category input found</div>
+  !-endblock-!
+</div>
+<div class='box'>
+  <div class='title'>Setting</div>
+  <form action='#' method='post'>
+    <table class='table-fill'>
+      <tr>
+        <th>Min. age</th>
+        <td><input type='number' name='age' value='!-age-!' class='input'></td>
+      </tr>
+      <tr>
+        <td colspan='2'><input type='submit' name='setting' value="Update" class='input'></td>
+      </tr>
+    </table>
+  </form>
+</div>
+!-include buttom-!

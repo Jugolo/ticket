@@ -1,0 +1,8 @@
+.cat{
+  text-align: center;
+  border-bottom: 1px solid black;
+}
+
+.cat:last-child{
+  border-bottom: 0px;
+}

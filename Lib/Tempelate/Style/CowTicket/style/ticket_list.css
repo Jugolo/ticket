@@ -1,0 +1,38 @@
+.ticket{
+  border-bottom: 1px solid black;
+}
+
+.ticket:last-child{
+  border-bottom:0px;
+}
+
+.ticket .read-status{
+  height: 42px;
+  width: 42px;
+  padding: 2px;
+  float:left;
+}
+
+.ticket .read-status div{
+  width: 40px;
+  height: 40px;
+  border: 1px solid black;
+  border-radius: 100px;
+  background-color: green;
+}
+
+.ticket .read-status div.closed{
+  background-color: black;
+}
+
+.ticket .read-status div.not-read{
+  background-color: red;
+}
+
+.ticket .ticket-data{
+  float:left;
+}
+
+.ticket .ticket-data .ticket-name{
+  font-weight: bolder;
+}

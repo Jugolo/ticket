@@ -1,0 +1,41 @@
+!-addCss style.table-!
+!-include head-!
+!-if not_activate-!
+<div class='box'>
+  <div class='information'>The account is not activated yet!-if access activateUser-!
+    <a href='?view=profile&user=!-uid-!&activate=true'>(Activate user)</a>!-endblock-!</div>
+</div>
+!-endblock-!
+!-if logs-!
+<div class='box'>
+  <div class='title'>Log</div>
+  !-foreach logs as log-!
+  <div>
+    [!-log["time"]-!]
+    !-log["message"]-!
+  </div>
+  !-endblock-!
+</div>
+!-endblock-!
+<div class='box'>
+  <div class='title'>Information</div>
+  <table class="table-fill">
+    <tr>
+      <th>Username</th>
+      <td>!-profile_username-!</td>
+    </tr>
+    <tr>
+      <th>Email</th>
+      <td>!-email-!</td>
+    </tr>
+    <tr>
+      <th>Age</th>
+      <td>!-age-!</td>
+    </tr>
+    <tr>
+      <th>Group</th>
+      <td>!-group-!</td>
+    </tr>
+  </table>
+</div>
+!-include buttom-!

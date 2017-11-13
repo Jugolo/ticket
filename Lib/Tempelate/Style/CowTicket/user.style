@@ -1,0 +1,21 @@
+!-addCss style.table-!
+!-include head-!
+<div class='box'>
+  <div class='title'>User list</div>
+  <table class='table-fill border'>
+    !-foreach users as user-!
+    <tr>
+      !-if access showProfile-!
+      <th><a href='?view=profile&user=!-user["id"]-!'>!-user["username"]-!</a></th>
+      !-else-!
+      <th>!-user["username"]-!</th>
+      !-endblock-!
+      !-if access changeGroup-!
+      <td><a href='?view=users&sub=group&uid=!-user["id"]-!'>Change group</a></td>
+      <td><a href='?view=users&delete=!-user["id"]-!'>Delete</a></td>
+      !-endblock-!
+    </tr>
+    !-endblock-!
+  </table>
+</div>
+!-include buttom-!

@@ -1,0 +1,36 @@
+!-addCss style.table-!
+!-addCss style.error-!
+!-addScript script.error-!
+!-include head-!
+<div class='box'>
+  <div class='title'>System error</div>
+  !-if system_error-!
+  <form action="#" method="post">
+    <div id="error-option">
+      <a href="#" onclick="error.selectAll();">Select all</a> / <a href="#" onclick="error.unselectAll();">Unselect all</a>
+      <button name="delete" value="delete" id="delete-button">Delete</button>
+    </div>
+    <table class="makeup-table">
+      !-foreach system_error as error-!
+      <tr>
+        <td><input type='checkbox' name='errorSelect[]' class='error-select' value='!-error["id"]-!' onclick='error.updateDelete();'></td>
+        <th><a href='?view=error&id=!-error["id"]-!'>!-error["errstr"]-!</a></th>
+      </tr>
+      !-endblock-!
+    </table>
+  </form>
+  <hr>
+  !-foreach links as link-!
+  !-if link["isCurrent"]-!
+  <span class="link">!-link["name"]-!</span>
+  !-else-!
+  <span class="link"><a href="!-link["link"]-!">!-link["name"]-!</a></span>
+  !-endblock-!
+  !-endblock-!
+  !-else-!
+  <div class='information'>
+    The system has not yet detected errors
+  </div>
+  !-endblock-!
+</div>
+!-include buttom-!

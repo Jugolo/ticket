@@ -1,0 +1,27 @@
+.bbcode h3{
+  text-align: center;
+  width: 100%;
+  display: block;
+  margin: 0px;
+  padding: 0px;
+}
+
+.bbcode .spoiler{
+  border: 1px solid black;
+  border-radius: 10px;
+  margin: 5px;
+  padding: 5px;
+}
+
+.bbcode .spoiler .spoiler_title{
+  background-color: #2C2525;
+  color: white;
+  text-align: center;
+  font-weight: bolder;
+  padding: 5px;
+  border-radius: 10px;
+}
+
+.bbcode .spoiler .spoiler_context{
+  display: none;
+}

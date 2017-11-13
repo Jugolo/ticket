@@ -1,0 +1,13 @@
+!-addCss style.select_to-!
+!-include head-!
+<div class='box'>
+  <div class='title'>Select category</div>
+  !-if category-!
+  !-foreach category as cat-!
+  <div class='cat'><a href='?view=apply&to=!-cat["id"]-!'>!-cat["name"]-!</a></div>
+  !-endblock-!
+  !-else-!
+  <div class="information">Sorry no category found where you can apply to</div>
+  !-endblock-!
+</div>
+!-include buttom-!
