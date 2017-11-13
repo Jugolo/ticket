@@ -104,14 +104,14 @@ class Auth{
     exit;
   }
   
-  private function doCreate(){
+  private static function doCreate(){
     $count = Report::count("ERROR");
     
-    if(empty($_POST["create_username"]) || !trim($_POST["create_username"]))
+    if(empty($_POST["username"]) || !trim($_POST["username"]))
       Report::error("Missing username");
     
     $p = true;
-    if(empty($_POST["create_password"]) || !trim($_POST["create_password"])){
+    if(empty($_POST["password"]) || !trim($_POST["password"])){
       Report::error("Missing password");
       $p = false;
     }
@@ -121,19 +121,19 @@ class Auth{
       $p = false;
     }
     
-    if($p && $_POST["repeat_password"] != $_POST["create_password"])
+    if($p && $_POST["repeat_password"] != $_POST["password"])
       Report::error("The two passowrd is not equel");
     
     if(empty($_POST["email"]) || !trim($_POST["email"]))
       Report::error("Missing email");
     
     if($count == Report::count("ERROR")){
-      if(self::controleDetail($_POST["create_username"], $_POST["email"]) != null)
+      if(self::controleDetail($_POST["username"], $_POST["email"]) != null)
         Report::error("Username or/and email is taken");
       else{
         self::createUser(
-          $_POST["create_username"],
-          $_POST["create_password"],
+          $_POST["username"],
+          $_POST["password"],
           $_POST["email"],
           false
           );
