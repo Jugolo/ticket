@@ -1,0 +1,24 @@
+.makeup-table{
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.makeup-table tr{
+  background-color: #3F7FBF;
+}
+
+.makeup-table tr:nth-child(2n){
+  background-color: #336699;
+}
+
+.table-fill{
+  width:100%;
+}
+
+table.border{
+  border-collapse: collapse;
+}
+
+table.border th, table.border td{
+  border:1px solid black;
+}

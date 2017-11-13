@@ -2,15 +2,16 @@
 namespace Lib\Ext\Page\ShowTickets;
 
 use Lib\Controler\Page\PageView as P;
+use Lib\Tempelate;
 
 use Lib\Database;
 
 class PageView implements P{
-  public function body(){
+  public function body(Tempelate $tempelate){
     if(!empty($_GET["ticket_id"]) && ($data = $this->getTicketData(intval($_GET["ticket_id"])))){
-      TicketView::body($data);
+      TicketView::body($data, $tempelate);
     }else{
-      TicketOverView::body();
+      TicketOverView::body($tempelate);
     }
   }
   

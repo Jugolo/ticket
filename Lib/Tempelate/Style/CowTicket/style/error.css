@@ -1,0 +1,32 @@
+#delete-button{
+  background-color: #339933;
+  border-radius: 10px;
+  display: none;
+}
+
+#error-detail{
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 5px;
+}
+
+#error-detail td, #error-detail th{
+  border:1px solid black;
+}
+
+#error-file{
+  width: 100%;
+  border-collapse: collapse;
+}
+
+#error-file th{
+  border-right: 1px solid black;
+}
+
+#error-file tr{
+  background-color: #4CB24C;
+}
+
+#error-file tr.current{
+  background-color: #B24C4C;
+}

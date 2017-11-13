@@ -1,0 +1,32 @@
+!-addCss style.table-!
+!-addCss style.input-!
+!-include head-!
+<div class='box'>
+  <div class='title'>Handle group</div>
+  <table class='table-fill'>
+    !-foreach groups as group-!
+    <tr>
+      <th>!-group["name"]-!</th>
+      <td><a href='?view=handleGroup&sub=Delete&gid=!-group["id"]-!'>Delete group</a></td>
+      <td><a href='?view=handleGroup&sub=Access&gid=!-group["id"]-!'>Change access</a></td>
+      !-if group["id"] == standart-!
+      <td></td>
+      !-else-!
+      <td><a href='?view=handleGroup&sub=Standart&gid=!-group["id"]-!'>Set standart</a></td>
+      !-endblock-!
+    </tr>
+    !-endblock-!
+  </table>
+</div>
+<div class='box'>
+  <div class='title'>Create new group</div>
+  <form action='#' method='post'>
+    <div>
+      <input type='text' name='name' class='input' placeholder='Name'>
+    </div>
+    <div>
+      <input type='submit' value='Create group' class='input'>
+    </div>
+  </form>
+</div>
+!-include buttom-!

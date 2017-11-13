@@ -8,17 +8,18 @@ use Lib\Database\DatabaseFetch;
 use Lib\Report;
 use Lib\Config;
 use Lib\Plugin\Plugin;
+use Lib\Tempelate;
 
 class PageView implements P{
-  public function body(){
+  public function body(Tempelate $tempelate){
     if(!empty($_GET["catogory"])){
-      $this->setting();
+      $this->setting($tempelate);
     }else{
-      $this->overview();
+      $this->overview($tempelate);
     }
   }
   
-  private function setting(){
+  private function setting(Tempelate $tempelate){
     $data = $this->getData();
     if(!$data){
       Report::error("Unknown catagory");
@@ -38,68 +39,17 @@ class PageView implements P{
       $this->deleteInput($_GET["delete"]);
     }
     
-    echo "<h3>Setting for {$data->name}</h3>";
+    $query = Database::get()->query("SELECT * FROM `category_item` WHERE `cid`='{$data->id}'");
+    $item = [];
+    while($row = $query->fetch())
+      $item[] = $row->toArray();
+    $tempelate->put("item", $item);
     
-    echo "<fieldset>";
-    echo "<legend>Create input</legend>";
-    echo "<form method='post' action='#'>";
-      echo "<div>";
-        echo "<input type='text' name='name' placeholder='The input text'>";
-      echo "</div>";
-      echo "<div>";
-        echo "<select name='type' onchange='updatePlaceholder(this);'>";
-         echo "<option value='1'>Input</option>";
-         echo "<option value='2'>Textarea</option>";
-         echo "<option value='3'>Select</option>";
-        echo "</select>";
-      echo "</div>";
-      echo "<div>";
-        echo "<input type='text' name='placeholder' id='placeholder' placeholder='Write the placeholder'>";
-      echo "</div>";
-      echo "<input type='submit' name='append' value='Append input'>";
-    echo "</form>";
-    echo "</fieldset>";
+    $tempelate->put("category_id", $data->id);
+    $tempelate->put("age", $data->age);
     
-    echo "<script>";
-    echo "function updatePlaceholder(obj){
-      var dom = document.getElementById('placeholder');
-      switch(obj.value){
-        case '1':
-        case '2':
-          dom.placeholder = 'Write the placeholder';
-        break;
-        case '3':
-          dom.placeholder = 'Write the option seprate by a ,';
-        break;
-        default:
-          CowTicket.error('unknown value: '+obj.value);
-        break;
-      }
-    }";
-    echo "</script>";
-    
-    echo "<fieldset>";
-    echo "<legend>Inputs</legend>";
-    $db = Database::get();
-    $query = $db->query("SELECT * FROM `category_item` WHERE `cid`='{$data->id}'");
-    if($query->count() == 0){
-      echo "<h3>No input yet</h3>";
-    }else{
-      $self = $this;
-      $table = new Table();
-      $table->style = "width:100%;border-collapse:collapse;";
-      $table->newColummen();
-      $table->th("Name")->style = "border:1px solid grey;background-color:blue;";
-      $table->th("Type")->style = "border:1px solud grey;background-color:blue;";
-      $table->th("Placeholder")->style = "border:1px solid grey;background-color:blue;";
-      $table->th("Option")->style = "border:1px solid grey;background-color:blue;";
-      $query->render(function(DatabaseFetch $row) use($self, $table){
-        $self->renderInput($row, $table);
-      });
-      $table->output();
-    }
-    echo "</fieldset>";
-    
+    $tempelate->render("handle_ticket");
+    return;    
     echo "<fieldset>";
     echo "<legend>Setting</legend>";
       echo "<form method='post' action='#'>";
@@ -164,33 +114,12 @@ class PageView implements P{
     exit;
   }
   
-  public function renderInput(DatabaseFetch $row, Table $table){
-    $table->newColummen();
-    
-    $table->th($row->text)->style = "border:1px solid grey";
-    $table->td($this->getTypeName($row->type))->style = "border:1px solid grey";
-    $table->td($row->placeholder)->style = "border:1px solid grey";
-    $table->td("<a href='?view={$_GET["view"]}&catogory={$_GET["catogory"]}&delete={$row->id}'>Delete</a>", true)->style="border:1px solid grey";
-  }
-  
-  private function getTypeName(int $id) : string{
-    switch($id){
-      case 1:
-        return "Input";
-      case 2:
-        return "Textarea";
-      case 3:
-        return "Select";
-    }
-    return "Unknown";
-  }
-  
   private function getData(){
     $db = Database::get();
     return $db->query("SELECT * FROM `catogory` WHERE `id`='{$db->escape($_GET["catogory"])}'")->fetch();
   }
   
-  private function overview(){
+  private function overview(Tempelate $tempelate){
     if(!empty($_POST["name"])){
       $this->create($_POST["name"]);
     }
@@ -200,46 +129,14 @@ class PageView implements P{
     if(!empty($_GET["delete"])){
       $this->delete(intval($_GET["delete"]));
     }
-    echo "<fieldset>";
-      echo "<legend>Create new Category</legend>";
-      echo "<form method='post' action='#'>";
-        echo "<div><input type='text' name='name' placeholder='Name'></div>";
-        echo "<div><input type='submit' value='Create new category'></div>";
-      echo "</form>";
-    echo "</fieldset>";
     
-    ?>
-    <script>
-        function onCatOptionSelect(dom, id){
-          if(dom.value){
-            location.href = "?view=<?php echo $_GET["view"]; ?>&"+dom.value+"="+id;
-          }
-        }
-    </script>
-    <?php
+    $query = Database::get()->query("SELECT * FROM `catogory`");
+    $cat = [];
+    while($row = $query->fetch())
+      $cat[] = $row->toArray();
+    $tempelate->put("categorys", $cat);
     
-    echo "<fieldset>";
-      echo "<legend>Category</legend>";
-      Database::get()->query("SELECT * FROM `catogory`")->render([$this, "render"]);
-    echo "</fieldset>";
-  }
-  
-  public function render(DatabaseFetch $row){
-    echo "<div class='item'>";
-     $item = [];
-     $item[] = "<a href='?view={$_GET["view"]}&catogory={$row->id}'>Setting</a>";
-     $item[] = "<a href='?view={$_GET["view"]}&open={$row->id}'>".($row->open != 1 ? "Open" : "Close")."</a>";
-     $item[] = "<a href='?view={$_GET["view"]}&delete={$row->id}'>Delete</a>";
-     $mitem = [
-       "<select onchange='onCatOptionSelect(this, {$row->id})';>",
-       "<option value=''></option>",
-       "<option value='catogory'>Setting</option>",
-       "<option value='open'>".($row->open != 1 ? "Open" : "Close")."</option>",
-       "<option value='delete'>Delete</option>",
-       "</select>"
-     ];
-     echo two_container($row->name, "<div class='non-mobile'>".implode(" ", $item)."</div><div class='mobile'>".implode(" ", $mitem)."</div>");
-    echo "</div>";
+    $tempelate->render("handle_tickets");
   }
   
   private function changeOpen(int $id){

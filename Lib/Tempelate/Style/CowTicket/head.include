@@ -1,0 +1,59 @@
+!-addCss style.main-!
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Ticket system * !-config system_name-!</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    !-getStyle-!
+    !-getScript-!
+  </head>
+  <body>
+    <div id="root-head">
+      <div id="root-head-left">
+        <span class='mobile' onclick='System.toogleMenu()'>&#9776;</span>
+        !-if loggedIn-!
+        <span class='notify' onclick='System.notify.showList(this);'>
+          N<span class='count'>0</span>
+        </span>
+        !-endblock-!
+      </div>
+      <div id="root-head-right">
+        <a href="?view=front" id="root-head-right-name">
+          !-config system_name-!
+        </a>
+        !-if access changeSystemName -!
+        <a href='?view=front&changeSystemName=true'>
+          (Change)
+        </a>
+        !-endblock-!
+      </div>
+    </div>
+    <div id="root-left">
+      <div id="root-left-user">
+        !-if loggedIn-!
+        <div class='box link-box'>
+          <div class='title'>!-username-!</div>
+          <a href='?view=front&logout=!-session_id-!'>Logout</a>
+          <a href='?view=profile'>Profile</a>
+        </div>
+        !-else-!
+        !-include login-!
+        !-endblock-!
+      </div>
+      <div class='box link-box'>
+        <div class='title'>Menu</div>
+        <a href='?view=front'>Front</a>
+        !-if loggedIn-!
+        !-if config cat_open != 0-!
+        <a href='?view=apply'>Apply</a>
+        !-endblock-!
+        <a href='?view=tickets'>Ticket</a>
+        !-endblock-!
+      </div>
+      !-if loggedIn-!
+      !-include admin_menu-!
+      !-endblock-!
+    </div>
+    <div id='root'>
+      !-include report-!

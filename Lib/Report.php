@@ -40,19 +40,16 @@ class Report{
   }
   
   /**
-  *Echo javascript code to trigger javascript okay and error report system.
+  *Append message to tempelate object.
   */
-  public static function toJavascript(){
+  public static function toTempelate(Tempelate $tempelate){
     self::init();
-    if(!empty($_SESSION["reports"]["OKAY"])){
-      foreach($_SESSION["reports"]["OKAY"] as $msg){
-        echo "CowTicket.okay('".self::htmlenscape($msg)."');";
-      }
-    }
-    if(!empty($_SESSION["reports"]["ERROR"])){
-      foreach($_SESSION["reports"]["ERROR"] as $msg)
-        echo "CowTicket.error('".self::htmlenscape($msg)."');";
-    }
+    if(!empty($_SESSION["reports"]["OKAY"]))
+      $tempelate->put("reportOkay", self::htmlenscape($_SESSION["reports"]["OKAY"]));
+    
+    if(!empty($_SESSION["reports"]["ERROR"]))
+      $tempelate->put("reportError", self::htmlenscape($_SESSION["reports"]["ERROR"]));
+    unset($_SESSION["reports"]);
   }
   
   /**
@@ -73,11 +70,15 @@ class Report{
     }
   }
   
-  private static function htmlenscape(string $msg){
-    return str_replace([
-      "'"
-      ], [
-      "\\'"
-      ], $msg);
+  private static function htmlenscape(array $msg){
+    $data = [];
+    foreach($msg as $m){
+      $data[] = str_replace([
+        "'"
+        ], [
+        "\\'"
+        ], $m);
+    }
+    return $data;
   }
 }

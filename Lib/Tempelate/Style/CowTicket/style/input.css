@@ -1,0 +1,26 @@
+label{
+  background-color: white;
+  border:1px solid black;
+  border-radius: 10px 0px 0px 10px;
+  width:50%;
+  box-sizing: content-box;
+}
+
+.input-labeled{
+  background-color: white;
+  border:1px solid black;
+  border-radius: 0px 10px 10px 0px;
+  width: 48%;
+  border-left: 0px;
+  margin:0px;
+  box-sizing: content-box;
+}
+
+.input{
+  box-sizing: border-box;
+  width: 100%;
+}
+
+textarea.input{
+  height: 200px;
+}

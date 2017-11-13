@@ -1,0 +1,50 @@
+#root-left{
+  width:auto;
+  right:0px;
+  display: none;
+  z-index:2;
+}
+
+#root{
+ left:0px; 
+}
+
+div.mobile{
+  display: block;
+}
+
+span.mobile{
+  display: inline-block;
+}
+
+.compurter{
+  display: none;
+}
+
+.comment .comment-body .comment-information{
+  float: none;
+  border-bottom: 1px solid black;
+  width:100%;
+}
+
+.comment .comment-body .comment-message{
+  float: none;
+  width:100%;
+}
+
+.comment .comment-body .comment-information ul li{
+  float:left;
+}
+
+.access-context .access-data{
+  display: block;
+}
+
+#notify_menu{
+  top: 50px;
+  left: 0px; 
+  right: 0px;
+  bottom: 0px;
+  border-radius: 0px;
+}
+

@@ -5,23 +5,23 @@ use Lib\Controler\Page\PageView as P;
 use Lib\Database;
 use Lib\Report;
 use Lib\Plugin\Plugin;
+use Lib\Tempelate;
 
 class PageView implements P{
-  public function body(){
+  public function body(Tempelate $tempelate){
     if(!empty($_GET["sub"])){
-      $this->changegroup();
+      $this->changegroup($tempelate);
     }else{
       if(!empty($_GET["delete"])){
         $this->deleteuser(intval($_GET["delete"]));
       }
       $group = getUsergroup(user["groupid"]);
       $query = Database::get()->query("SELECT `id`, `username` FROM `user`");
-      while($row = $query->fetch()){
-        echo two_container(
-          $group["showProfile"] == 1 ? "<a href='?view=profile&user={$row->id}'>".htmlentities($row->username)."</a>" : htmlentities($row->username), 
-          ($group["changeGroup"] == 1 ? "<a href='?view=users&sub=group&uid=".$row->id."'>Change group</a>" : "").($row->id == user["id"] ? "" : " <a href='?view=users&delete={$row->id}'>Delete</a>")
-        );
-      }
+      $list = [];
+      while($row = $query->fetch())
+        $list[] = $row->toArray();
+      $tempelate->put("users", $list);
+      $tempelate->render("user");
     }
   }
   
@@ -39,7 +39,7 @@ class PageView implements P{
     exit;
   }
   
-  private function changegroup(){
+  private function changegroup(Tempelate $tempelate){
     if(empty($_GET["uid"])){
       notfound();
       return;
@@ -66,21 +66,21 @@ class PageView implements P{
       exit;
     }
   
-    echo "<h3>Change group for ".htmlentities($user->username)."</h3>";
-    if(user["id"] == $user->id){
-      echo "<h3 class='notokay'>You looking of you owen membership of this group!</h3>"; 
-    }
-  
     $query = $db->query("SELECT * FROM `group`");
+    $groups = [];
     while($row = $query->fetch()){
-      $options = [];
-      if($row->id == $user->groupid){
-        $options["tag2class"] = "notokay";
-        $two = "Chose";
-      }else{
-        $two = "<a href='?view=users&sub=group&uid=".$user->id."&gid=".$row->id."' class='okay'>Chose</a>";
-      }
-      echo two_container(htmlentities($row->name), $two, $options);
+      $groups[] = [
+        "id"         => $row->id,
+        "name"       => $row->name,
+        "is_current" => $row->id == $user->groupid
+        ];
     }
+    $tempelate->put("groups", $groups);
+    
+    $tempelate->put("g_id",       $user->id);
+    $tempelate->put("g_username", $user->username);
+    $tempelate->put("owen",       $user->id == user["id"]);
+    
+    $tempelate->render("change_group");
   }
 }

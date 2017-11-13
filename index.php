@@ -8,6 +8,9 @@ use Lib\Config;
 use Lib\Plugin\Plugin;
 use Lib\Ajax;
 use Lib\User\Auth;
+use Lib\Tempelate;
+use Lib\Exception\TempelateException;
+use Lib\Error;
 
 define("BASE", dirname(__FILE__)."/");
 set_include_path(BASE);
@@ -80,12 +83,6 @@ spl_autoload_register(function($class){
   }
 });
 
-function two_container(string $first, string $two, array $options = []) : string{
-  $tag = !empty($options["tag"]) ? $option["tag"] : "span";
-  $tag2class = !empty($options["tag2class"]) ? " class='".$options["tag2class"]."'" : "";
-  return "<div class='two_container'><{$tag}>{$first}</{$tag}><{$tag}{$tag2class}>{$two}</{$tag}></div>";
-}
-
 if(!file_exists("config.php")){
   Lib\Setup\Main::controle();
 }
@@ -128,13 +125,15 @@ function getStandartGroup(){
   return Lib\Config::get("standart_group");
 }
 
-function getContext(){
+function getContext(Tempelate $tempelate){
   $page = PageControler::getPage();
   if(!$page){
-    notfound();
-    return;
+    $tempelate = new Tempelate("");
+    $tempelate->put("error", "Page not found");
+    $tempelate->render("error");
+    exit;
   }
-  $page->body();
+  $page->body($tempelate);
 }
 
 function hasRight(array $request) : bool{
@@ -166,6 +165,17 @@ function hasAdminAccess() : bool{
 if(Ajax::isAjaxRequest()){
   Ajax::evulate();
 }
+try{
+  $tempelate = new Tempelate(Config::get("tempelate"));
+  $tempelate->put("session_id", session_id());
+  if(defined("user")){
+    $tempelate->put("username", user["username"]);
+  }
+  getContext($tempelate);
+}catch(TempelateException $e){
+  Error::tempelateError($e);
+}
+exit;
 ob_start();
 ?>
 <!DOCTYPE html>

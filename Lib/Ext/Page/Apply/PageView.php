@@ -7,11 +7,12 @@ use Lib\Database;
 use Lib\Report;
 use Lib\Age;
 use Lib\Email;
+use Lib\Tempelate;
 
 class PageView implements P{
-  public function body(){
+  public function body(Tempelate $tempelate){
     if(empty($_GET["to"]) || !($data = $this->data())){
-      $this->select_to();
+      $this->select_to($tempelate);
       return;
     }
   
@@ -19,7 +20,7 @@ class PageView implements P{
       if(($respons = Age::controle($data["age"], $data["name"])) != Age::NO_ERROR){
         switch($respons){
           case AGE::GET_AGE:
-            Age::get_age($data["name"]);
+            Age::get_age($data["name"], $tempelate);
             return;
           default:
             header("location: ?view=apply");
@@ -32,29 +33,32 @@ class PageView implements P{
       $this->controle_apply($data);
     }
     
-    echo "<form method='post' action='?view=apply&to=".$data["id"]."&done=true'>";
-    $db = Database::get();
-    $query = $db->query("SELECT * FROM `category_item` WHERE `cid`='".$data["id"]."'");
-    $saver = new SaveInputs($data["id"]);
+    $tempelate->put("name",        $data["name"]);
+    $tempelate->put("category_id", $data["id"]);
+    
+    $query = Database::get()->query("SELECT * FROM `category_item` WHERE `cid`='{$data["id"]}'");
+    $field = [];
+    $save = new SaveInputs($data["id"]);
     while($row = $query->fetch()){
-      if($row->type == 1){
-        echo two_container($row->text, "<input type='text' name='".$row->id."' value='".htmlentities($saver->get($row->id))."' placeholder='".htmlentities($row->placeholder)."'>");
-      }elseif($row->type == 2){
-        echo "<div class='center'>".$row->text."</div>";
-        echo "<textarea class='apply' name='".$row->id."' placeholder='".htmlentities($row->placeholder)."'>".$saver->get($row->id)."</textarea>";
-      }elseif($row->type == 3){
-        $item = explode(",", $row->placeholder);
-        $options = "";
-        $s = $saver->get($row->id);
-        for($i=0;$i<count($item);$i++){
-          $options .= "<option value='".$i."'".($s == $item[$i] ? " selected" : "").">".trim($item[$i])."</option>";
+      $data = $row->toArray();
+      if($row->type == 3){
+        $explode = explode(",", $row->placeholder);
+        $placeholder = [];
+        for($i=0;$i<count($explode);$i++){
+          $placeholder[] = [
+            "id"    => $i,
+            "value" => trim($explode[$i])
+            ];
         }
-        echo two_container($row->text, "<select name='{$row->id}'>{$options}</select>");
+        $data["placeholder"] = $placeholder;
       }
+      $data["saved"] = $save->get($row->id);
+      $field[] = $data;
     }
-    $saver->delete();
-    echo "<input type='submit' value='Submit'>";
-    echo "</form>";
+    $save->delete();
+    $tempelate->put("field", $field);
+    
+    $tempelate->render("apply");
   }
   
   private function controle_apply(array $data){
@@ -111,7 +115,7 @@ class PageView implements P{
     }
   }
   
-  private function select_to(){
+  private function select_to(Tempelate $tempelate){
     if(!empty($_GET["to"])){
       notfound();
       return;
@@ -119,7 +123,7 @@ class PageView implements P{
     
     $query = Database::get()->query("SELECT `id`, `name`, `age` FROM `catogory` WHERE `open`='1'");
     
-    $options = "";
+    $options = [];
     $count = 0;
     $lastID = 0;
     while($row = $query->fetch()){
@@ -128,13 +132,17 @@ class PageView implements P{
          continue; 
         }
       }
-      $options .= "<option value='{$row->id}'>{$row->name}</option>";
+      $options[] = [
+        "id"   => $row->id,
+        "name" => $row->name
+        ];
       $lastID = $row->id;
       $count++;
     }
          
     if($count == 0){
-      echo "<h3>No catgory is avarible.</h3>";
+      $tempelate->put("apply_error", "No category to apply to");
+      $tempelate->render("apply_error");
       return;   
     }
     
@@ -143,11 +151,8 @@ class PageView implements P{
       exit;
     }
     
-    echo "<form method='get' action='?view=apply'>";
-    echo two_container("Select to", "<select name='to'>{$options}</select>");
-    echo "<input type='hidden' name='view' value='apply'>";
-    echo "<input type='submit' value='Select'>";
-    echo "</form>";
+    $tempelate->put("category", $options);
+    $tempelate->render("select_to");
   }
   
   private function data(){

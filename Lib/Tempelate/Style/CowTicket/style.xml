@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tempelate>
+  <!--If you have script there always need to be insert you can use this-->
+  <script>
+    <script src='script.main' />
+  </script>
+</tempelate>

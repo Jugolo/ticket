@@ -1,0 +1,76 @@
+!-addCss style.table-!
+!-addCss style.input-!
+!-include head-!
+<div class='box'>
+  <div class='title'>Change you information</div>
+  <form method='post' action='#'>
+    <table class='table-fill'>
+      <tr>
+        <th>Username</th>
+        <td><input type='text' name='username' class='input' value='!-username-!'></td>
+      </tr>
+      <tr>
+        <th>Email</th>
+        <td><input type='email' name='email' class='input' value='!-email-!'></td>
+      </tr>
+      <tr>
+        <th>Controle password</th>
+        <td><input type='password' name='password' class='input'></td>
+      </tr>
+      <tr>
+        <td colspan='2'>
+          <input type='submit' name='update' value='Update' class='input'>
+        </td>
+      </tr>
+    </table>
+  </form>
+</div>
+<div class='box'>
+  <div class='title'>Update you password</div>
+  <form action='#' method='post'>
+    <table class='table-fill'>
+      <tr>
+        <th>New password</th>
+        <td><input type='password' name='password' class='input'></td>
+      </tr>
+      <tr>
+        <th>Repeat password</th>
+        <td><input type='password' name='repeat_password' class='input'></td>
+      </tr>
+      <tr>
+        <th>Current password</th>
+        <td><input type='password' name='current_password' class='input'></td>
+      </tr>
+      <tr>
+        <td colspan='2'>
+          <input type='submit' name='pass' value='Update password' class='input'>
+        </td>
+      </tr>
+    </table>
+  </form>
+</div>
+<div class='box'>
+  <div class='title'>Update you age</div>
+  <form action='#' method='post'>
+    <table class='table-fill'>
+      <tr>
+        <th>Day</th>
+        <td><input type='number' name='day' value='!-day-!' class='input'></td>
+      </tr>
+      <tr>
+        <th>Month</th>
+        <td><input type='number' name='month' value='!-month-!' class='input'></td>
+      </tr>
+      <tr>
+        <th>Year</th>
+        <td><input type='number' name='year' value='!-year-!' class='input'></td>
+      </tr>
+      <tr>
+        <td colspan='2'>
+          <input type='submit' name='birth' value='Update you age' class='input'>
+        </td>
+      </tr>
+    </table>
+  </form>
+</div>
+!-include buttom-!

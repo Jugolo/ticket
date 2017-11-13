@@ -30,25 +30,45 @@ class Age{
     return self::NO_ERROR;
   }
   
-  public static function get_age(string $to){
-    if(!empty($_POST["bd"]) && !empty($_POST["bm"]) && !empty($_POST["by"])){
-      $db = Database::get();
-      $db->query("UPDATE `user` SET 
-                `birth_day`='".$db->escape(intval($_POST["bd"]))."',
-                `birth_month`='".$db->escape(intval($_POST["bm"]))."',
-                `birth_year`='".$db->escape(intval($_POST["by"]))."'
-               WHERE `id`=".user["id"]);
-      Report::okay("You birth day is now saved");
-      header("location: #");
-      exit;
+  public static function get_age(string $to, Tempelate $tempelate){
+    if(!empty($_POST["save"])){
+      $count = Report::count("ERROR");
+      if(empty($_POST["bd"]) || !is_numeric($_POST["bd"]))
+        Report::error("Missing birth day");
+      if(empty($_POST["bm"]) || !is_numeric($_POST["bm"]))
+        Report::error("Missing birth month");
+      if(empty($_POST["by"]) || !is_numeric($_POST["by"]))
+        Report::error("Missing birth year");
+      if($count == Report::count("ERROR")){
+        //wee start on month becuse wee know there need betwen 1 and 12
+        $month = (int)$_POST["bm"];
+        if($month < 1 || $month > 12){
+          Report::error("Please controle birth month.");
+        }else{
+          //month okay. now wee try to controle year
+          $pd = date("Y");
+          $year = (int)$_POST["by"];
+          if($year < $pd-100 || $year > $pd){
+            Report::error("Please controle birth year");
+          }else{
+            $day = (int)$_POST["bd"];
+            if($day < 1 || cal_days_in_month(CAL_GREGORIAN, $month, $year) < $day){
+              Report::error("Please controle day");
+            }else{
+              Database::get()->query("UPDATE `user` SET 
+                                        `birth_day`='{$day}',
+                                        `birth_month`='{$month}',
+                                        `birth_year`='{$year}'
+                                      WHERE `id`='".user["id"]."';");
+              Report::okay("Birth data is saved");
+              header("location: #");
+              exit;
+            }
+          }
+        }
+      }
     }
     
-    echo "<form method='post' action='#'>";
-    echo "<h3>Please type your bith day to create the ticket to {$to}</h3>";
-    echo two_container("Birth day", "<input type='number' name='bd'>");
-    echo two_container("Birth month", "<input type='number' name='bm'>");
-    echo two_container("Birth year", "<input type='number' name='by'>");
-    echo "<input type='submit' value='Set you birth day'>";
-    echo "</form>"; 
+    $tempelate->render("get_age");
   }
 }

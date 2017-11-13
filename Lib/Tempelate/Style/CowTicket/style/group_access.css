@@ -1,0 +1,44 @@
+.access-menu{
+  width: 100%;
+  padding: 0px;
+  margin:0px;
+  border-bottom: 1px solid black;
+}
+
+.access-menu span{
+  display: inline-block;
+  text-align: center;
+  padding: 0px;
+  margin:0px;
+  height: 50px;
+  line-height: 50px;
+  border-right: 1px solid black;
+}
+
+.access-menu span:last-child{
+  border-right: 0px;
+}
+
+.access-context .access-data{
+  display: none;
+}
+
+.access-context  .access-data .mobile-head{
+  text-align: center;
+  border-top: 1px solid black;
+  border-bottom:1px solid black;
+  font-weight: bolder;
+}
+
+.access-context .access-data table{
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.access-context .access-data table tr{
+  background-color: #FFFFFF;
+}
+
+.access-context .access-data table tr:nth-child(2n){
+  background-color: #E5E5E5;
+}

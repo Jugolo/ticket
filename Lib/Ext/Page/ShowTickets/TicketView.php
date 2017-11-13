@@ -8,21 +8,21 @@ use Lib\Database\DatabaseFetch;
 use Lib\Ext\Notification\NewTicket;
 use Lib\Ext\Notification\NewComment;
 use Lib\Report;
-use Lib\Html\Table;
 use Lib\Bbcode\Parser;
 use Lib\Email;
 use Lib\User\Info;
 use Lib\Log;
 use Lib\Plugin\Plugin;
+use Lib\Tempelate;
 
 class TicketView{
-  public static function body(DatabaseFetch $data){
+  public static function body(DatabaseFetch $data, Tempelate $tempelate){
     Track::track($data->id, user["id"]);
     NewTicket::markRead($data->id);
     NewComment::markRead($data->id);
     $group = getUsergroup(user["groupid"]);
     if(!empty($_POST["create"])){
-      self::createComments($data);
+      self::createComments($data, $tempelate);
     }
     if($group["closeTicket"] == 1 && !empty($_GET["close"]) && $data->uid != user["id"]){
       self::changeOpningState($data->open != 1, $data->id);
@@ -33,6 +33,39 @@ class TicketView{
     if(group["deleteComment"] == 1 && !empty($_GET["deleteComment"]) && $data->uid != user["id"]){
       self::deleteComment(intval($_GET["deleteComment"]), $data->id);
     }
+    
+    $tempelate->put("ticket_id",       $data->id);
+    $tempelate->put("ticket_username", $data->username);
+    $tempelate->put("ticket_open",     $data->open);
+    $tempelate->put("ticket_uid",      $data->uid);
+    $tempelate->put("owen",            $data->uid == user["id"]);
+    
+    if($data->age){
+      $tempelate->put("age", \Lib\Age::calculate($data->birth_day, $data->birth_month, $data->birth_year));
+    }
+    
+    $query = Database::get()->query("SELECT `text`, `type`, `value` FROM `ticket_value` WHERE `hid`='".$data->id."'");
+    $ticket_data = [];
+    while($row = $query->fetch())
+      $ticket_data[] = $row->toArray();
+    $tempelate->put("ticket_data", $ticket_data);
+    
+    if(user["id"] != $data->uid && group["showTicketLog"] == 1){
+      $log = Log::getTicketLog($data->id);
+      $l = [];
+      $log->render(function($time, $message) use(&$l){
+        $l[] = [
+          "time"    => $time,
+          "message" => $message
+          ];
+      });
+      $tempelate->put("log", $l);
+    }
+    
+    self::getComments($data, $tempelate);
+    
+    $tempelate->render("show_ticket");
+    return;
     echo "<fieldset>";
     echo "<legend>Information</legend>";
     if($group["closeTicket"] == 1 && $data->uid != user["id"]){
@@ -146,7 +179,7 @@ class TicketView{
     exit;
   }
   
-  private static function createComments(DatabaseFetch $data){
+  private static function createComments(DatabaseFetch $data, Tempelate $tempelate){
     if($data->open != 1){
       Report::error("You can not comments on closed ticket");
     }elseif(empty($_POST["comments"])){
@@ -193,75 +226,16 @@ class TicketView{
     }
   }
   
-  private static function getComments(DatabaseFetch $data){
+  private static function getComments(DatabaseFetch $data, Tempelate $tempelate){
     $db = Database::get();
-    $query = $db->query("SELECT comment.id, comment.parsed_message, comment.public, comment.created, user.username
+    $query = $db->query("SELECT comment.id, user.id AS uid, comment.parsed_message, comment.public, comment.created, user.username
                          FROM `comment`
                          LEFT JOIN `user` ON user.id=comment.uid
                          WHERE `tid`='{$data->id}'".($data->uid == user["id"] ? " AND comment.public='1'" : ""));
-    if($query->count() == 0){
-      echo "<h3>No comments yet</h3>";
-    }else{
-      echo "<div class='comments'>";
-        $query->render(function($row) use($data){
-          TicketView::handleComments($row, $data);
-        });
-      echo "</div>";
+    $comments = [];
+    while($row = $query->fetch()){
+      $comments[] = $row->toArray();
     }
-  }
-  
-  public static function handleComments(DatabaseFetch $data, DatabaseFetch $ticket){
-    echo "<div class='item".(user["id"] != $ticket->uid && $data->get("public") == 0 ? " secret" : "")."'>";
-      echo "<div>";
-        echo "<div class='information'>";
-          echo "<div class='nick'>From: ".htmlentities($data->username)."</div>";
-          echo "<div class='time'>Created: {$data->created}</div>";
-        echo "</div>";
-        echo "<div class='message'>";
-          echo $data->parsed_message;
-        echo "</div>";
-      echo "</div>";
-      if(group["deleteComment"] == 1 && $ticket->uid != user["id"]){
-        echo "<div class='option'><a href='?view=tickets&ticket_id={$ticket->id}&deleteComment={$data->id}'>Delete</a></div>";
-      }
-    echo "<div class='clear'></div>";
-    echo "</div>";
-    return;
-    echo "<div class='comment_item'>";
-      echo "<div class='information'>";
-        echo "<ul>";
-          echo "<li>From: {$data->username}</li>";
-          if(user["id"] != $ticket->uid){
-            echo "<li>Is public: ".($data->get("public") == 1 ? "yes" : "no")."</li>";
-          }
-          echo "<li>Created: {$data->created}</li>";
-        echo "</ul>";
-      echo "</div>";
-      echo "<div class='message'>";
-       echo $data->parsed_message;
-      echo "</div>";
-      echo "<div class='clear'>";
-      if(user["id"] != $ticket->uid && group["deleteTicket"] == 1){
-        echo "<div class='option'>";
-          echo "<a href='?view=tickets&ticket_id={$ticket->id}&deleteComment={$data->id}'>Delete</a>";
-        echo "</div>";
-      }
-    echo "</div></div>";
-  }
-  
-  private static function setItem(Table $table, DatabaseFetch $data){
-    $table->newColummen();
-    if($data->type != 2){
-      $table->th($data->text)->style = "border:1px solid black;background-color:blue;color:white;";
-      $table->td($data->value)->style = "border:1px solid black";
-    }else{
-      $item = $table->th($data->text);
-      $item->colspan = "2";
-      $item->style = "border:1px solid black;background-color:blue;color:white;";
-      $table->newColummen();
-      $item = $table->td($data->value);
-      $item->colspan = "2";
-      $item->style = "border: 1px solid black";
-    }
+    $tempelate->put("comments", $comments);
   }
 }

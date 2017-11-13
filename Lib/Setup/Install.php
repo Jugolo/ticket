@@ -4,6 +4,7 @@ namespace Lib\Setup;
 use Lib\User\Auth;
 use Lib\Database;
 use Lib\Ext\Notification\Notification;
+use Lib\Log;
 
 class Install{
   private static $okay = false;
@@ -122,13 +123,14 @@ class Install{
     }
     $db = Database::get();
     
-    $db->query("INSERT INTO `group` VALUES (1, 'User',  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
-                                           (2, 'Admin', 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1);");
+    $db->query("INSERT INTO `group` VALUES (1, 'User',  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+                                           (2, 'Admin', 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1);");
     $db->query("INSERT INTO `config` VALUES ('version', '".Main::SETUP_VERSION."'),
                                             ('standart_group', '1'),
                                             ('cat_open', '0'),
                                             ('front', ''),
-                                            ('system_name', '{$db->escape($_POST["system_name"])}');");
+                                            ('system_name', '{$db->escape($_POST["system_name"])}'),
+                                            ('tempelate', 'CowTicket');");
     $id =Auth::createUser(
       $_POST["username"],
       $_POST["password"],
@@ -136,6 +138,9 @@ class Install{
       true
       );
     $db->query("UPDATE `user` SET `groupid`='2' WHERE `id`='{$id}'");
+    if(!is_dir("Lib/Temp"))
+      mkdir("Lib/Temp");
+    Log::system("System is installed");
     header("location: ?step=5");
     exit;
   }
@@ -201,6 +206,8 @@ class Install{
                          `deleteComment` INT(1) NOT NULL,
                          `activateUser` int(1) NOT NULL,
                          `viewUserLog` int(1) NOT NULL,
+                         `viewSystemLog` int(1) NOT NULL,
+                         `handleTempelate` int(1) NOT NULL,
                          PRIMARY KEY (`id`)
                        ) ENGINE=InnoDB DEFAULT CHARSET=utf8;",
         "log"      => "CREATE TABLE IF NOT EXISTS `log` ( 

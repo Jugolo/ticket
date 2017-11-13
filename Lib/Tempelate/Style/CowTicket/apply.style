@@ -1,0 +1,39 @@
+!-addCss style.table-!
+!-include head-!
+<div class='box'>
+  <div class='title'>Apply to !-name-!</div>
+  !-if field-!
+  <form method='post' action='?view=apply&to=!-category_id-!&done=true'>
+    <table class="table-fill">
+      !-foreach field as item-!
+      !-if item["type"] != 2-!
+      <tr>
+        <th>!-item["text"]-!</th>
+        <td>!-if item["type"] == 3-!<select name="!-item["id"]-!" class='input'>
+          !-foreach item["placeholder"] as option-!
+          <option value="!-option['id']-!">!-option["value"]-!</option>
+          !-endblock-!
+          </select>
+          !-else-!
+          <input type='text' name='!-item["id"]-!' placeholder='!-item["placeholder"]-!' class='input'!-if item["saved"]-! value='!-item["saved"]-!'!-endblock-!>
+          !-endblock-!</td>
+      </tr>
+      !-else-!
+      <tr>
+        <th colspan='2'>!-item["text"]-!</th>
+      </tr>
+      <tr>
+        <td colspan='2'><textarea class='input' name="!-item['id']-!" placeholder="!-item['placeholder']-!">!-item['saved']-!</textarea>
+      </tr>
+      !-endblock-!
+      !-endblock-!
+      <tr>
+        <td colspan='2'><input type='submit' value='Send' class='input'></td>
+      </tr>
+    </table>
+  </form>
+  !-else-!
+  <div class='information'>Sorry this category has no fields</div>
+  !-endblock-!
+</div>
+!-include buttom-!

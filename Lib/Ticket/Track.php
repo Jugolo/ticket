@@ -29,6 +29,7 @@ class Track{
             FROM `ticket`
             LEFT JOIN `ticket_track` ON ticket_track.tid=ticket.id AND ticket_track.uid='".user["id"]."'
             WHERE ticket_track.tid IS NULL".($globel ? "" : " AND ticket.uid='".user["id"]."'")."
+            AND ticket.open='1'
             OR (ticket.uid='".user["id"]."'
                 AND ticket_track.visit<ticket.user_changed";
     

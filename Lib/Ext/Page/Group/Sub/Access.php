@@ -1,11 +1,14 @@
 <?php
 namespace Lib\Ext\Page\Group\Sub;
 
+use Lib\Template;
+
 use Lib\Database;
 use Lib\Report;
+use Lib\Tempelate;
 
 class Access{
-  public static function body(){
+  public static function body(Tempelate $tempelate){
     if(empty($_GET["gid"])){
       notfound();
       return;
@@ -21,38 +24,22 @@ class Access{
     if(!empty($_POST["update"])){
       self::update_access($group);
     }
-  
-    echo "<h3>Change access for {$group["name"]}</h3>";
-    echo "<form method='post' action='#'>";
-    echo two_container("Show other tickets", "<input type='checkbox' name='showticket'".($group["showTicket"] == 1 ? " checked" : "").">");
-    echo two_container("Change group", "<input type='checkbox' name='changegroup'".($group["changeGroup"] == 1 ? " checked" : "").">");
-    echo two_container("Handle group", "<input type='checkbox' name='handleGroup'".($group["handleGroup"] == 1 ? " checked" : "").">");
-    echo two_container("Admin ticket", "<input type='checkbox' name='handleTickets'".($group["handleTickets"] == 1 ? " checked" : "").">");
-    echo two_container("Show error", "<input type='checkbox' name='showError'".($group["showError"] == 1 ? " checked" : "").">");
-    echo two_container("Show other profile", "<input type='checkbox' name='showProfile'".($group["showProfile"] == 1 ? " checked" : "").">");
-    echo two_container("Close/open tickets", "<input type='checkbox' name='closeTicket'.".($group["closeTicket"] == 1 ? " checked" : "").">");
-    echo two_container("Change front page", "<input type='checkbox' name='changeFront'".($group["changeFront"] == 1 ? " checked" : "").">");
-    echo two_container("Change system name", "<input type='checkbox' name='changeSystemName'".($group["changeSystemName"] == 1 ? " checked" : "").">");
-    echo two_container("Show ticket log",    "<input type='checkbox' name='showTicketLog'".($group["showTicketLog"] == 1 ? " checked" : "").">");
-    echo two_container("Delete ticket",      "<input type='checkbox' name='deleteTicket'".($group["deleteTicket"] == 1 ? " checked" : "").">");
-    echo two_container("Delete comments",    "<input type='checkbox' name='deleteComment'".($group["deleteComment"] == 1 ? " checked" : "").">");
-    echo two_container("Activate users",     "<input type='checkbox' name='activateUser'".($group["activateUser"] == 1 ? " checked" : "").">");
-    echo two_container("View user log",      "<input type='checkbox' name='viewUserLog'".($group["viewUserLog"] == 1 ? " checked" : "").">");
-    echo "<div><input type='submit' name='update' value='Update access'></div>";
-    echo "</form>";
+    
+    $tempelate->put("group", $group);
+    $tempelate->render("group_access");
   }
   
   private static function update_access(array $group){
     $update = [];
-    if(!empty($_POST["showticket"]) && $group["showTicket"] == 0){
+    if(!empty($_POST["showTicket"]) && $group["showTicket"] == 0){
       $update["showTicket"] = "1";
-    }elseif(empty($_POST["showticket"]) && $group["showTicket"] == 1){
+    }elseif(empty($_POST["showTicket"]) && $group["showTicket"] == 1){
       $update["showTicket"] = "0";
     }
   
-    if(!empty($_POST["changegroup"]) && $group["changeGroup"] == 0){
+    if(!empty($_POST["changeGroup"]) && $group["changeGroup"] == 0){
       $update["changeGroup"] = "1";
-    }elseif(empty($_POST["changegroup"]) && $group["changeGroup"] == 1){
+    }elseif(empty($_POST["changeGroup"]) && $group["changeGroup"] == 1){
       $update["changeGroup"] = "0";
     }
   
@@ -125,6 +112,16 @@ class Access{
       $update["viewUserLog"] = "1";
     elseif(empty($_POST["viewUserLog"]) && $group["viewUserLog"] == 1)
       $update["viewUserLog"] = "0";
+    
+    if(!empty($_POST["viewSystemLog"]) && $group["viewSystemLog"] == 0)
+      $update["viewSystemLog"] = "1";
+    elseif(empty($_POST["viewSystemLog"]) && $group["viewSystemLog"] == 1)
+      $update["viewSystemLog"] = "0";
+    
+    if(!empty($_POST["handleTempelate"]) && $group["handleTempelate"] == 0)
+      $update["handleTempelate"] = "1";
+    elseif(empty($_POST["handleTempelate"]) && $group["handleTempelate"] == 1)
+      $update["handleTempelate"] = "0";
   
     if(count($update) > 0){
       $sql = [];

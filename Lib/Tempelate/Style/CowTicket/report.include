@@ -1,0 +1,18 @@
+!-if reportOkay-!
+<script>
+  System.onload.push(function(){
+    !-foreach reportOkay as okay-!
+    System.report.okay('!-okay-!');  
+    !-endblock-!
+  });
+</script>
+!-endblock-!
+!-if reportError-!
+<script>
+  System.onload.push(function(){
+    !-foreach reportError as error-!
+    System.report.error('!-error-!');  
+    !-endblock-!
+  });
+</script>
+!-endblock-!

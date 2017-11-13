@@ -1,0 +1,110 @@
+!-addCss style.table-!
+!-addCss style.texteditor-!
+!-addCss style.comment-!
+!-addCss style.bbcode-!
+!-addScript script.comment-!
+!-include head-!
+!-if not owen-!
+!-include admin_ticket-!
+!-endblock-!
+<div class='box'>
+  <div class='title'>Data</div>
+  <table class='table-fill border'>
+    <tr>
+      <th>User name</th>
+      !-if access showProfile-!
+      <td><a href='?view=profile&user=!-ticket_uid-!'>!-ticket_username-!</a></td>
+      !-else-!
+      <td>!-ticket_username-!</td>
+      !-endblock-!
+    </tr>
+    !-if age-!
+    <tr>
+      <th>Age</th>
+      <td>!-age-!</td>
+    </tr>
+    !-endblock-!
+    !-if ticket_data-!
+    !-foreach ticket_data as data-!
+    !-if data["type"] != 2-!
+    <tr>
+      <th>!-data["text"]-!</th>
+      <td>!-data["value"]-!</td>
+    </tr>
+    !-else-!
+    <tr>
+      <th colspan='2'>!-data["text"]-!</th>
+    </tr>
+    <tr>
+      <td colspan='2'>!-data["value"]-!</td>
+    </tr>
+    !-endblock-!
+    !-endblock-!
+    !-else-!
+    <tr>
+      <td colspan='2'><div class='information'>Sorry no data to show</div></td>
+    </tr>
+    !-endblock-!
+  </table>
+</div>
+!-if log-!
+<div class='box'>
+  <div class='title'>Log</div>
+  !-foreach log as l-!
+  <div>
+    [!-l["time"]-!]
+    !-l["message"]-!
+  </div>
+  !-endblock-!
+</div>
+!-endblock-!
+<div class='box'>
+  <div class='title'>Comments</div>
+  !-if comments-!
+  !-foreach comments as comment-!
+  <div class='comment'>
+    !-if comment["public"] == 0-!
+    <div class='comment-secret'>
+      This comment is hiden from the user
+    </div>
+    !-endblock-!
+    <div class='comment-body'>
+      <div class='comment-information'>
+        <ul>
+          <li>Username: !-if access showProfile-!<a href='?view=profile&user=!-comment["uid"]-!'>!-endblock-!!-comment["username"]-!!-if access showProfile-!</a>!-endblock-!</li>
+          <li>Created: !-comment["created"]-!</li>
+        </ul>
+        <div class='clear'></div>
+      </div>
+      <div class="comment-message bbcode">
+        !-echo comment["parsed_message"]-!
+      </div>
+      <div class='clear'></div>
+    </div>
+    !-if not owen and access deleteTicket-!
+    <div class='comment-admin'>
+      <a href='?view=tickets&ticket_id=!-ticket_id-!&deleteComment=!-comment["id"]-!'>Delete</a>
+    </div>
+    !-endblock-!
+  </div>
+  !-endblock-!
+  !-else-!
+  <div class='information'>No one has writed a comment yet</div>
+  !-endblock-!
+</div>
+!-if ticket_open-!
+<div class='box'>
+  <div class='title'>Write comment</div>
+  !-set texteditor_name="comments"-!
+  !-set texteditor_submitname="create"-!
+  <form action='#' method='post'>
+    !-include texteditor-!
+    !-if not owen-!
+    <div>
+      Hide from the user <input type="checkbox" name="public">
+    </div>
+  </form>
+  !-endblock-!
+</div>
+!-endblock-!
+!-include buttom-!

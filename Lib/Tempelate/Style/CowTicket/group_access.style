@@ -1,0 +1,114 @@
+!-addScript script.group_access-!
+!-addCss style.group_access-!
+!-include head-!
+<div class='box'>
+  <div class='title'>Update access for the group '!-group["name"]-!'</div>
+  <div class='access-menu compurter'>
+    <span class='item'>Ticket</span><span class='item'>User</span><span class='item'>Group</span><span class='item'>Error</span><span class='item'>System</span>
+  </div>
+  <form action="#" method="post">
+    <div class='access-context'>
+      <div class="access-data" for='Ticket'>
+        <div class='mobile mobile-head'>
+          Ticket
+        </div>
+        <table>
+          <tr>
+            <th>Admin ticket</th>
+            <td><input type='checkbox' name='handleTickets'!-if group["handleTickets"] == 1-! checked!-endblock-!></td>
+          </tr>
+          <tr>
+            <th>Show others ticket</th>
+            <td><input type='checkbox' name='showTicket'!-if group["showTicket"] == 1-! checked!-endblock-!></td>
+          </tr>
+          <tr>
+            <th>Close/Open ticket</th>
+            <td><input type="checkbox" name="closeTicket"!-if group['closeTicket'] == 1-! checked!-endblock-!></td>
+          </tr>
+          <tr>
+            <th>Delete tickets</th>
+            <td><input type='checkbox' name='deleteTicket'!-if group['deleteTicket'] == 1-! checked!-endblock-!></td>
+          </tr>
+          <tr>
+            <th>Delete comments</th>
+            <td><input type='checkbox' name='deleteComment'!-if group['deleteComment'] == 1-! checked!-endblock-!></td>
+          </tr>
+          <tr>
+            <th>See ticket log</th>
+            <td><input type='checkbox' name='showTicketLog'!-if group['showTicketLog'] == 1-! checked!-endblock-!></td>
+          </tr>
+        </table>
+      </div>
+      <div class='access-data' for='User'>
+        <div class='mobile mobile-head'>
+          User
+        </div>
+        <table>
+          <tr>
+            <th>Show other profile</th>
+            <td><input type='checkbox' name='showProfile'!-if group['showProfile'] == 1-! checked!-endblock-!></td>
+          </tr>
+          <tr>
+            <th>Activate user</th>
+            <td><input type='checkbox' name='activateUser'!-if group["activateUser"] == 1-! checked!-endblock-!></td>
+          </tr>
+          <tr>
+            <th>Show user log</th>
+            <td><input type='checkbox' name='viewUserLog'!-if group["viewUserLog"] == 1-! checked!-endblock-!></td>
+          </tr>
+        </table>
+      </div>
+      <div class='access-data' for='Group'>
+        <div class='mobile mobile-head'>
+          Group
+        </div>
+        <table>
+          <tr>
+            <th>Change group</th>
+            <td><input type='checkbox' name='changeGroup'!-if group['changeGroup'] == 1-! checked!-endblock-!></td>
+          </tr>
+          <tr>
+            <th>Handle group</th>
+            <td><input type='checkbox' name='handleGroup'!-if group['handleGroup'] == 1-! checked!-endblock-!></td>
+          </tr>
+        </table>
+      </div>
+      <div class='access-data' for='Error'>
+        <div class='mobile mobile-head'>
+          Error
+        </div>
+        <table>
+          <tr>
+            <th>Show error</th>
+            <td><input type='checkbox' name='showError'!-if group['showError'] == 1-! checked!-endblock-!></td>
+          </tr>
+        </table>
+      </div>
+      <div class='access-data' for='System'>
+        <div class='mobile mobile-head'>
+          System
+        </div>
+        <table>
+          <tr>
+            <th>Change system frontpage</th>
+            <td><input type='checkbox' name='changeFront'!-if group['changeFront'] == 1-! checked!-endblock-!></td>
+          </tr>
+          <tr>
+            <th>Change system name</th>
+            <td><input type='checkbox' name='changeSystemName'!-if group['changeSystemName'] == 1-! checked!-endblock-!></td>
+          </tr>
+          <tr>
+            <th>View system log</th>
+            <td><input type='checkbox' name='viewSystemLog'!-if group['viewSystemLog'] == 1-! checked!-endblock-!></td>
+          </tr>
+          <tr>
+            <th>Change tempelate</th>
+            <td><input type='checkbox' name='handleTempelate'!-if group['handleTempelate'] == 1-! checked!-endblock-!></td>
+          </tr>
+        </table>
+      </div>
+    </div>
+    <input type="submit" name="update" class="input" value="Update access">
+  </form>
+</div>
+!-include buttom-!
