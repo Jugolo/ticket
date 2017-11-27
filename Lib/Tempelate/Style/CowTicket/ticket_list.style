@@ -25,7 +25,7 @@
   <div class='information'>You have no ticket</div>
   !-endblock-!
 </div>
-!-if access showTicket-!
+!-if access TICKET_OTHER-!
 <div class='box'>
   <div class='title'>Ohters ticket</div>
   !-if other_ticket-!

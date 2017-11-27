@@ -2,7 +2,7 @@
 !-include head-!
 !-if not_activate-!
 <div class='box'>
-  <div class='information'>The account is not activated yet!-if access activateUser-!
+  <div class='information'>The account is not activated yet!-if access USER_ACTIVATE-!
     <a href='?view=profile&user=!-uid-!&activate=true'>(Activate user)</a>!-endblock-!</div>
 </div>
 !-endblock-!

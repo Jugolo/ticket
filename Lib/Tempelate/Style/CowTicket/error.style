@@ -6,14 +6,18 @@
   <div class='title'>System error</div>
   !-if system_error-!
   <form action="#" method="post">
+    !-if access ERROR_DELETE-!
     <div id="error-option">
       <a href="#" onclick="error.selectAll();">Select all</a> / <a href="#" onclick="error.unselectAll();">Unselect all</a>
       <button name="delete" value="delete" id="delete-button">Delete</button>
     </div>
+    !-endblock-!
     <table class="makeup-table">
       !-foreach system_error as error-!
       <tr>
+        !-if access ERROR_DELETE-!
         <td><input type='checkbox' name='errorSelect[]' class='error-select' value='!-error["id"]-!' onclick='error.updateDelete();'></td>
+        !-endblock-!
         <th><a href='?view=error&id=!-error["id"]-!'>!-error["errstr"]-!</a></th>
       </tr>
       !-endblock-!

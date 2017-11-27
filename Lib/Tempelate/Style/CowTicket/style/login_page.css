@@ -1,0 +1,10 @@
+#login{
+  width: calc(50% - 1px);
+  float:left;
+}
+
+#create{
+  width: 50%;
+  border-left: 1px solid black;
+  float: left;
+}

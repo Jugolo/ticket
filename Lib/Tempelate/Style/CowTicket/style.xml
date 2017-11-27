@@ -4,4 +4,8 @@
   <script>
     <script src='script.main' />
   </script>
+  <error>
+    <notfound name='page_notfound' />
+    <accessdenid name='page_accessdenid' />
+  </error>
 </tempelate>

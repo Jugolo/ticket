@@ -1,0 +1,29 @@
+!-addCss style.table-!
+!-addCss style.plugin-!
+!-include head-!
+<div class='box'>
+  <div class='title'>Plugins</div>
+  <table class="table-fill border">
+    <tr>
+      <th>Name</th>
+      !-if access PLUGIN_INSTALL or access PLUGIN_UNINSTALL-!
+      <th>!-if access PLUGIN_INSTALL-!Install!-if access PLUGIN_UNINSTALL-!/!-endblock-!!-endblock-!!-if access PLUGIN_UNINSTALL-!Uninstall!-endblock-!</th>
+      !-endblock-!
+    </tr>
+    !-foreach plugins as plugin-!
+    <tr class='!-if plugin["installed"]-!installed!-else-!uninstalled!-endblock-!'>
+      <th>!-plugin["name"]-!</th>
+      !-if access PLUGIN_INSTALL or PLUGIN_UNINSTALL-!
+      <td>
+        !-if not plugin["installed"] and access PLUGIN_INSTALL-!
+        <a href="?view=plugin&install=!-plugin['name']-!">Install</a>
+        !-elseif plugin["installed"] and access PLUGIN_UNINSTALL-!
+        <a href="?view=plugin&uninstall=!-plugin['name']-!">Uninstall</a>
+        !-endblock-!
+      </td>
+      !-endblock-!
+    </tr>
+    !-endblock-!
+  </table>
+</div>
+!-include buttom-!

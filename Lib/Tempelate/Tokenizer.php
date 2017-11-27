@@ -132,6 +132,7 @@ class Tokenizer{
       "if",
       "elseif",
       "else",
+      "pageAccess",
       "access",
       "endblock",
       "loggedIn",

@@ -4,7 +4,7 @@
 !-include head-!
 <div class='box bbcode'>
   <div class='title'>!-config system_name-!</div>
-!-if access changeFront-!
+!-if access SYSTEM_FRONT-!
 <div id='root-front-right'>
   <div class='box-mini'>
     <a href='?view=front&change=yes'>Change front page</a>

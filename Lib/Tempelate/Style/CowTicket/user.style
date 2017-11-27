@@ -5,13 +5,15 @@
   <table class='table-fill border'>
     !-foreach users as user-!
     <tr>
-      !-if access showProfile-!
+      !-if access USER_PROFILE-!
       <th><a href='?view=profile&user=!-user["id"]-!'>!-user["username"]-!</a></th>
       !-else-!
       <th>!-user["username"]-!</th>
       !-endblock-!
-      !-if access changeGroup-!
+      !-if access USER_GROUP-!
       <td><a href='?view=users&sub=group&uid=!-user["id"]-!'>Change group</a></td>
+      !-endblock-!
+      !-if access USER_DELETE-!
       <td><a href='?view=users&delete=!-user["id"]-!'>Delete</a></td>
       !-endblock-!
     </tr>
