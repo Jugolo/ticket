@@ -15,6 +15,16 @@ class Controler{
       $this->scriptRender();
   }
   
+  public function hasError() : bool{
+    return !empty($this->xml->error);
+  }
+  
+  public function error() : TempelateErrorControler{
+    if($this->hasError())
+      return new TempelateErrorControler($this->xml->error);
+    throw new TempelateException("The tempelate controler has no error section");
+  }
+  
   public function getScripts() : array{
     return $this->script;
   }

@@ -6,13 +6,32 @@ use Lib\Database;
 use Lib\Report;
 use Lib\Plugin\Plugin;
 use Lib\Tempelate;
+use Lib\Page;
+use Lib\Access;
+use Lib\User\Auth;
 
 class PageView implements P{
-  public function body(Tempelate $tempelate){
-    if(!empty($_GET["sub"])){
-      $this->changegroup($tempelate);
+  public function loginNeeded() : string{
+    return "YES";
+  }
+  
+  public function identify() : string{
+    return "users";
+  }
+  
+  public function access() : array{
+    return [
+      "USER_GROUP",
+      "USER_DELETE",
+      "USER_PROFILE"
+    ];
+  }
+  
+  public function body(Tempelate $tempelate, Page $page){
+    if(!empty($_GET["sub"]) && Access::userHasAccess("USER_GROUP")){
+      $this->changegroup($tempelate, $page);
     }else{
-      if(!empty($_GET["delete"])){
+      if(!empty($_GET["delete"]) && Access::userHasAccess("USER_DELETE")){
         $this->deleteuser(intval($_GET["delete"]));
       }
       $group = getUsergroup(user["groupid"]);
@@ -21,34 +40,21 @@ class PageView implements P{
       while($row = $query->fetch())
         $list[] = $row->toArray();
       $tempelate->put("users", $list);
-      $tempelate->render("user");
+      $tempelate->render("user", $page);
     }
   }
   
   private function deleteuser(int $id){
-    $db = Database::get();
-    $db->query("DELETE FROM `comment` WHERE `uid`=".$id);
-    $query = $db->query("SELECT `id` FROM `ticket` WHERE `uid`='".$id."'");
-    $query->render(function($row){
-      Plugin::trigger_event("system.ticket.delete", $row->id);
-    });
-    $db->query("DELETE FROM `user` WHERE `id`='".$id."'");
-    $db->query("DELETE FROM `notify_setting` WHERE `uid`='{$id}'");
+    Auth::deleteUser($id);
     Report::okay("The user is now deleted");
     header("location: ?view=users");
     exit;
   }
   
-  private function changegroup(Tempelate $tempelate){
+  private function changegroup(Tempelate $tempelate, Page $page){
     if(empty($_GET["uid"])){
       notfound();
       return;
-    }
-  
-    $group = getUsergroup(user["groupid"]);
-    if($group["changeGroup"] != 1){
-       notfound();
-       return;
     }
   
     $db = Database::get();
@@ -81,6 +87,6 @@ class PageView implements P{
     $tempelate->put("g_username", $user->username);
     $tempelate->put("owen",       $user->id == user["id"]);
     
-    $tempelate->render("change_group");
+    $tempelate->render("change_group", $page);
   }
 }

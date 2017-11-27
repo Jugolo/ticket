@@ -7,9 +7,23 @@ use Lib\Bbcode\Parser;
 use Lib\Report;
 use Lib\Cache;
 use Lib\Tempelate;
+use Lib\Page;
+use Lib\Access;
 
 class PageView implements P{
-  public function body(Tempelate $tempelate){
+  public function loginNeeded() : string{
+    return "BOTH";
+  }
+  
+  public function access() : array{
+    return [];
+  }
+  
+  public function identify() : string{
+    return "front";
+  }
+  
+  public function body(Tempelate $tempelate, Page $page){
     if(defined("user") && !empty($_GET["logout"]) && $_GET["logout"] == session_id()){
       session_destroy();
       header("location: ?view=front");
@@ -17,12 +31,12 @@ class PageView implements P{
     }
     
     if(defined("user")){
-      if(group["changeFront"] == 1 && !empty($_GET["change"])){
-        $this->changeFront($tempelate);
+      if(Access::userHasAccess("SYSTEM_FRONT") && !empty($_GET["change"])){
+        $this->changeFront($tempelate, $page);
         return;
       }
-      if(group["changeSystemName"] == 1 && !empty($_GET["changeSystemName"])){
-         $this->changeSystemNameEditor($tempelate);
+      if(Access::userHasAccess("SYSTEM_NAME") && !empty($_GET["changeSystemName"])){
+         $this->changeSystemNameEditor($tempelate, $page);
          return;
       }
     }
@@ -36,20 +50,20 @@ class PageView implements P{
       $tempelate->put("front", $front);
     }
     
-    $tempelate->render("front");
+    $tempelate->render("front", $page);
   }
   
-  private function changeSystemNameEditor(Tempelate $tempelate){
+  private function changeSystemNameEditor(Tempelate $tempelate, $page){
     if(!empty($_POST["systemname"]) && trim($_POST["systemname"])){
       Config::set("system_name", $_POST["systemname"]);
       Report::okay("System name is now updated");
       header("location: #");
       exit;
     }
-    $tempelate->render("change_systenName");
+    $tempelate->render("change_systenName", $page);
   }
   
-  private function changeFront(Tempelate $tempelate){
+  private function changeFront(Tempelate $tempelate, Page $page){
     if(!empty($_GET["update"])){
       $front = empty($_POST["context"]) ? "" : $_POST["context"];
       Config::set("front", $front);
@@ -59,6 +73,6 @@ class PageView implements P{
       exit;
     }
     $tempelate->put("front", Config::get("front"));
-    $tempelate->render("change_front");
+    $tempelate->render("change_front", $page);
   }
 }

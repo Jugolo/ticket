@@ -1,23 +1,26 @@
-!-if access showError or access handleTickets or access changeGroup or access handleGroup or access viewSystemLog or access handleTempelate-!
+!-if pageAccess error or pageAccess handleTickets or pageAccess users or pageAccess handleGroup or pageAccess systemLog or pageAccess tempelate or pageAccess plugin-!
 <div class='box link-box'>
   <div class='title'>Admin</div>
-  !-if access showError-!
+  !-if pageAccess error-!
   <a href='?view=error'>Error</a>
   !-endblock-!
-  !-if access handleTickets-!
+  !-if pageAccess handleTickets-!
   <a href='?view=handleTickets'>Ticket</a>
   !-endblock-!
-  !-if access changeGroup-!
+  !-if pageAccess users-!
   <a href='?view=users'>User</a>
   !-endblock-!
-  !-if access handleGroup-!
+  !-if pageAccess handleGroup-!
   <a href='?view=handleGroup'>Group</a>
   !-endblock-!
-  !-if access viewSystemLog-!
+  !-if pageAccess systemLog-!
   <a href='?view=systemLog'>System log</a>
   !-endblock-!
-  !-if access handleTempelate-!
+  !-if pageAccess tempelate-!
   <a href='?view=tempelate'>Tempelate</a>
+  !-endblock-!
+  !-if pageAccess plugin-!
+  <a href='?view=plugin'>Plugin</a>
   !-endblock-!
 </div>
 !-endblock-!

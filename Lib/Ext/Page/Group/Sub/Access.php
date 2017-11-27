@@ -6,135 +6,97 @@ use Lib\Template;
 use Lib\Database;
 use Lib\Report;
 use Lib\Tempelate;
+use Lib\Access as A;
+use Lib\Page;
 
 class Access{
-  public static function body(Tempelate $tempelate){
-    if(empty($_GET["gid"])){
-      notfound();
+  public static function body(Tempelate $tempelate, Page $page){
+    if(empty($_GET["gid"]) || !A::userHasAccess("GROUP_ACCESS")){
       return;
     }
     
-    $ugroup = getUsergroup(user["groupid"]);
-    $group = $ugroup["id"] == $_GET["gid"] ? $ugroup : getUsergroup($_GET["gid"]);
-    if($ugroup["handleGroup"] != 1){
-      notfound();
-      return;
+    $data = self::getData();
+    if(!$data){
+      Report::error("Unknown group");
+      return false;
+    }
+    
+    $group = [];
+    foreach(A::getRawAccess(intval($_GET["gid"])) as $value)
+      $group[$value] = true;
+    
+    if($group === null){
+      Report::error("Unknown group");
+      return false;
     }
   
     if(!empty($_POST["update"])){
-      self::update_access($group);
+      self::update_access(intval($_GET["gid"]), $group);
     }
     
     $tempelate->put("group", $group);
-    $tempelate->render("group_access");
+    $tempelate->put("name", $data->name);
+    $tempelate->render("group_access", $page);
+    return true;
   }
   
-  private static function update_access(array $group){
-    $update = [];
-    if(!empty($_POST["showTicket"]) && $group["showTicket"] == 0){
-      $update["showTicket"] = "1";
-    }elseif(empty($_POST["showTicket"]) && $group["showTicket"] == 1){
-      $update["showTicket"] = "0";
-    }
-  
-    if(!empty($_POST["changeGroup"]) && $group["changeGroup"] == 0){
-      $update["changeGroup"] = "1";
-    }elseif(empty($_POST["changeGroup"]) && $group["changeGroup"] == 1){
-      $update["changeGroup"] = "0";
-    }
-  
-    if(!empty($_POST["handleGroup"]) && $group["handleGroup"] == 0){
-      $update["handleGroup"] = "1";
-    }elseif(empty($_POST["handleGroup"]) && $group["handleGroup"] == 1){
-      $update["handleGroup"] = "0";
-    }
-  
-    if(!empty($_POST["handleTickets"]) && $group["handleTickets"] == 0){
-      $update["handleTickets"] = "1";
-    }elseif(empty($_POST["handleTickets"]) && $group["handleTickets"] == 1){
-      $update["handleTickets"] = "0";
-    }
-  
-    if(!empty($_POST["showError"]) && $group["showError"] == 0){
-      $update["showError"] = "1";
-    }elseif(empty($_POST["showError"]) && $group["showError"] == 1){
-      $update["showError"] = "0";
-    }
-    
-    if(!empty($_POST["showProfile"]) && $group["showProfile"] == 0){
-      $update["showProfile"] = "1";
-    }elseif(empty($_POST["showProfile"]) && $group["showProfile"] == 1){
-      $update["showProfile"] = "0";
-    }
-    
-    if(!empty($_POST["closeTicket"]) && $group["closeTicket"] == 0){
-      $update["closeTicket"] = "1";
-    }elseif(empty($_POST["closeTicket"]) && $group["showProfile"] == 1){
-      $update["closeTicket"] = "0";
+  private static function update_access(int $gid, array $group){
+    //wee has this array to esey to render optiones and append or delete access points
+    $accesses = [
+      "CATEGORY_CREATE",
+      "CATEGORY_DELETE",
+      "CATEGORY_CLOSE",
+      "CATEGORY_APPEND",
+      "CATEGORY_ITEM_DELETE",
+      "CATEGORY_SETTING",
+      "TICKET_OTHER",
+      "TICKET_CLOSE",
+      "TICKET_DELETE",
+      "COMMENT_DELETE",
+      "TICKET_LOG",
+      "USER_GROUP",
+      "USER_PROFILE",
+      "USER_DELETE",
+      "USER_LOG",
+      "USER_ACTIVATE",
+      "GROUP_CREATE",
+      "GROUP_DELETE",
+      "GROUP_ACCESS",
+      "GROUP_STANDART",
+      "ERROR_SHOW",
+      "ERROR_DELETE",
+      "SYSTEM_FRONT",
+      "SYSTEM_NAME",
+      "SYSTEMLOG_SHOW",
+      "TEMPELATE_SELECT",
+      "TICKET_SEEN",
+      "PLUGIN_INSTALL",
+      "PLUGIN_UNINSTALL"
+      ];
+    $append = [];
+    $delete = [];
+    foreach($accesses as $access){
+      if(!empty($group[$access]) && empty($_POST[$access]))
+        $delete[] = $access;
+      elseif(empty($group[$access]) && !empty($_POST[$access]))
+        $append[] = $access;
     }
     
-    if(!empty($_POST["changeFront"]) && $group["changeFront"] == 0){
-      $update["changeFront"] = "1";
-    }elseif(empty($_POST["changeFront"]) && $group["changeFront"] == 1){
-      $update["changeFront"] = "0";
-    }
-    
-    if(!empty($_POST["changeSystemName"]) && $group["changeSystemName"] == 0){
-      $update["changeSystemName"] = "1";
-    }elseif(empty($_POST["changeSystemName"]) && $group["changeSystemName"] == 1){
-      $update["changeSystemName"] = "0";
-    }
-    
-    if(!empty($_POST["showTicketLog"]) && $group["showTicketLog"] == 0){
-      $update["showTicketLog"] = "1";
-    }elseif(empty($_POST["showTicketLog"]) && $group["showTicketLog"] == 1){
-      $update["showTicketLog"] = "0";
-    }
-    
-    if(!empty($_POST["deleteTicket"]) && $group["deleteTicket"] == 0){
-      $update["deleteTicket"] = "1";
-    }elseif(empty($_POST["deleteTicket"]) && $group["deleteTicket"] == 1){
-      $update["deleteTicket"] = "0";
-    }
-    
-    if(!empty($_POST["deleteComment"]) && $group["deleteComment"] == 0){
-      $update["deleteComment"] = "1";
-    }else if(empty($_POST["deleteComment"]) && $group["deleteComment"] == 1){
-      $update["deleteComment"] = "0";
-    }
-    
-    if(!empty($_POST["activateUser"]) && $group["activateUser"] == 0)
-      $update["activateUser"] = "1";
-    elseif(empty($_POST["activateUser"]) && $group["activateUser"] == 1)
-      $update["activateUser"] = "0";
-    
-    if(!empty($_POST["viewUserLog"]) && $group["viewUserLog"] == 0)
-      $update["viewUserLog"] = "1";
-    elseif(empty($_POST["viewUserLog"]) && $group["viewUserLog"] == 1)
-      $update["viewUserLog"] = "0";
-    
-    if(!empty($_POST["viewSystemLog"]) && $group["viewSystemLog"] == 0)
-      $update["viewSystemLog"] = "1";
-    elseif(empty($_POST["viewSystemLog"]) && $group["viewSystemLog"] == 1)
-      $update["viewSystemLog"] = "0";
-    
-    if(!empty($_POST["handleTempelate"]) && $group["handleTempelate"] == 0)
-      $update["handleTempelate"] = "1";
-    elseif(empty($_POST["handleTempelate"]) && $group["handleTempelate"] == 1)
-      $update["handleTempelate"] = "0";
-  
-    if(count($update) > 0){
-      $sql = [];
-      foreach($update as $key => $value){
-        $sql[] = "`".$key."`='".intval($value)."'";
-      }
-      Database::get()->query("UPDATE `group` SET ".implode(",", $sql)." WHERE `id`='".$group["id"]."'");
-      Report::okay("Access updated");
-    }else{
+    if(count($append) == 0 && count($delete) == 0){
       Report::error("No update detected");
+    }else{
+      if(count($append) > 0)
+        A::appendAccesses($gid, $append);
+      if(count($delete) > 0)
+        A::deleteAccesses($gid, $delete);
+      Report::okay("Access updated");
     }
-  
-    header("location: ?view=handleGroup&sub=Access&gid=".$group["id"]);
+    header("location: ?view=handleGroup&sub=Access&gid=".$gid);
     exit;
+  }
+  
+  private static function getData(){
+    $db = Database::get();
+    return $db->query("SELECT * FROM `group` WHERE `id`='{$db->escape($_GET["gid"])}';")->fetch();
   }
 }

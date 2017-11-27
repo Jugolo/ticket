@@ -3,15 +3,28 @@ namespace Lib\Ext\Page\ShowTickets;
 
 use Lib\Controler\Page\PageView as P;
 use Lib\Tempelate;
-
+use Lib\Page;
+use Lib\Access;
 use Lib\Database;
 
 class PageView implements P{
-  public function body(Tempelate $tempelate){
+  public function loginNeeded() : string{
+    return "YES";
+  }
+  
+  public function identify() : string{
+    return "tickets";
+  }
+  
+  public function access() : array{
+    return [];
+  }
+  
+  public function body(Tempelate $tempelate, Page $page){
     if(!empty($_GET["ticket_id"]) && ($data = $this->getTicketData(intval($_GET["ticket_id"])))){
-      TicketView::body($data, $tempelate);
+      TicketView::body($data, $tempelate, $page);
     }else{
-      TicketOverView::body($tempelate);
+      TicketOverView::body($tempelate, $page);
     }
   }
   
@@ -29,6 +42,6 @@ class PageView implements P{
       return $data;
     }
     
-    return getUsergroup(user["groupid"])["showTicket"] == 1 ? $data : null;
+    return Access::userHasAccess("TICKET_OTHER") ? $data : null;
   }
 }

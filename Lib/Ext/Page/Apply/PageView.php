@@ -1,18 +1,30 @@
 <?php
 namespace Lib\Ext\Page\Apply;
 
-use Lib\Ext\Notification\NewTicket;
 use Lib\Controler\Page\PageView as P;
 use Lib\Database;
 use Lib\Report;
 use Lib\Age;
-use Lib\Email;
 use Lib\Tempelate;
+use Lib\Page;
+use Lib\Ticket\Ticket;
 
 class PageView implements P{
-  public function body(Tempelate $tempelate){
+  public function loginNeeded() : string{
+    return "YES";
+  }
+  
+  public function identify() : string{
+    return "apply";
+  }
+  
+  public function access() : array{
+    return [];
+  }
+  
+  public function body(Tempelate $tempelate, Page $page){
     if(empty($_GET["to"]) || !($data = $this->data())){
-      $this->select_to($tempelate);
+      $this->select_to($tempelate, $page);
       return;
     }
   
@@ -20,7 +32,7 @@ class PageView implements P{
       if(($respons = Age::controle($data["age"], $data["name"])) != Age::NO_ERROR){
         switch($respons){
           case AGE::GET_AGE:
-            Age::get_age($data["name"], $tempelate);
+            Age::get_age($data["name"], $tempelate, $page);
             return;
           default:
             header("location: ?view=apply");
@@ -56,16 +68,16 @@ class PageView implements P{
       $field[] = $data;
     }
     $save->delete();
-    $tempelate->put("field", $field);
+    $tempelate->put("field", $field, $page);
     
-    $tempelate->render("apply");
+    $tempelate->render("apply", $page);
   }
   
   private function controle_apply(array $data){
     $db = Database::get();
     $errcount = 0;
     $query = $db->query("SELECT * FROM `category_item` WHERE `cid`='".$data["id"]."'");
-    $sqlBuffer = [];
+    $fields = [];
     $saver = new SaveInputs($data["id"]);
     while($row = $query->fetch()){
       if(!array_key_exists($row->id, $_POST)){
@@ -81,41 +93,39 @@ class PageView implements P{
           Report::error("Missing '".htmlentities($row->text)."'");
           $errcount++;
         }else{
-          $sqlBuffer[] = "INSERT INTO `ticket_value` (`hid`, `text`, `type`, `value`) VALUES (%%hid%%, '".$db->escape($row->text)."', '".$row->type."', '".$db->escape($option[$value])."')";
+          $fields[] = [
+            "text"  => $row->text,
+            "type"  => $row->type,
+            "value" => $option[$value]
+            ];
           $saver->put($row->id, $value);
         }
       }else{
-        $sqlBuffer[] = "INSERT INTO `ticket_value` (`hid`, `text`, `type`, `value`) VALUES(%%hid%%, '".$db->escape($row->text)."', '".$row->type."', '".$db->escape($_POST[$row->id])."')";
+        $fields[] = [
+          "text"  => $row->text,
+          "type"  => $row->type,
+          "value" => $_POST[$row->id]
+          ];
         $saver->put($row->id, $_POST[$row->id]);
       }
     }
     
-    if($errcount !== 0 || count($sqlBuffer) == 0){
-      if(count($sqlBuffer) == 0 && $errcount == 0){
+    if($errcount !== 0 || count($fields) == 0){
+      if(count($fields) == 0 && $errcount == 0){
         Report::error("Could not save a empty ticket");
       }
       $saver->save();
       header("location: ?view=apply&to=".$data["id"]);
       exit;
     }else{
-      $id = $db->query("INSERT INTO `ticket` (`cid`, `uid`, `comments`, `created`, `user_changed`, `admin_changed`, `open`) VALUES ('".$data["id"]."', '".user["id"]."', '0', NOW(), NOW(), NOW(), '1')");
-      if($db->multi_query(str_replace("(%%hid%%,", "('".$id."',", implode(";\r\n", $sqlBuffer)))){
-        Report::okay("You ticket is saved");
-        NewTicket::notify($id, $data["name"]);
-        $this->sendEamilToAdmin($data["name"]);
-        header("location: ?view=tickets&ticket_id=".$id);
-        exit;
-      }else{
-        //sql get wrong
-        $db->query("DELETE FROM `ticket` WHERE `id`='".$id."'");
-        Report::error("Sorry we could not save you application");
-        header("location: ?view=apply&to=".$data["id"]);
-        exit;
-      }
+      $id = Ticket::createTicket(user["id"], $data["id"], $fields);
+      Report::okay("You ticket is saved");
+      header("location: ?view=tickets&ticket_id=".$id);
+      exit;
     }
   }
   
-  private function select_to(Tempelate $tempelate){
+  private function select_to(Tempelate $tempelate, Page $page){
     if(!empty($_GET["to"])){
       notfound();
       return;
@@ -152,7 +162,7 @@ class PageView implements P{
     }
     
     $tempelate->put("category", $options);
-    $tempelate->render("select_to");
+    $tempelate->render("select_to", $page);
   }
   
   private function data(){
@@ -168,8 +178,8 @@ class PageView implements P{
     $db = Database::get();
     $query = $db->query("SELECT user.username, user.email
                          FROM `user`
-                         LEFT JOIN `group` ON user.groupid=group.id
-                         WHERE group.showTicket='1'
+                         LEFT JOIN `access` ON user.groupid=access.gid
+                         WHERE access.name='TICKET_OTHER'
                          AND user.id<>'".user["id"]."'");
     while($row = $query->fetch()){
       $email->pushArg("username",        $row->username);
