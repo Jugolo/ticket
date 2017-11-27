@@ -2,6 +2,7 @@
 !-addCss style.input-!
 !-addScript script.handle_ticket-!
 !-include head-!
+!-if access CATEGORY_APPEND-!
 <div class='box'>
   <div class='title'>Create input</div>
   <form action='#' method='post'>
@@ -30,6 +31,7 @@
     </table>
   </form>
 </div>
+!-endblock-!
 <div class='box'>
   <div class='title'>Category item</div>
   !-if item-!
@@ -38,7 +40,9 @@
       <th>Name</th>
       <th>Type</th>
       <th>Placeholder/Options</th>
+      !-if access CATEGORY_ITEM_DELETE-!
       <th>Delete</th>
+      !-endblock-!
     </tr>
   !-foreach item as input-!
     <tr>
@@ -51,7 +55,9 @@
       Select
       !-endblock-!</td>
       <td>!-input["placeholder"]-!</td>
+      !-if access CATEGORY_ITEM_DELETE-!
       <td><a href='?view=handleTickets&catogory=!-category_id-!&delete=!-input["id"]-!'>Delete</a></td>
+      !-endblock-!
     </tr>
   !-endblock-!
   </table>
@@ -59,6 +65,7 @@
   <div class='information'>No category input found</div>
   !-endblock-!
 </div>
+!-if access CATEGORY_SETTING-!
 <div class='box'>
   <div class='title'>Setting</div>
   <form action='#' method='post'>
@@ -73,4 +80,5 @@
     </table>
   </form>
 </div>
+!-endblock-!
 !-include buttom-!

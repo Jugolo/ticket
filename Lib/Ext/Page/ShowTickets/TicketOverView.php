@@ -4,9 +4,11 @@ namespace Lib\Ext\Page\ShowTickets;
 use Lib\Database;
 use Lib\Database\DatabaseFetch;
 use Lib\Tempelate;
+use Lib\Page;
+use Lib\Access;
 
 class TicketOverView{
-  public static function body(Tempelate $tempelate){
+  public static function body(Tempelate $tempelate, Page $page){
     $db = Database::get();
     $query = $db->query("SELECT ticket.id, ticket.open, ticket.user_changed, ticket.created, ticket.comments, catogory.name, ticket_track.visit
                          FROM `ticket`
@@ -29,7 +31,7 @@ class TicketOverView{
       ];
     }
     $tempelate->put("owen_ticket", $owen);
-    if(getUsergroup(user["groupid"])["showTicket"] == 1){
+    if(Access::userHasAccess("TICKET_OTHER")){
       $query = $db->query("SELECT ticket.id, ticket.open, ticket.admin_changed, ticket.created, ticket.comments, catogory.name, ticket_track.visit, user.username
                            FROM `ticket`
                            LEFT JOIN `catogory` ON catogory.id=ticket.cid
@@ -56,6 +58,6 @@ class TicketOverView{
     
     $tempelate->put("closedTicket", !empty($_GET["showclosed"]));
     
-    $tempelate->render("ticket_list");
+    $tempelate->render("ticket_list", $page);
   }
 }

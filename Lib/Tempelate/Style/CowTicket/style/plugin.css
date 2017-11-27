@@ -1,0 +1,7 @@
+tr.installed{
+  background-color: #3FBF3F;
+}
+
+tr.uninstalled{
+  background-color: #C14242;
+}

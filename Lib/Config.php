@@ -22,6 +22,13 @@ class Config{
     self::$item[$name] = $value;
   }
   
+  public static function delete(string $name){
+    if(array_key_exists($name, self::$item)){
+      $db = Database::get();
+      $db->query("DELETE FROM `config` WHERE `name`='{$db->escape($name)}';");
+    }
+  }
+  
   private static function ensureInit(){
     if(!self::$item){
       $query = Database::get()->query("SELECT `name`, `value` FROM `config`");

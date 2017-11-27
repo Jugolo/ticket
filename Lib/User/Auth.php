@@ -7,6 +7,7 @@ use Lib\Config;
 use Lib\Email;
 use Lib\Report;
 use Lib\Ajax;
+use Lib\Plugin\Plugin;
 
 class Auth{
   
@@ -75,6 +76,16 @@ class Auth{
       $emails->send("account_create", $email);
     }
     return $id;
+  }
+  
+  public static function deleteUser(int $id){
+    $db = Database::get();
+    $db->query("DELETE FROM `comment` WHERE `uid`=".$id);
+    $db->query("SELECT `id` FROM `ticket` WHERE `uid`='".$id."'")->fetch(function($id){
+      Plugin::trigger_event("system.ticket.delete", $id);
+    });
+    $db->query("DELETE FROM `user` WHERE `id`='".$id."'");
+    $db->query("DELETE FROM `notify_setting` WHERE `uid`='{$id}'");
   }
   
   private static function doLogin(){
@@ -162,9 +173,6 @@ class Auth{
       return false;
     }
     define("user", $user->toArray());
-    
-    //wee now get the group
-    define("group", $db->query("SELECT * FROM `group` WHERE `id`='{$user->groupid}'")->fetch()->toArray());
     return true;
   }
   

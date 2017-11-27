@@ -61,7 +61,8 @@ class Report{
   }
   
   private static function save(string $type, string $message){
-    $_SESSION["reports"][$type][] = $message;
+    if(!in_array($message, $_SESSION["reports"][$type]))
+      $_SESSION["reports"][$type][] = $message;
   }
   
   private static function init(){

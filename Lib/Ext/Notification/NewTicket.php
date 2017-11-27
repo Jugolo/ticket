@@ -10,9 +10,9 @@ class NewTicket{
     $query = $db->query("SELECT user.id 
                          FROM `notify_setting`
                          LEFT JOIN `user` ON user.id=notify_setting.uid
-                         LEFT JOIN `group` ON user.groupid=group.id
+                         LEFT JOIN `access` ON user.groupid=access.gid
                          WHERE notify_setting.name='".$db->escape(__CLASS__)."'
-                         AND group.showTicket='1'");
+                         AND access.name='TICKET_OTHER'");
     $query->render(function(DatabaseFetch $row) use($id, $name){
       if($row->id != user["id"]){
         NewTicket::notifyUser($row->id, $id, $name);

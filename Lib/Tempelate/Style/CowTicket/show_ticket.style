@@ -12,7 +12,7 @@
   <table class='table-fill border'>
     <tr>
       <th>User name</th>
-      !-if access showProfile-!
+      !-if access USER_PROFILE-!
       <td><a href='?view=profile&user=!-ticket_uid-!'>!-ticket_username-!</a></td>
       !-else-!
       <td>!-ticket_username-!</td>
@@ -58,6 +58,19 @@
   !-endblock-!
 </div>
 !-endblock-!
+!-if seen-!
+<div class='box'>
+  <div class='title'>Watch list</div>
+  <table class='makeup-table'>
+    !-foreach seen as data-!
+    <tr>
+      <th>!-data["username"]-!</th>
+      <td>!-data["visit"]-!</td>
+    </tr>
+    !-endblock-!
+  </table>
+</div>
+!-endblock-!
 <div class='box'>
   <div class='title'>Comments</div>
   !-if comments-!
@@ -71,7 +84,7 @@
     <div class='comment-body'>
       <div class='comment-information'>
         <ul>
-          <li>Username: !-if access showProfile-!<a href='?view=profile&user=!-comment["uid"]-!'>!-endblock-!!-comment["username"]-!!-if access showProfile-!</a>!-endblock-!</li>
+          <li>Username: !-if access USER_PROFILE-!<a href='?view=profile&user=!-comment["uid"]-!'>!-endblock-!!-comment["username"]-!!-if access USER_PROFILE-!</a>!-endblock-!</li>
           <li>Created: !-comment["created"]-!</li>
         </ul>
         <div class='clear'></div>
@@ -81,7 +94,7 @@
       </div>
       <div class='clear'></div>
     </div>
-    !-if not owen and access deleteTicket-!
+    !-if not owen and access COMMENT_DELETE-!
     <div class='comment-admin'>
       <a href='?view=tickets&ticket_id=!-ticket_id-!&deleteComment=!-comment["id"]-!'>Delete</a>
     </div>
@@ -101,7 +114,7 @@
     !-include texteditor-!
     !-if not owen-!
     <div>
-      Hide from the user <input type="checkbox" name="public">
+      Let user seen this <input type="checkbox" name="public">
     </div>
   </form>
   !-endblock-!

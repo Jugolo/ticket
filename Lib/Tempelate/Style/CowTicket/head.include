@@ -22,7 +22,7 @@
         <a href="?view=front" id="root-head-right-name">
           !-config system_name-!
         </a>
-        !-if access changeSystemName -!
+        !-if access SYSTEM_NAME -!
         <a href='?view=front&changeSystemName=true'>
           (Change)
         </a>

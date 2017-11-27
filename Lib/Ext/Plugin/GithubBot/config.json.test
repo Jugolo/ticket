@@ -1,0 +1,6 @@
+{
+  "owner"  : "Here you need to write the owner of the repo this bot should listen on",
+  "repo"   : "Here you need to write the repo this bot should listen on",
+  "secret" : "Here you can append a secret key to ensure it came from github or leave it empty if you dont want to use it",
+  "user"   : "Use to let this libary to use a github user. if so let this be a array width 'username' as username key and 'password' as pasword"
+}

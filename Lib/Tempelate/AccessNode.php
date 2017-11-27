@@ -9,6 +9,6 @@ class AccessNode implements TempelateNode{
   }
   
   public function toCode() : string{
-    return "(defined('group') && group['{$this->name}'] == 1)";
+    return "Lib\Access::userHasAccess('{$this->name}')";
   }
 }

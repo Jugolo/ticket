@@ -18,14 +18,26 @@
   <table class='makeup-table'>
     <tr>
       <th>Name</th>
+      !-if access CATEGORY_CLOSE-!
       <th>Change opning state</th>
+      !-endblock-!
+      !-if access CATEGORY_DELETE-!
       <th>Delete</th>
+      !-endblock-!
     </tr>
     !-foreach categorys as cat-!
     <tr>
+      !-if ticket_access-!
       <th><a href='?view=handleTickets&catogory=!-cat["id"]-!'>!-cat["name"]-!</a></th>
+      !-else-!
+      <th>!-cat["name"]-!</th>
+      !-endblock-!
+      !-if access CATEGORY_CLOSE-!
       <td><a href='?view=handleTickets&open=!-cat["id"]-!'>!-if cat["open"] == 0-!Open!-else-!Close!-endblock-!</a></td>
+      !-endblock-!
+      !-if access CATEGORY_DELETE-!
       <td><a href='?view=handleTickets&delete=!-cat["id"]-!'>Delete</a></td>
+      !-endblock-!
     </tr>
     !-endblock-!
   </table>

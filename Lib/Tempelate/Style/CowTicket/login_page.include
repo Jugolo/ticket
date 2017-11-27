@@ -1,0 +1,39 @@
+!-addCss style.login_page-!
+!-include head-!
+<div class='box'>
+  <div class='title'>!-if not login_reason-!Login or create account!-else-!!-login_reason-!!-endblock-!</div>
+  <div id='login'>
+    <form action='#' method='post'>
+      <div>
+        <input type='text' name='username' placeholder='Username' class='input'>
+      </div>
+      <div>
+        <input type='password' name='password' placeholder='Password' class='input'>
+      </div>
+      <div>
+        <input type='submit' name='login' value='Login' class='input'>
+      </div>
+    </form>
+  </div>
+  <div id='create'>
+    <form action='#' method='post'>
+      <div>
+        <input type='text' name='username' placeholder='Username' class='input'>
+      </div>
+      <div>
+        <input type='password' name='password' placeholder='Password' class='input'>
+      </div>
+      <div>
+        <input type='password' name='repeat_password' placeholder='Repeat password' class='input'>
+      </div>
+      <div>
+        <input type='email' name='email' placeholder='Email' class='input'>
+      </div>
+      <div>
+        <input type='submit' value='Create account' name='createaccount' class='input'>
+      </div>
+    </form>
+  </div>
+  <div class='clear'></div>
+</div>
+!-include buttom-!

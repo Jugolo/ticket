@@ -9,9 +9,23 @@ use Lib\Report;
 use Lib\Log;
 use Lib\Email;
 use Lib\Tempelate;
+use Lib\Page;
+use Lib\Access;
 
 class PageView implements P{
-  public function body(Tempelate $tempelate){
+  public function loginNeeded() : string{
+    return "YES";
+  }
+  
+  public function identify() : string{
+    return "profile";
+  }
+  
+  public function access() : array{
+    return [];
+  }
+  
+  public function body(Tempelate $tempelate, Page $page){
     $user = $this->getUser();
     if(!$user){
       Report::error("Could not find the user");
@@ -29,12 +43,12 @@ class PageView implements P{
       }
     }else{
       if($user->isActivatet == 0){
-        if(group["activateUser"] == 1 && !empty($_GET["activate"])){
+        if(Access::userHasAccess("USER_ACTIVATE") == 1 && !empty($_GET["activate"])){
           $this->activateUser($user->id);
         }
         $tempelate->put("not_activate", true);
       }
-      if(group["viewUserLog"] == 1){
+      if(Access::userHasAccess("USER_PROFILE") == 1){
         $log = Log::getUserLog($user->id);
         $logs = [];
         $log->render(function($time, $message) use(&$logs){
@@ -56,107 +70,7 @@ class PageView implements P{
     $tempelate->put("year",             $user->birth_year);
     $tempelate->put("group",            $user->name);
     
-    $tempelate->render($user->id == user["id"] ? "owen_profile" : "other_profile");
-    return;
-    
-    $table = new Table();
-    $table->style = "width:100%;border-collapse:collapse;";
-    $table->newColummen();
-    if($user->id == user["id"]){
-      $table->th("Username")->style = "border:1px solid grey;";
-      $table->td("<input type='text' name='username' value='".htmlentities($user->username)."'>", true)->style = "border:1px solid grey";
-      $table->newColummen();
-      $table->th("Email")->style = "border:1px solid grey;";
-      $table->td("<input type='email' name='email' value='".htmlentities($user->email)."'>", true)->style = "border:1px solid grey;";
-      $table->newColummen();
-      $table->th("Controle password")->style = "border:1px solid grey;";
-      $table->td("<input type='password' name='password'>", true)->style = "border:1px solid grey";
-      $table->newColummen();
-      $element = $table->td("<input type='submit' name='update' value='Update the setting'>", true);
-      $element->colspan = "2";
-      $element->style = "border:1px solid black;";
-      echo "<form method='post' action='#'>";
-        $table->output();
-      echo "</form>";
-      
-      echo "<h3>Change you password</h3>";
-      $table = new Table();
-      $table->style = "border-collapse:collapse;width:100%;";
-      $table->newColummen();
-      $table->th("Password")->style = "border:1px solid grey;";
-      $table->td("<input type='password' name='password'>", true)->style = "border: 1px solid grey;";
-      $table->newColummen();
-      $table->th("Repeat password")->style = "border:1px solid grey";
-      $table->td("<input type='password' name='repeat_password'>", true)->style = "border: 1px solid grey;";
-      $table->newColummen();
-      $table->th('Current password')->style = "border:1px solid grey;";
-      $table->td("<input type='password' name='current_password'>", true)->style = "border:1px solid grey;";
-      $table->newColummen();
-      $row = $table->td("<input type='submit' name='pass' value='Change password'>", true);
-      $row->colspan = "2";
-      $row->style = "border:1px solid grey";
-      
-      echo "<form method='post' action='#'>";
-        $table->output();
-      echo "</form>";
-      
-      $age = "";
-      if(user["birth_day"] && user["birth_month"] && user["birth_year"]){
-        $age = Age::calculate(user["birth_day"], user["birth_month"], user["birth_year"]);
-      }
-      
-      echo "<h3>Age.".($age ? " (".$age.")" : "")."</h3>";
-      
-      $table = new Table();
-      $table->style = "border-collapse:collapse;width:100%;";
-      $table->newColummen();
-      $table->th("Birth day")->style = "border: 1px solid grey;";
-      $table->td("<input type='number' name='day' value='".user["birth_day"]."'>", true)->style = "border: 1px solid grey;";
-      $table->newColummen();
-      $table->th("Birth month")->style = "border:1px solid grey";
-      $table->td("<input type='number' name='month' value='".user["birth_month"]."'>", true)->style = "border:1px solid grey";
-      $table->newColummen();
-      $table->th("Birth year")->style = "border:1px solid grey";
-      $table->td("<input type='number' name='year' value='".user["birth_year"]."'>", true)->style = "border: 1px solid grey";
-      $table->newColummen();
-      $row = $table->td("<input type='submit' name='birth' value='Update'>", true);
-      $row->colspan = "2";
-      $row->style = "border:1px solid grey";
-      echo "<form method='POST' action='#'>";
-        $table->output();
-      echo "</form>";
-    }else{
-      $table->th("Username")->style = "border:1px solid grey";
-      $table->td($user->username)->style = "border:1px solid grey;";
-      $table->th("Email")->style = "border:1px solid grey;";
-      $table->td($user->email)->style = "border:1px solid grey;";
-      $table->newColummen();
-      $row = $table->th("Age");
-      $row->colspan = "2";
-      $row->style = "border:1px solid grey;";
-      if($user->birth_day && $user->birth_month && $user->birth_year){
-        $row = $table->td(Age::calculate($user->birth_day, $user->birth_month, $user->birth_year));
-      }else{
-        $row = $table->td("Unknown");
-      }
-      $row->colspan = "2";
-      $row->style = "border:1px solid grey;";
-      $table->output();
-      if(group["viewUserLog"] == 1){
-        $log = Log::getUserLog($user->id);
-        if($log->size() > 0){
-          echo "<fieldset id='userlog'>";
-            echo "<legend>User log</legend>";
-            $log->render(function($time, $message){
-              echo "<div>";
-                echo "<span>[{$time}]</span> ";
-                echo $message;
-              echo "</div>";
-            });
-          echo "</fieldset>";
-        }
-      }
-    }
+    $tempelate->render($user->id == user["id"] ? "owen_profile" : "other_profile", $page);
   }
   
   private function getUser(){

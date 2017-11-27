@@ -6,11 +6,25 @@ use Lib\Database;
 use Lib\Database\DatabaseFetch;
 use Lib\Report;
 use Lib\Tempelate;
+use Lib\Page;
+use Lib\Access;
 
 class PageView implements P{
-  function body(Tempelate $tempelate){
+  public function loginNeeded() : string{
+    return "YES";
+  }
+  
+  public function identify() : string{
+    return "error";
+  }
+  
+  public function access() : array{
+    return ["ERROR_SHOW"];
+  }
+  
+  function body(Tempelate $tempelate, Page $pageObj){
     if(!empty($_GET["id"]) && $data = $this->getData(intval($_GET["id"]))){
-      $this->showError($data, $tempelate);
+      $this->showError($data, $tempelate, $pageObj);
       return;
     }
     $page = !empty($_GET["ep"]) && is_numeric($_GET["ep"]) ? intval($_GET["ep"]) : 0;
@@ -34,7 +48,7 @@ class PageView implements P{
     
     $query = $db->query("SELECT `id`, `errstr` FROM `error` LIMIT {$page}, 30");
     
-    if(!empty($_POST["delete"]) && !empty($_POST["errorSelect"])){
+    if(!empty($_POST["delete"]) && !empty($_POST["errorSelect"]) && Access::userHasAccess("ERROR_DELETE")){
       $this->deleteErrors();
       header("location: #");
       exit;
@@ -44,7 +58,7 @@ class PageView implements P{
       $errors[] = $row->toArray();
     }
     $tempelate->put("system_error", $errors);
-    $tempelate->render("error");
+    $tempelate->render("error", $pageObj);
   }
   
   private function deleteErrors(){
@@ -59,7 +73,7 @@ class PageView implements P{
     Report::okay("Errors message is now deleted");
   }
   
-  private function showError($data, $tempelate){
+  private function showError($data, $tempelate, $page){
     $tempelate->put("file",    $data->errfile);
     $tempelate->put("line",    $data->errline);
     $tempelate->put("time",    $data->errtime);
@@ -90,7 +104,7 @@ class PageView implements P{
       $other_error[] = $row->toArray();
     $tempelate->put("other_error", $other_error);
     
-    $tempelate->render("show_error");
+    $tempelate->render("show_error", $page);
   }
   
   private function getData(int $id){

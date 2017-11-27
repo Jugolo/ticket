@@ -2,24 +2,50 @@
 namespace Lib\Ext\Page\HandleTickets;
 
 use Lib\Controler\Page\PageView as P;
-use Lib\Html\Table;
 use Lib\Database;
 use Lib\Database\DatabaseFetch;
 use Lib\Report;
 use Lib\Config;
 use Lib\Plugin\Plugin;
 use Lib\Tempelate;
+use Lib\Page;
+use Lib\Access;
+use Lib\Log;
+use Lib\Cache;
+use Lib\Category;
+use Lib\Exception\CategoryNotFound;
 
 class PageView implements P{
-  public function body(Tempelate $tempelate){
-    if(!empty($_GET["catogory"])){
-      $this->setting($tempelate);
+  public function loginNeeded() : string{
+    return "YES";
+  }
+  
+  public function identify() : string{
+    return "handleTickets";
+  }
+  
+  public function access() : array{
+    return [
+      "CATEGORY_CREATE",
+      "CATEGORY_DELETE",
+      "CATEGORY_CLOSE",
+    ];
+  }
+  
+  public function body(Tempelate $tempelate, Page $page){
+    $ticket_access = Access::userHasAccesses([
+      "CATEGORY_APPEND",
+      "CATEGORY_ITEM_DELETE",
+      "CATEGORY_SETTING"
+    ]);
+    if(!empty($_GET["catogory"]) && $ticket_access){
+      $this->setting($tempelate, $page);
     }else{
-      $this->overview($tempelate);
+      $this->overview($tempelate, $page, $ticket_access);
     }
   }
   
-  private function setting(Tempelate $tempelate){
+  private function setting(Tempelate $tempelate, Page $page){
     $data = $this->getData();
     if(!$data){
       Report::error("Unknown catagory");
@@ -27,15 +53,15 @@ class PageView implements P{
       exit;
     }
     
-    if(!empty($_POST["append"])){
+    if(!empty($_POST["append"]) && Access::userHasAccess("CATEGORY_APPEND")){
       $this->appendInput($data->id);
     }
     
-    if(!empty($_POST["setting"])){
+    if(!empty($_POST["setting"]) && Access::userHasAccess("CATEGORY_SETTING")){
       $this->updateSetting($data->id);
     }
     
-    if(!empty($_GET["delete"])){
+    if(!empty($_GET["delete"]) && Access::userHasAccess("CATEGORY_ITEM_DELETE")){
       $this->deleteInput($_GET["delete"]);
     }
     
@@ -48,15 +74,7 @@ class PageView implements P{
     $tempelate->put("category_id", $data->id);
     $tempelate->put("age", $data->age);
     
-    $tempelate->render("handle_ticket");
-    return;    
-    echo "<fieldset>";
-    echo "<legend>Setting</legend>";
-      echo "<form method='post' action='#'>";
-        echo two_container("Min. age", "<input type='text' name='age' value='{$data->age}'>");
-      echo "<input type='submit' name='setting' value='Update'>";
-      echo "</form>";
-    echo "</fieldset>";
+    $tempelate->render("handle_ticket", $page);
   }
   
   public function updateSetting(int $id){
@@ -119,14 +137,14 @@ class PageView implements P{
     return $db->query("SELECT * FROM `catogory` WHERE `id`='{$db->escape($_GET["catogory"])}'")->fetch();
   }
   
-  private function overview(Tempelate $tempelate){
-    if(!empty($_POST["name"])){
+  private function overview(Tempelate $tempelate, Page $page, bool $ticket_access){
+    if(!empty($_POST["name"]) && Access::userHasAccess("CATEGORY_CREATE")){
       $this->create($_POST["name"]);
     }
-    if(!empty($_GET["open"])){
+    if(!empty($_GET["open"]) && Access::userHasAccess("CATEGORY_CLOSE")){
       $this->changeOpen(intval($_GET["open"]));
     }
-    if(!empty($_GET["delete"])){
+    if(!empty($_GET["delete"]) && Access::userHasAccess("CATEGORY_DELETE")){
       $this->delete(intval($_GET["delete"]));
     }
     
@@ -136,12 +154,14 @@ class PageView implements P{
       $cat[] = $row->toArray();
     $tempelate->put("categorys", $cat);
     
-    $tempelate->render("handle_tickets");
+    $tempelate->put("ticket_access", $ticket_access);
+    
+    $tempelate->render("handle_tickets", $page);
   }
   
   private function changeOpen(int $id){
     $db = Database::get();
-    $data = $db->query("SELECT `open` FROM `catogory` WHERE `id`='{$id}'")->fetch();
+    $data = $db->query("SELECT `open`, `name` FROM `catogory` WHERE `id`='{$id}'")->fetch();
     if(!$data){
       return;
     }
@@ -150,8 +170,10 @@ class PageView implements P{
     if($data->open == 1){
       Config::set("cat_open", Config::get("cat_open")-1);
       Report::okay("The category is now closed");
+      Log::system("%s closed the category %s", user["username"], $data->name);
     }else{
       Report::okay("The category is now open");
+      Log::system("%s opnede the category %s", user["username"], $data->name);
       Config::set("cat_open", Config::get("cat_open")+1);
     }
     
@@ -160,23 +182,24 @@ class PageView implements P{
   }
   
   private function delete(int $id){
-    $db = Database::get();
-    $data = $db->query("SELECT * FROM `catogory` WHERE `id`='".$id."'")->fetch();
-    if(!$data){
-      Report::error("No catogroy found to delete");
-      return;
+    try{
+      Category::delete($id);
+      Report::okay("The category is now deleted");
+    }catch(CategoryNotFound $e){
+      Report::error("Category not found");
     }
-    if($data->open != 0){
-     Config::set("cat_open", intval(Config::get("cat_open"))-1);
-    }
-    Plugin::trigger_event("system.category.delete", $data);
-    Report::okay("The category is now deleted");
   }
   
   private function create(string $name){
-    $db = Database::get();
-    $db->query("INSERT INTO `catogory` VALUES (NULL, '{$db->escape($name)}', 0, NULL);");
+    if(in_array($name, Category::getNames())){
+      Report::error("There exists a category width that names allready.");
+      return;
+    }
+    Category::create($name);
     Report::okay("Category is created");
+    Log::system("%s created a new category '%s'", user["username"], $name);
+    if(Cache::exists("category_names"))
+      Cache::delete("category_names");
     header("location: #");
     exit;
   }

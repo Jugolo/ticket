@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+  <!--This section tell about the install/uninstall action-->
+  <setup>
+    <install call='Setup::install' />
+    <uninstall call='Setup::uninstall' />
+  </setup>
+  <!--This section tell the plugin system where to find the events-->
+  <events>
+    <event src='Event' />
+  </events>
+</plugin>

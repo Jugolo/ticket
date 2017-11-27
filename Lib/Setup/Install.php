@@ -123,8 +123,37 @@ class Install{
     }
     $db = Database::get();
     
-    $db->query("INSERT INTO `group` VALUES (1, 'User',  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
-                                           (2, 'Admin', 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1);");
+    $db->query("INSERT INTO `group` VALUES (1, 'User'),
+                                           (2, 'Admin');");
+    $db->query("INSERT INTO `access` VALUES (2, 'CATEGORY_CREATE'),
+                                            (2, 'CATEGORY_DELETE'),
+                                            (2, 'CATEGORY_CLOSE'),
+                                            (2, 'CATEGORY_APPEND'),
+                                            (2, 'CATEGORY_ITEM_DELETE'),
+                                            (2, 'CATEGORY_SETTING'),
+                                            (2, 'TICKET_OTHER'),
+                                            (2, 'TICKET_CLOSE'),
+                                            (2, 'TICKET_DELETE'),
+                                            (2, 'COMMENT_DELETE'),
+                                            (2, 'TICKET_LOG'),
+                                            (2, 'USER_GROUP'),
+                                            (2, 'USER_PROFILE'),
+                                            (2, 'USER_DELETE'),
+                                            (2, 'USER_LOG'),
+                                            (2, 'USER_ACTIVATE'),
+                                            (2, 'GROUP_CREATE'),
+                                            (2, 'GROUP_DELETE'),
+                                            (2, 'GROUP_ACCESS'),
+                                            (2, 'GROUP_STANDART'),
+                                            (2, 'ERROR_SHOW'),
+                                            (2, 'ERROR_DELETE'),
+                                            (2, 'SYSTEM_FRONT'),
+                                            (2, 'SYSTEM_NAME'),
+                                            (2, 'SYSTEMLOG_SHOW'),
+                                            (2, 'TEMPELATE_SELECT'),
+                                            (2, 'TICKET_SEEN'),
+                                            (2, 'PLUGIN_INSTALL'),
+                                            (2, 'PLUGIN_UNINSTALL');");
     $db->query("INSERT INTO `config` VALUES ('version', '".Main::SETUP_VERSION."'),
                                             ('standart_group', '1'),
                                             ('cat_open', '0'),
@@ -151,6 +180,15 @@ class Install{
       exit;
     }
     $table = [
+        "plugin"    => "CREATE TABLE `plugin` ( 
+                          `id` INT(11) NOT NULL AUTO_INCREMENT,
+                          `path` VARCHAR(255) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
+                          PRIMARY KEY(`id`)
+                        ) ENGINE = InnoDB DEFAULT CHARSET=utf8;",
+        "access"    => "CREATE TABLE IF NOT EXISTS `access` (
+                          `gid` int(11) NOT NULL,
+                          `name` varchar(255) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL
+                        ) ENGINE=InnoDB DEFAULT CHARSET=utf8;",
         "catogory" => "CREATE TABLE IF NOT EXISTS `catogory` (
                          `id` int(11) NOT NULL AUTO_INCREMENT,
                          `name` varchar(255) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
@@ -192,22 +230,6 @@ class Install{
         "group"    => "CREATE TABLE IF NOT EXISTS `group` (
                          `id` int(11) NOT NULL AUTO_INCREMENT,
                          `name` varchar(255) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
-                         `showTicket` int(1) NOT NULL,
-                         `changeGroup` int(1) NOT NULL,
-                         `handleGroup` int(1) NOT NULL,
-                         `handleTickets` tinyint(1) NOT NULL,
-                         `showError` int(1) NOT NULL,
-                         `showProfile` int(1) NOT NULL,
-                         `closeTicket` int(1) NOT NULL,
-                         `changeFront` int(1) NOT NULL,
-                         `changeSystemName` int(1) NOT NULL,
-                         `showTicketLog` INT(1) NOT NULL,
-                         `deleteTicket` int(1) NOT NULL,
-                         `deleteComment` INT(1) NOT NULL,
-                         `activateUser` int(1) NOT NULL,
-                         `viewUserLog` int(1) NOT NULL,
-                         `viewSystemLog` int(1) NOT NULL,
-                         `handleTempelate` int(1) NOT NULL,
                          PRIMARY KEY (`id`)
                        ) ENGINE=InnoDB DEFAULT CHARSET=utf8;",
         "log"      => "CREATE TABLE IF NOT EXISTS `log` ( 
