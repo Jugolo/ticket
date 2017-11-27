@@ -3,6 +3,7 @@ namespace Lib\Ticket;
 
 use Lib\Database;
 use Lib\Ajax;
+use Lib\Access;
 
 class Track{
   public static function track(int $ticket_id, int $user_id){
@@ -23,7 +24,7 @@ class Track{
     if(!defined("user")){
       return 0;
     }
-    $globel = getUsergroup(user["groupid"])["showTicket"] == 1;
+    $globel = Access::userHasAccess("TICKET_OTHER");
     $db = Database::get();
     $sql = "SELECT COUNT(ticket.id) AS id
             FROM `ticket`

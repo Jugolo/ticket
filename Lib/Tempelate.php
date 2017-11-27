@@ -27,6 +27,7 @@ use Lib\Tempelate\ArrayGetNode;
 use Lib\Tempelate\StringNode;
 use Lib\Tempelate\BooleanBindNode;
 use Lib\Tempelate\NotNode;
+use Lib\Tempelate\PageAccessNode;
 
 class Tempelate{
   private $dir;
@@ -57,7 +58,7 @@ class Tempelate{
     $this->data->put($name, $data);
   }
   
-  public function render(string $name){
+  public function render(string $name, Page $page){
     Report::toTempelate($this);
     if(Cache::exists($this->dir.$name)){
        $obj  = eval('?> '.Cache::get($this->dir.$name).' <?php ');
@@ -74,15 +75,17 @@ class Tempelate{
   }
   
   private function generateStyleClass($code){
-    return "<?php return new class(\$this->controler){
+    return "<?php return new class(\$this->controler, \$page){
        private \$scriptFile = [];
        private \$css;
        private \$files = [{$this->convertFile()}];
        private \$controler;
+       private \$page;
        
-       public function __construct(\$controler){
+       public function __construct(\$controler, Lib\\Page \$page){
          \$this->css = new Lib\\Tempelate\\Css();
          \$this->controler = \$controler;
+         \$this->page = \$page;
        }
        
        public function isValid(){
@@ -243,6 +246,8 @@ class Tempelate{
       switch($current->getContext()){
         case "config":
           return $this->handleConfig($token);
+        case "pageAccess":
+          return $this->handlePageAccess($token);
         case "access":
           return $this->handleAccess($token);
         case "loggedIn":
@@ -263,6 +268,13 @@ class Tempelate{
       return new StringNode($current->getContext());
     }
     throw new TempelateException("Unexpected {$current->getType()}({$current->getContext()})");
+  }
+  
+  private function handlePageAccess(Tokenizer $token){
+    $token->next()->expect("IDENTIFY");
+    $identify = $token->current()->getContext();
+    $token->next();
+    return new PageAccessNode($identify);
   }
   
   private function handleIdentify(Tokenizer $token, TempelateNode $node){

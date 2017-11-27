@@ -30,7 +30,7 @@ class Age{
     return self::NO_ERROR;
   }
   
-  public static function get_age(string $to, Tempelate $tempelate){
+  public static function get_age(string $to, Tempelate $tempelate, Page $page){
     if(!empty($_POST["save"])){
       $count = Report::count("ERROR");
       if(empty($_POST["bd"]) || !is_numeric($_POST["bd"]))
@@ -69,6 +69,6 @@ class Age{
       }
     }
     
-    $tempelate->render("get_age");
+    $tempelate->render("get_age", $page);
   }
 }
