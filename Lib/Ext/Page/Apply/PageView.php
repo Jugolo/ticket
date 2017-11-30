@@ -152,7 +152,7 @@ class PageView implements P{
          
     if($count == 0){
       $tempelate->put("apply_error", "No category to apply to");
-      $tempelate->render("apply_error");
+      $tempelate->render("apply_error", $page);
       return;   
     }
     
