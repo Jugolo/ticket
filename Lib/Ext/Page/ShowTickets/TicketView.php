@@ -45,7 +45,7 @@ class TicketView{
     $tempelate->put("owen",            $data->uid == user["id"]);
     
     if($data->age){
-      $tempelate->put("age", \Lib\Age::calculate($data->birth_day, $data->birth_month, $data->birth_year));
+      $tempelate->put("age", \Lib\Age::calculate($data->birth_day ? : 0, $data->birth_month ? : 0, $data->birth_year ? : 0));
     }
     
     $query = $db->query("SELECT `text`, `type`, `value` FROM `ticket_value` WHERE `hid`='".$data->id."'");
