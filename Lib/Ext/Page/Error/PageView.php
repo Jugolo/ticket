@@ -81,7 +81,7 @@ class PageView implements P{
     
     $file = file($data->errfile);
     $lines = [];
-    $max = min(count($file), $data->errline+10)-1;
+    $max = min(count($file), $data->errline+10);
     $min = max(1, $data->errline-10)-1;
     
     for($i=$min;$i<$max;$i++){
