@@ -95,7 +95,7 @@ class TicketView{
     }
     Log::ticket($result->tid, "%s deleted a comment writet by %s", user["username"], $result->username);
     Plugin::trigger_event("system.comment.delete", $result->id);
-    Report::okay("The ticket is deleted");
+    Report::okay("The comment is deleted");
   }
   
   private static function deleteTicket($id){
