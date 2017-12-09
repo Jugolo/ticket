@@ -35,7 +35,7 @@ class NewTicket{
       $tid,
       __CLASS__,
       "?view=tickets&ticket_id={$tid}",
-      user["username"]." has just created a new ticket"
+      (defined("user") ? user["username"] : "unknown")." has just created a new ticket"
       );
   }
 }
