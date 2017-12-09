@@ -88,7 +88,7 @@ class Ticket{
     while($row = $query->fetch()){
       $email->pushArg("creator", $row->username);
       $email->pushArg("category", $row->name);
-      $email->pushArg("my_username", user["username"]);
+      $email->pushArg("my_username", defined("user") ? user["username"] "unknown");
       $email->send("new_comment", $row->email);
     }
   }
