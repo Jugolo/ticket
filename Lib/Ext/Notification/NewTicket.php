@@ -14,7 +14,7 @@ class NewTicket{
                          WHERE notify_setting.name='".$db->escape(__CLASS__)."'
                          AND access.name='TICKET_OTHER'");
     $query->render(function(DatabaseFetch $row) use($id, $name){
-      if($row->id != user["id"]){
+      if(!defined("user") || $row->id != user["id"]){
         NewTicket::notifyUser($row->id, $id, $name);
       }
     });
