@@ -5,6 +5,10 @@ class Mysqli extends DatabaseDriver{
   private $db;
   
   public function __construct(){
+    $this->set();
+  }
+  
+  private function set(){
     if(defined("IN_SETUP") && !empty($_SESSION["setup"])){
       $db = [
           $_SESSION["setup"]["db_host"],
@@ -51,17 +55,6 @@ class Mysqli extends DatabaseDriver{
     return new MysqliResult($this->db, $q);
   }
   
-  public function multi_query(string $query) : bool{
-    if($this->db->multi_query($query)){
-      while($this->db->more_results() && $this->db->next_result()){
-        $this->db->store_result();
-      }
-      return true;
-    }
-    $this->report();
-    return false;
-  }
-  
   public function hasError() : bool{
     return $this->db->connect_error || $this->db->error;
   }
@@ -70,7 +63,9 @@ class Mysqli extends DatabaseDriver{
     if($this->db->connect_error){
       trigger_error($this->db->connect_error, E_USER_ERROR);
     }elseif($this->db->error){
-      trigger_error($this->db->error, E_USER_ERROR);
+      $err = $this->db->error;
+      $this->set();
+      trigger_error($err, E_USER_ERROR);
     }
   }
   

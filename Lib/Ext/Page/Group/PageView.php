@@ -9,6 +9,7 @@ use Lib\Tempelate;
 use Lib\Page;
 use Lib\Access;
 use Lib\Group;
+use Lib\Language\Language;
 
 class PageView implements P{
   public function loginNeeded() : string{
@@ -29,6 +30,7 @@ class PageView implements P{
   }
   
   public function body(Tempelate $tempelate, Page $page){
+    Language::load("group");
     if(!empty($_GET["sub"]) && $this->sub($_GET["sub"], $tempelate, $page)){
       return;
     }
@@ -44,7 +46,7 @@ class PageView implements P{
     
     $tempelate->put("standart", $standart);
     
-    $tempelate->render("group", $page);
+    $tempelate->render("group");
   }
   
   private function sub(string $sub, Tempelate $tempelate, Page $page) : bool{
@@ -63,11 +65,11 @@ class PageView implements P{
   private function create(string $name){
      $id = Group::create($name);
     if($id == -1){
-      Report::error("The group name is taken");
+      Report::error(Language::get("G_NAME_TAKEN"));
       header("location: #");
       exit;
     }
-    Report::okay("The group is created");
+    Report::okay(Language::get("GROUP_CREATED"));
     if(Access::userHasAccess("GROUP_ACCESS"))
       header("location: ?view=handleGroup&sub=Access&gid=".$id);
     else

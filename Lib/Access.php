@@ -65,7 +65,7 @@ class Access{
       return;
     
     if(Cache::exists("access_".$gid)){
-       self::$cache[$gid] = json_decode(Cache::get("access_".$gid), true);
+       self::$cache[$gid] = Cache::get("access_".$gid);
       return;
     }
     
@@ -74,6 +74,6 @@ class Access{
     while($row = $query->fetch()){
       self::$cache[$gid][] = $row->name;
     }
-    Cache::create("access_".$gid, json_encode(self::$cache[$gid]));
+    Cache::create("access_".$gid, self::$cache[$gid]);
   }
 }

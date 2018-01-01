@@ -9,6 +9,7 @@ use Lib\Cache;
 use Lib\Tempelate;
 use Lib\Page;
 use Lib\Access;
+use Lib\Language\Language;
 
 class PageView implements P{
   public function loginNeeded() : string{
@@ -24,6 +25,7 @@ class PageView implements P{
   }
   
   public function body(Tempelate $tempelate, Page $page){
+    Language::load("front");
     if(defined("user") && !empty($_GET["logout"]) && $_GET["logout"] == session_id()){
       session_destroy();
       header("location: ?view=front");
@@ -32,11 +34,11 @@ class PageView implements P{
     
     if(defined("user")){
       if(Access::userHasAccess("SYSTEM_FRONT") && !empty($_GET["change"])){
-        $this->changeFront($tempelate, $page);
+        $this->changeFront($tempelate);
         return;
       }
       if(Access::userHasAccess("SYSTEM_NAME") && !empty($_GET["changeSystemName"])){
-         $this->changeSystemNameEditor($tempelate, $page);
+         $this->changeSystemNameEditor($tempelate);
          return;
       }
     }
@@ -50,29 +52,29 @@ class PageView implements P{
       $tempelate->put("front", $front);
     }
     
-    $tempelate->render("front", $page);
+    $tempelate->render("front");
   }
   
-  private function changeSystemNameEditor(Tempelate $tempelate, $page){
+  private function changeSystemNameEditor(Tempelate $tempelate){
     if(!empty($_POST["systemname"]) && trim($_POST["systemname"])){
       Config::set("system_name", $_POST["systemname"]);
-      Report::okay("System name is now updated");
+      Report::okay(Language::get("S_NAME_UPDATED"));
       header("location: #");
       exit;
     }
-    $tempelate->render("change_systenName", $page);
+    $tempelate->render("change_systenName");
   }
   
-  private function changeFront(Tempelate $tempelate, Page $page){
+  private function changeFront(Tempelate $tempelate){
     if(!empty($_GET["update"])){
       $front = empty($_POST["context"]) ? "" : $_POST["context"];
       Config::set("front", $front);
       Cache::delete("front");
-      Report::okay("The front page is updated");
+      Report::okay(Language::get("FRONT_UPDATED"));
       header("location: ?view=front");
       exit;
     }
     $tempelate->put("front", Config::get("front"));
-    $tempelate->render("change_front", $page);
+    $tempelate->render("change_front");
   }
 }

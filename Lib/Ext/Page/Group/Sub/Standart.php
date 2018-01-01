@@ -4,6 +4,7 @@ namespace Lib\Ext\Page\Group\Sub;
 use Lib\Database;
 use Lib\Report;
 use Lib\Config;
+use Lib\Language\Language;
 
 class Standart{
   public static function body(){
@@ -12,7 +13,7 @@ class Standart{
       return;
     }
     Config::set("standart_group", $_GET["gid"]);
-    Report::okay("The group is now the standart group");
+    Report::okay(Language::get("GROUP_N_STANDART"));
     header("location: ?view=handleGroup");
     exit;
   }

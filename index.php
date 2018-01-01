@@ -45,8 +45,8 @@ try{
   if(defined("user")){
     $tempelate->put("username", user["username"]);
   }
-  $page = new Page();
   $page->show(empty($_GET["view"]) ? "front" : $_GET["view"], $tempelate);
+  echo $tempelate->getSource();
 }catch(TempelateException $e){
   Error::tempelateError($e);
 }

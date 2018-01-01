@@ -1,0 +1,20 @@
+!-addCss @style.texteditor-!
+!-include head-!
+<div class='box'>
+  <div class='title'>
+    !-if is_change-!
+    !-language FAQ_CHANGE-!
+    !-set texteditor_submitvalue=lang("FAQ_CHANGE")-!
+    !-else-!
+    !-set texteditor_submitvalue=lang("FAQ_CREATE")-!
+    !-language FAQ_CREATE-!
+    !-endblock-!
+  </div>
+  <form action='#' method='POST'>
+    <input type='text' name='name' value='!-name-!' placeholder='!-language FAQ_CAT_NAME-!' class='input'><br>
+    !-set texteditor_name="dec"-!
+    !-set texteditor_context=dec-!
+    !-include texteditor-!
+  </form>
+</div>
+!-include buttom-!

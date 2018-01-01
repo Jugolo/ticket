@@ -131,6 +131,7 @@ class Install{
                                             (2, 'CATEGORY_APPEND'),
                                             (2, 'CATEGORY_ITEM_DELETE'),
                                             (2, 'CATEGORY_SETTING'),
+                                            (2, 'CATEGORY_SORT'),
                                             (2, 'TICKET_OTHER'),
                                             (2, 'TICKET_CLOSE'),
                                             (2, 'TICKET_DELETE'),
@@ -159,7 +160,9 @@ class Install{
                                             ('cat_open', '0'),
                                             ('front', ''),
                                             ('system_name', '{$db->escape($_POST["system_name"])}'),
-                                            ('tempelate', 'CowTicket');");
+                                            ('tempelate', 'CowTicket'),
+                                            ('standart_language', 'En');");
+    define("force_lang", "En");
     $id =Auth::createUser(
       $_POST["username"],
       $_POST["password"],
@@ -169,7 +172,7 @@ class Install{
     $db->query("UPDATE `user` SET `groupid`='2' WHERE `id`='{$id}'");
     if(!is_dir("Lib/Temp"))
       mkdir("Lib/Temp");
-    Log::system("System is installed");
+    Log::system("LOG_SYSTEM_INSTALL");
     header("location: ?step=5");
     exit;
   }
@@ -194,6 +197,9 @@ class Install{
                          `name` varchar(255) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
                          `open` int(1) NOT NULL,
                          `age` int(11) DEFAULT NULL,
+                         `input_count` int(11) DEFAULT NULL,
+                         `ticket_count` int(11) DEFAULT NULL,
+                         `sort_ordre` int(11) DEFAULT NULL,
                          PRIMARY KEY (`id`)
                        ) ENGINE=InnoDB DEFAULT CHARSET=utf8;",
         "category_item"  => "CREATE TABLE IF NOT EXISTS `category_item` (
@@ -248,6 +254,7 @@ class Install{
                          `name` varchar(255) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
                          `link` varchar(255) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
                          `message` text CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
+                         `arg` text CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
                          `created` datetime NOT NULL,
                          `seen` int(1) NOT NULL,
                          PRIMARY KEY (`id`)
@@ -261,6 +268,7 @@ class Install{
                         `cid` int(11) NOT NULL,
                         `uid` int(11) NOT NULL,
                         `comments` int(11) NOT NULL,
+                        `admin_comments` int(11) NOT NULL,
                         `created` datetime NOT NULL,
                         `user_changed` datetime NOT NULL,
                         `admin_changed` datetime NOT NULL,
@@ -291,6 +299,7 @@ class Install{
                      `birth_day` int(11) DEFAULT NULL,
                      `birth_month` int(11) DEFAULT NULL,
                      `birth_year` int(11) DEFAULT NULL,
+                     `lang` varchar(255) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
                      PRIMARY KEY (`id`)
                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8;"
       ];

@@ -1,7 +1,7 @@
 !-addCss style.table-!
 !-include head-!
 <div class='box'>
-  <div class='title'>Apply to !-name-!</div>
+  <div class='title'>!-language APPLY_TO name-!</div>
   !-if field-!
   <form method='post' action='?view=apply&to=!-category_id-!&done=true'>
     <table class="table-fill">
@@ -28,12 +28,12 @@
       !-endblock-!
       !-endblock-!
       <tr>
-        <td colspan='2'><input type='submit' value='Send' class='input'></td>
+        <td colspan='2'><input type='submit' value='!-language SEND-!' class='input'></td>
       </tr>
     </table>
   </form>
   !-else-!
-  <div class='information'>Sorry this category has no fields</div>
+  <div class='information'>!-language NO_ITEM-!</div>
   !-endblock-!
 </div>
 !-include buttom-!

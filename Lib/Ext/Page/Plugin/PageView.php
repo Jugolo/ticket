@@ -8,6 +8,9 @@ use Lib\Plugin\Plugin;
 use Lib\Database;
 use Lib\Access;
 use Lib\Report;
+use Lib\Language\Language;
+use Lib\Exception\PluginInstallException;
+use Lib\Log;
 
 class PageView implements P{
   public function loginNeeded() : string{
@@ -26,6 +29,7 @@ class PageView implements P{
   }
   
   public function body(Tempelate $tempelate, Page $page){
+    Language::load("plugin");
     if(!empty($_GET["install"]) && Access::userHasAccess("PLUGIN_INSTALL"))
       $this->install($_GET["install"]);
     if(!empty($_GET["uninstall"]) && Access::userHasAccess("PLUGIN_UNINSTALL"))
@@ -46,7 +50,7 @@ class PageView implements P{
     }
     closedir($stream);
     $tempelate->put("plugins", $data);
-    $tempelate->render("plugin_list", $page);
+    $tempelate->render("plugin_list");
   }
   
   private function getInstalled() : array{
@@ -62,13 +66,19 @@ class PageView implements P{
     //let see if the path exists
     $path = "Lib/Ext/Plugin/{$name}/";
     if(!is_dir($path)){
-      Report::error("Could not find the plugin");
+      Report::error(Language::get("P_NOT_FOUND"));
     }else{
       $installed = $this->getInstalled();
       if(!empty($installed[$path])){
-        Report::error("The plugin is allready installed");
+        Report::error(Language::get("P_INSTALLED"));
       }else{
-        Plugin::install($path);
+        try{
+          Plugin::install($path);
+          Log::system("LOG_PLUGIN_I", user["username"], $name);
+        }catch(PluginInstallException $e){
+          Language::load("plugin_install");
+          Report::error(Language::get($e->getMessage()));
+        }
       }
     }
     header("location: ?view=plugin");
@@ -81,11 +91,12 @@ class PageView implements P{
       $installed = $this->getInstalled();
       if(!empty($installed[$path])){
         Plugin::uninstall($path);
+        Log::system("LOG_PLUGIN_U", user["username"], $name);
       }else{
-        Report::error("The plugin is not installed yet");
+        Report::error(Language::get("P_N_INSTALL"));
       }
     }else{
-      Report::error("Could not find the plugin");
+      Report::error(Language::get("P_NOT_FOUND"));
     }
     header("location: ?view=plugin");
     exit;

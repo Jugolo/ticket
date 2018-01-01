@@ -6,7 +6,7 @@ System.onload.push(function(){
 });
 
 function setMenuSize(container_width, doms){
-  var width = Math.round(container_width / doms.length);
+  var width = Math.floor(container_width / doms.length);
   for(var i=0;i<doms.length;i++){
     doms[i].style.width = (width-1)+"px";
     menuClick(doms[i]);

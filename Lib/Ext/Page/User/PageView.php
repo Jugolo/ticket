@@ -9,6 +9,7 @@ use Lib\Tempelate;
 use Lib\Page;
 use Lib\Access;
 use Lib\User\Auth;
+use Lib\Language\Language;
 
 class PageView implements P{
   public function loginNeeded() : string{
@@ -28,25 +29,25 @@ class PageView implements P{
   }
   
   public function body(Tempelate $tempelate, Page $page){
+    Language::load("user");
     if(!empty($_GET["sub"]) && Access::userHasAccess("USER_GROUP")){
       $this->changegroup($tempelate, $page);
     }else{
       if(!empty($_GET["delete"]) && Access::userHasAccess("USER_DELETE")){
         $this->deleteuser(intval($_GET["delete"]));
       }
-      $group = getUsergroup(user["groupid"]);
       $query = Database::get()->query("SELECT `id`, `username` FROM `user`");
       $list = [];
       while($row = $query->fetch())
         $list[] = $row->toArray();
       $tempelate->put("users", $list);
-      $tempelate->render("user", $page);
+      $tempelate->render("user");
     }
   }
   
   private function deleteuser(int $id){
     Auth::deleteUser($id);
-    Report::okay("The user is now deleted");
+    Report::okay(Language::get("USER_DELETED"));
     header("location: ?view=users");
     exit;
   }
@@ -66,8 +67,9 @@ class PageView implements P{
     }
   
     if(!empty($_GET["gid"])){
-      updateUserGroup($user, $_GET["gid"]);
-      Report::okay("The users group is now updated");
+      $gid = (int)$_GET["gid"];
+      $db->query("UPDATE `user` SET `groupid`='{$gid}' WHERE `id`='{$user->id}';");
+      Report::okay(Language::get("GROUP_UPDATED"));
       header("location: ?view=users&sub=group&uid=".$_GET["uid"]);
       exit;
     }
@@ -87,6 +89,6 @@ class PageView implements P{
     $tempelate->put("g_username", $user->username);
     $tempelate->put("owen",       $user->id == user["id"]);
     
-    $tempelate->render("change_group", $page);
+    $tempelate->render("change_group");
   }
 }

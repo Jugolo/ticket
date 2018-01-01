@@ -1,26 +1,26 @@
-!-if pageAccess error or pageAccess handleTickets or pageAccess users or pageAccess handleGroup or pageAccess systemLog or pageAccess tempelate or pageAccess plugin-!
+!-if pageAccess error or pageAccess handleTickets or pageAccess users or pageAccess handleGroup or pageAccess systemLog or pageAccess tempelate or pageAccess "plugin"-!
 <div class='box link-box'>
-  <div class='title'>Admin</div>
+  <div class='title'>!-language ADMIN-!</div>
   !-if pageAccess error-!
-  <a href='?view=error'>Error</a>
+  <a href='?view=error'>!-language ERROR-!</a>
   !-endblock-!
   !-if pageAccess handleTickets-!
-  <a href='?view=handleTickets'>Ticket</a>
+  <a href='?view=handleTickets'>!-language TICKET-!</a>
   !-endblock-!
   !-if pageAccess users-!
-  <a href='?view=users'>User</a>
+  <a href='?view=users'>!-language USERS-!</a>
   !-endblock-!
   !-if pageAccess handleGroup-!
-  <a href='?view=handleGroup'>Group</a>
+  <a href='?view=handleGroup'>!-language GROUP-!</a>
   !-endblock-!
   !-if pageAccess systemLog-!
-  <a href='?view=systemLog'>System log</a>
+  <a href='?view=systemLog'>!-language SYSTEM_LOG-!</a>
   !-endblock-!
   !-if pageAccess tempelate-!
-  <a href='?view=tempelate'>Tempelate</a>
+  <a href='?view=tempelate'>!-language TEMPELATE-!</a>
   !-endblock-!
-  !-if pageAccess plugin-!
-  <a href='?view=plugin'>Plugin</a>
+  !-if pageAccess "plugin"-!
+  <a href='?view=plugin'>!-language PLUGIN-!</a>
   !-endblock-!
 </div>
 !-endblock-!

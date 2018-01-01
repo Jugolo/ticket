@@ -26,6 +26,7 @@ class Config{
     if(array_key_exists($name, self::$item)){
       $db = Database::get();
       $db->query("DELETE FROM `config` WHERE `name`='{$db->escape($name)}';");
+      unset(self::$item[$name]);
     }
   }
   
@@ -34,7 +35,7 @@ class Config{
       $query = Database::get()->query("SELECT `name`, `value` FROM `config`");
       self::$item = [];
       if(!$query){
-        return;
+        Error::systemError("The database query return zero result");
       }
       while($row = $query->fetch()){
         self::$item[$row->name] = $row->value;

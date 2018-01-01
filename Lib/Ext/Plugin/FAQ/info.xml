@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+  <setup>
+    <uninstall call="Setup::uninstall" />
+    <install call="Setup::install" />
+  </setup>
+  <pages>
+    <page event="page.faq.main" handler='PageMain'/>
+  </pages>
+  <events>
+    <event src="Event" />
+  </events>
+</plugin>

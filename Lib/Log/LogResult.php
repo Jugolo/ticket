@@ -1,24 +1,31 @@
 <?php
 namespace Lib\Log;
 
+use Lib\Language\Language;
+use Lib\Database\DatabaseResult;
+
 class LogResult{
   private $data;
   
-  public function __construct(array $log){
+  public function __construct(DatabaseResult $log){
     $this->data = $log;
   }
   
   public function size() : int{
-    return count($this->data);
+    return $this->data->count();
   }
   
   public function render($callback){
-    foreach($this->data as $data){
+    if(!defined("LOG_LANG_LOADED")){
+      define("LOG_LANG_LOADED", true);
+      Language::load("log");
+    }
+    $this->data->fetch(function($created, $message, $arg) use($callback){
       call_user_func(
         $callback,
-        $data->created,
-        call_user_func_array("sprintf", array_merge([$data->message], json_decode($data->arg)))
+        $created,
+        Language::get($message, json_decode($arg, true))
         );
-    }
+    });
   }
 }

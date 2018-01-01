@@ -2,12 +2,15 @@
 namespace Lib\Ext\Plugin\GithubBot;
 
 use Lib\Plugin\PluginInterface;
+use Lib\Plugin\Event as E;
 use Lib\Access;
 use Lib\Report;
 use Lib\Database;
 use Lib\Config;
 use Lib\Ticket\Ticket;
 use Lib\User\Info;
+use Lib\Language\Language;
+use Lib\Ajax;
 
 class Event implements PluginInterface{
   private $github;
@@ -15,24 +18,34 @@ class Event implements PluginInterface{
   public function getEvents() : array{
     $config_dir = "Lib/Ext/Plugin/GithubBot/config.json";
     if(!file_exists($config_dir)){
-      if(Access::userHasAccess("PLUGIN_INSTALL"))
-        Report::error("The plugin 'GithubBot' missing config file. Please see {$config_dir}.test to see how it is done");
-      return [];
+      if(!Ajax::isAjaxRequest() && Access::userHasAccess("PLUGIN_INSTALL"))
+        Report::error(Language::get("MISSING_CONFIG", [$config_dir]));
+      return [
+      "system.category.delete" => [$this, "onCategoryDelete"]
+      ];
     }
     return [
       "system.started"         => [$this, "started"],
       "system.comment.created" => [$this, "onComment"],
       "system.ticket.close"    => [$this, "onTicketClose"],
       "system.ticket.open"     => [$this, "onTicketOpen"],
-      "system.ticket.delete"   => [$this, "onTicketDelete"]
+      "system.ticket.delete"   => [$this, "onTicketDelete"],
+      "system.category.delete" => [$this, "onCategoryDelete"]
       ];
   }
   
-  public function onTicketDelete(int $id){
+  public function onCategoryDelete(E $event, int $id){
+    if($id == Config::get("github_cat")){
+      Report::error(Language::get("CANT_DELETE_CAT"));
+      $event->stop();
+    }
+  }
+  
+  public function onTicketDelete(E $event, int $id){
     Database::get()->query("DELETE FROM `githubbot` WHERE `ticket_id`='{$id}'");
   }
   
-  public function onTicketOpen(int $tid, int $uid, string $username){
+  public function onTicketOpen(E $event, int $tid, int $uid, string $username){
     if($uid == Config::get("github_user"))
        return;
     
@@ -55,7 +68,7 @@ class Event implements PluginInterface{
     $github->openIssues($config->owner, $config->repo, $data->number, "Closed by ".$username);
   }
   
-  public function onTicketClose(int $tid, int $uid, string $username){
+  public function onTicketClose(E $event, int $tid, int $uid, string $username){
     if($uid == Config::get("github_user"))
        return;
     
@@ -78,7 +91,7 @@ class Event implements PluginInterface{
     $github->closeIssues($config->owner, $config->repo, $data->number, "Closed by ".$username);
   }
   
-  public function onComment(int $tid, int $uid, string $message, bool $public){
+  public function onComment(E $event, int $tid, int $uid, string $message, bool $public){
     if(!$public || $uid == Config::get("github_user"))
       return;
     

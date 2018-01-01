@@ -3,7 +3,6 @@ namespace Lib\Database;
 
 abstract class DatabaseDriver{
   public abstract function query(string $query);
-  public abstract function multi_query(string $query) : bool;
   public abstract function hasError() : bool;
   public abstract function escape(string $str) : string;
   public abstract function close();

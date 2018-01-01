@@ -2,24 +2,24 @@
 !-addCss style.input-!
 !-include head-!
 <div class='box'>
-  <div class='title'>Please type you birth day to calculate you age</div>
+  <div class='title'>!-language TYPE_BIRTH-!</div>
   <form action='#' method='post'>
     <table class='table-fill'>
       <tr>
-        <th>Birth day</th>
+        <th>!-language BIRTH_DAY-!</th>
         <td><input type='number' name='bd' class='input'></td>
       </tr>
       <tr>
-        <th>Birth month</th>
+        <th>!-language BIRTH_MONTH-!</th>
         <td><input type='number' name='bm' class='input'></td>
       </tr>
       <tr>
-        <th>Birth year</th>
+        <th>!-language BIRTH_YEAR-!</th>
         <td><input type='number' name='by' class='input'></td>
       </tr>
       <tr>
         <td colspan='2'>
-          <input type='submit' value='Save birth data' class='input' name='save'>
+          <input type='submit' value='!-language BIRTH_SAVE-!' class='input' name='save'>
         </td>
       </tr>
     </table>

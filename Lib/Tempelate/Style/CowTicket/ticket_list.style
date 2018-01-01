@@ -1,7 +1,7 @@
 !-addCss style.ticket_list-!
 !-include head-!
 <div class='box'>
-  <div class='title'>Your ticket!-if not closedTicket-! - <a href='?view=tickets&showclosed=true' style='color: white'>Show closed ticket</a>!-endblock-!</div>
+  <div class='title'>!-language YOU_TICKET-!!-if not closedTicket-! - <a href='?view=tickets&showclosed=true' style='color: white'>!-language CLOSED_TICKET-!</a>!-endblock-!</div>
   !-if owen_ticket-!
   !-foreach owen_ticket as ticket-!
   <div class='ticket'>
@@ -10,24 +10,24 @@
     </div>
     <div class='ticket-data'>
       <div class='ticket-name'>
-        <a href='?view=tickets&ticket_id=!-ticket["id"]-!'>Category: !-ticket["cat_name"]-!</a>
+        <a href='?view=tickets&ticket_id=!-ticket["id"]-!'>!-language CATEGORY ticket["cat_name"]-!</a>
       </div>
       <div class='ticket-information'>
-        <span class='compurter'>Created !-ticket["created"]-!</span>
-        Changed !-ticket["changed"]-!
-        <span class='compurter'>Comments !-ticket["comments"]-!</span>
+        <span class='compurter'>!-language CREATED ticket["created"]-!</span>
+        !-language CHANGED ticket["changed"]-!
+        <span class='compurter'>!-language COMMENTS ticket["comments"]-!</span>
       </div>
     </div>
     <div class='clear'></div>
   </div>
   !-endblock-!
   !-else-!
-  <div class='information'>You have no ticket</div>
+  <div class='information'>!-language NO_TICKET-!</div>
   !-endblock-!
 </div>
 !-if access TICKET_OTHER-!
 <div class='box'>
-  <div class='title'>Ohters ticket</div>
+  <div class='title'>!-language OTHER_TICKET-!</div>
   !-if other_ticket-!
   !-foreach other_ticket as ticket-!
   <div class='ticket'>
@@ -36,13 +36,13 @@
     </div>
     <div class="ticket-data">
       <div class='ticket-name'>
-        <a href='?view=tickets&ticket_id=!-ticket["id"]-!'>Category: !-ticket["cat_name"]-!</a>
+        <a href='?view=tickets&ticket_id=!-ticket["id"]-!'>!-language CATEGORY ticket["cat_name"]-!</a>
       </div>
       <div class='ticket-information'>
-        <span class='compurter'>Creator !-ticket["username"]-!</span>
-        <span class='compurter'>Created !-ticket["created"]-!</span>
-        Changed !-ticket["changed"]-!
-        <span class='compurter'>Comments !-ticket["comments"]-!</span>
+        <span class='compurter'>!-language CREATOR ticket["username"]-!</span>
+        <span class='compurter'>!-language CREATED ticket["created"]-!</span>
+        !-language CHANGED ticket["changed"]-!
+        <span class='compurter'>!-language COMMENTS ticket["comments"]-!</span>
       </div>
     </div>
     <div class='clear'></div>
@@ -50,7 +50,7 @@
   !-endblock-!
   !-else-!
   <div class='information'>
-    No ticket to show
+    !-language NO_TICKET-!
   </div>
   !-endblock-!
 </div>

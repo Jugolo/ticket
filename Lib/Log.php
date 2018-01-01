@@ -2,9 +2,10 @@
 namespace Lib;
 
 use Lib\Log\LogResult;
+use Lib\Plugin\Event;
 
 class Log{
-  public static function onTicketDelete(int $id){
+  public static function onTicketDelete(Event $event, int $id){
     Database::get()->query("DELETE FROM `log` WHERE `type`='TICKET' AND `tid`='{$id}'");
   }
   
@@ -13,11 +14,7 @@ class Log{
   }
   
   public static function getSystemLog(){
-    $query = Database::get()->query("SELECT * FROM `log` WHERE `type`='SYSTEM';");
-    $result = [];
-    while($row = $query->fetch())
-      $result[] = $row;
-    return new LogResult($result);
+    return self::getLog("SYSTEM");
   }
   
   public static function user(int $uid, string $message, ...$arg){
@@ -25,12 +22,7 @@ class Log{
   }
   
   public static function getUserLog(int $uid){
-    $query = Database::get()->query("SELECT * FROM `log` WHERE `type`='USER' AND `tid`='{$uid}'");
-    $result = [];
-    while($row = $query->fetch()){
-      $result[] = $row;
-    }
-    return new LogResult($result);
+    return self::getLog("USER", $uid);
   }
   
   public static function ticket(int $id, string $message, ...$arg){
@@ -38,12 +30,15 @@ class Log{
   }
   
   public static function getTicketLog(int $id) : LogResult{
-    $query = Database::get()->query("SELECT * FROM `log` WHERE `type`='TICKET' AND `tid`='{$id}'");
-    $result = [];
-    while($row = $query->fetch()){
-      $result[] = $row;
+    return self::getLog("TICKET", $id);
+  }
+  
+  private static function getLog(string $type, int $hid = -1) : LogResult{
+    $extra = "";
+    if($hid > 1){
+      $extra = " AND `tid`='{$hid}'";
     }
-    return new LogResult($result);
+    return new LogResult(Database::get()->query("SELECT `created`, `message`, `arg` FROM `log` WHERE `type`='{$type}'{$extra}"));
   }
   
   private static function save(string $type, int $tid, string $msg, array $data){

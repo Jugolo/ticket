@@ -2,14 +2,17 @@
 namespace Lib\Tempelate;
 
 use Lib\Exception\TempelateException;
+use Lib\Tempelate\TempelateFileReader;
 
 class TokenBuffer{
   private $type;
   private $context;
+  private $reader;
   
-  public function __construct(string $type, string $context){
+  public function __construct(string $type, string $context, TempelateFileReader $reader){
     $this->type    = $type;
     $this->context = $context;
+    $this->reader  = $reader;
   }
   
   public function getType(){
@@ -24,8 +27,14 @@ class TokenBuffer{
     return $this->type == "KEYWORD";
   }
   
-  public function expect(string $type){
-    if($this->type != $type)
-      throw new TempelateException("Unexpected {$this->type}({$this->context})");
+  public function expect(string $type, string $value = ""){
+    if($this->type != $type || $value && $this->context != $value)
+      throw new TempelateException("Unexpected {$this->type}({$this->context})", $this->reader->getFile(), $this->reader->getLine());
+  }
+  
+  public function test(string $type, string $value = ""){
+    if($value)
+      return $this->type == $type && $this->context == $value;
+    return $this->type == $type;
   }
 }

@@ -1,0 +1,14 @@
+!-addCss @style.bbcode-!
+!-include head-!
+<div class='box bbcode'>
+  <div class='title'>
+    !-title-!
+  </div>
+  !-if access FAQ_CREATE-!
+  <a href='?view=event&event=faq.main&item=!-id-!&change=true'>!-language FAQ_CHANGE-!</a>
+  <a href='?view=event&event=faq.main&item=!-id-!&delete=true'>!-language FAQ_DELETE-!</a>
+  <hr>
+  !-endblock-!
+  !-echo dec-!
+</div>
+!-include buttom-!

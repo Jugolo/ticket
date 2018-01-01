@@ -5,6 +5,7 @@ use Lib\Access;
 use Lib\Report;
 use Lib\Config;
 use Lib\Group;
+use Lib\Language\Language;
 
 class Delete{
   public static function body(){
@@ -12,12 +13,12 @@ class Delete{
       return;
     
     if(Config::get("standart_group") == $_GET["gid"]){
-      Report::error("The group can`t be deleted becuse it is standart group!");
+      Report::error(Language::get("CANT_D_STANDART"));
       header("location: ?view=handleGroup");
       exit;
     }
     Group::delete(intval($_GET["gid"]));
-    Report::okay("The group is delteded");
+    Report::okay(Language::get("GROUP_DELETED"));
     header("location: ?view=handleGroup");
     exit;
   }

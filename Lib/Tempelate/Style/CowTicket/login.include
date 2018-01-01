@@ -1,42 +1,42 @@
 <div id='root-left-login' class='box'>
-  <div class='title'>Login</div>
+  <div class='title'>!-language LOGIN-!</div>
   <form action="#" method="post">
     <div>
-      <span class='label'>Username</span><input type='text' name='username'>
+      <span class='label'>!-language USERNAME-!</span><input type='text' name='username'>
     </div>
     <div>
-      <span class='label'>Password</span><input type='password' name='password'>
+      <span class='label'>!-language PASSWORD-!</span><input type='password' name='password'>
     </div>
     <div>
-      <a href='?view=agree' target='_blank' class='agree'>When i login i agree width this</a>
+      <a href='?view=agree' target='_blank' class='agree'>!-language ACCOUNT_AGREE-!</a>
     </div>
     <div>
-      <input type='submit' name='login' value='Login' class='last'>
+      <input type='submit' name='login' value='!-language LOGIN-!' class='last'>
     </div>
   </form>
 </div>
 <div id='root-left-create' class='box'>
   <div class='title'>
-    Create account
+    !-language ACCOUNT_CREATE-!
   </div>
   <form action='#' method='post'>
     <div>
-      <span class='label'>Username</span><input type='text' name='username'>
+      <span class='label'>!-language USERNAME-!</span><input type='text' name='username'>
     </div>
     <div>
-      <span class='label'>Password</span><input type='password' name='password'>
+      <span class='label'>!-language PASSWORD-!</span><input type='password' name='password'>
     </div>
     <div>
-      <span class='label'>Repeat</span><input type='password' name='repeat_password'>
+      <span class='label'>!-language REPEAT-!</span><input type='password' name='repeat_password'>
     </div>
     <div>
-      <span class='label'>Email</span><input type='email' name='email'>
+      <span class='label'>!-language EMAIL-!</span><input type='email' name='email'>
     </div>
     <div>
-      <a href='?view=agree' target='_blank' class='agree'>Width creation I accept this</a>
+      <a href='?view=agree' target='_blank' class='agree'>!-language ACCOUNT_AGREE-!</a>
     </div>
     <div>
-      <input type='submit' name='createaccount' value='Create account' class='last'>
+      <input type='submit' name='createaccount' value='!-language ACCOUNT_CREATE-!' class='last'>
     </div>
   </form>
 </div>

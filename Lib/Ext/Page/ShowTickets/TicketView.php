@@ -8,8 +8,6 @@ use Lib\Database\DatabaseFetch;
 use Lib\Ext\Notification\NewTicket;
 use Lib\Ext\Notification\NewComment;
 use Lib\Report;
-use Lib\Bbcode\Parser;
-use Lib\Email;
 use Lib\User\Info;
 use Lib\Log;
 use Lib\Plugin\Plugin;
@@ -17,9 +15,11 @@ use Lib\Tempelate;
 use Lib\Page;
 use Lib\Access;
 use Lib\Ticket\Ticket;
+use Lib\Language\Language;
 
 class TicketView{
   public static function body(DatabaseFetch $data, Tempelate $tempelate, Page $page){
+    Language::load("ticket_view");
     Track::track($data->id, user["id"]);
     NewTicket::markRead($data->id);
     NewComment::markRead($data->id);
@@ -45,7 +45,7 @@ class TicketView{
     $tempelate->put("owen",            $data->uid == user["id"]);
     
     if($data->age){
-      $tempelate->put("age", \Lib\Age::calculate($data->birth_day, $data->birth_month, $data->birth_year));
+      $tempelate->put("age", \Lib\Age::calculate($data->birth_day ? : 0, $data->birth_month ? : 0, $data->birth_year ? : 0));
     }
     
     $query = $db->query("SELECT `text`, `type`, `value` FROM `ticket_value` WHERE `hid`='".$data->id."'");
@@ -81,7 +81,7 @@ class TicketView{
     
     self::getComments($data, $tempelate);
     
-    $tempelate->render("show_ticket", $page);
+    $tempelate->render("show_ticket");
   }
   
   private static function deleteComment(int $id, int $tid){
@@ -93,14 +93,14 @@ class TicketView{
       Report::error("Unknown comment");
       return;
     }
-    Log::ticket($result->tid, "%s deleted a comment writet by %s", user["username"], $result->username);
+    Log::ticket($result->tid, "LOG_COMMENT_DELETE", user["username"], $result->username);
     Plugin::trigger_event("system.comment.delete", $result->id);
-    Report::okay("The ticket is deleted");
+    Report::okay(Language::get("COMMENT_DELETED"));
   }
   
   private static function deleteTicket($id){
     Plugin::trigger_event("system.ticket.delete", $id);
-    Report::okay("You have deleted the ticket");
+    Report::okay(Language::get("TICKET_DELETED"));
     header("location: ?view=tickets");
     exit;
   }
@@ -108,10 +108,10 @@ class TicketView{
   private static function changeOpningState(bool $open, $id){
     if($open){
       Ticket::open($id, user["id"]);
-      Report::okay("Ticket is now open");
+      Report::okay(Language::get("TICKET_OPEN"));
     }else{
       Ticket::close($id, user["id"]);
-      Report::okay("Ticket is now closed");
+      Report::okay(Language::get("TICKET_CLOSED"));
     }
     header("location: ?view=tickets&ticket_id=".$id);
     exit;
@@ -119,34 +119,14 @@ class TicketView{
   
   private static function createComments(DatabaseFetch $data, Tempelate $tempelate){
     if($data->open != 1){
-      Report::error("You can not comments on closed ticket");
+      Report::error(Language::get("COMMENT_CLOSED"));
     }elseif(empty($_POST["comments"])){
-      Report::error("Missing message");
+      Report::error(Language::get("MISSING_MESSAGE"));
     }else{
       Ticket::createComment($data->id, user["id"], $_POST["comments"], $data->uid == user["id"] || !empty($_POST["public"]));
-      Report::okay("Comments saved");
+      Report::okay(Language::get("COMMENT_SAVED"));
       header("location: #");
       exit;
-    }
-  }
-  
-  private static function sendEmailOnComment(DatabaseFetch $data, bool $public){
-    $email = new Email();
-    $db = Database::get();
-    $query = $db->query("SELECT user.username, user.email
-                         FROM `user`
-                         LEFT JOIN `access` ON access.gid=user.groupid
-                         LEFT JOIN `comment` ON comment.uid=user.id
-                         WHERE access.name='TICKET_OTHER'
-                         AND comment.tid='{$data->id}'
-                         ".($public ? "" : "AND user.id <> '{$data->uid}'")."
-                         AND user.id<>'".user["id"]."'
-                         GROUP BY user.id");
-    while($row = $query->fetch()){
-      $email->pushArg("creator", $row->username);
-      $email->pushArg("category", $data->name);
-      $email->pushArg("my_username", user["username"]);
-      $email->send("new_comment", $row->email);
     }
   }
   

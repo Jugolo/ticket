@@ -34,6 +34,6 @@
     <textarea name="!-if texteditor_name-!!-texteditor_name-!!-else-!context!-endblock-!">!-texteditor_context-!</textarea>
   </div>
   <div class='submit'>
-    <input type="submit" value="Submit"!-if texteditor_submitname-! name='!-texteditor_submitname-!'!-endblock-!>
+    <input type="submit" value="!-if texteditor_submitvalue-!!-texteditor_submitvalue-!!-else-!Submit!-endblock-!"!-if texteditor_submitname-! name='!-texteditor_submitname-!'!-endblock-!>
   </div>
 </div>

@@ -3,22 +3,23 @@ namespace Lib\Setup;
 
 use Lib\Report;
 use Lib\Ajax;
+use Lib\Language\Language;
 
 class Main{
-  const SETUP_VERSION = "V3.4";
+  const SETUP_VERSION = "V4.0";
   
   public static function controle(){
     if(Ajax::isAjaxRequest()){
       return;
     }
-      
+    Language::load("setup");
     if(self::needInstall()){
       define("IN_SETUP", true);
       Install::install();
     }elseif(self::needUpgrade()){
       Upgrade::upgrade();
-    }else{
-      Report::error("Please remove setup dir 'Lib/Setup'");
+    }elseif(defined("user")){
+      Report::error(Language::get("REMOVE_SETUP"));
     }
   }
   

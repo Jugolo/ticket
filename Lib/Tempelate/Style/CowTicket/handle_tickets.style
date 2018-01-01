@@ -2,27 +2,30 @@
 !-addCss style.table-!
 !-include head-!
 <div class='box'>
-  <div class='title'>Create new category</div>
+  <div class='title'>!-language CREATE_N_CATEGORY-!</div>
   <form method='post' action='#'>
     <div>
-      <input type='text' name='name' class='input' placeholder='Name'>
+      <input type='text' name='name' class='input' placeholder='!-language NAME-!'>
     </div>
     <div>
-      <input type='submit' class='input' value='Create category'>
+      <input type='submit' class='input' value='!-language CREATE_CATEGORY-!'>
     </div>
   </form>
 </div>
 !-if categorys-!
 <div class='box'>
-  <div class='title'>Category</div>
+  <div class='title'>!-language CATEGORY-!</div>
   <table class='makeup-table'>
     <tr>
-      <th>Name</th>
+      <th>!-language NAME-!</th>
       !-if access CATEGORY_CLOSE-!
-      <th>Change opning state</th>
+      <th>!-language CHANGE_OPEN-!</th>
       !-endblock-!
       !-if access CATEGORY_DELETE-!
-      <th>Delete</th>
+      <th>!-language DELETE-!</th>
+      !-endblock-!
+      !-if access CATEGORY_SORT-!
+      <th>!-language CATEGORY_SORT-!</th>
       !-endblock-!
     </tr>
     !-foreach categorys as cat-!
@@ -33,10 +36,21 @@
       <th>!-cat["name"]-!</th>
       !-endblock-!
       !-if access CATEGORY_CLOSE-!
-      <td><a href='?view=handleTickets&open=!-cat["id"]-!'>!-if cat["open"] == 0-!Open!-else-!Close!-endblock-!</a></td>
+      !-if cat["input_count"] == 0-!
+      <td></td>
+      !-else-!
+      <td><a href='?view=handleTickets&open=!-cat["id"]-!'>!-if cat["open"] == 0-!!-language OPEN-!!-else-!!-language CLOSE-!!-endblock-!</a></td>
+      !-endblock-!
       !-endblock-!
       !-if access CATEGORY_DELETE-!
-      <td><a href='?view=handleTickets&delete=!-cat["id"]-!'>Delete</a></td>
+      <td><a href='?view=handleTickets&delete=!-cat["id"]-!'>!-language DELETE-!</a></td>
+      !-endblock-!
+      !-if access CATEGORY_SORT-!
+      <td>
+        !-if cat["sort_ordre"] != 0-!<a href='?view=handleTickets&up=!-cat["id"]-!'>!-language UP-!</a>!-endblock-!
+        !-if cat["sort_ordre"] != 0 and cat["sort_ordre"] != last_sort-!/!-endblock-!
+        !-if cat["sort_ordre"] != last_sort-!<a href='?view=handleTickets&down=!-cat["id"]-!'>!-language DOWN-!</a>!-endblock-!
+      </td>
       !-endblock-!
     </tr>
     !-endblock-!

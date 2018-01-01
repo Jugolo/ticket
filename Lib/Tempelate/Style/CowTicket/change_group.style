@@ -2,18 +2,18 @@
 !-addCss style.table-!
 !-include head-!
 <div class='box'>
-  <div class='title'>Change group for !-g_username-!</div>
+  <div class='title'>!-language CHANGE_U_GROUP g_username-!</div>
   !-if owen-!
-  <div class="information">This is your account you change group on!</div>
+  <div class="information">!-language OWEN_ACCOUNT-!</div>
   !-endblock-!
   <table class='table-fill border'>
     !-foreach groups as group-!
     <tr!-if group["is_current"]-! class='current'!-endblock-!>
-      <th>!-group["name"]-!!-if group["is_current"]-!(Is allready member)!-endblock-!</th>
+      <th>!-group["name"]-!!-if group["is_current"]-!(!-language IS_MEMBER-!)!-endblock-!</th>
       !-if not group["is_current"]-!
-      <td><a href='?view=users&sub=group&uid=!-g_id-!&gid=!-group["id"]-!'>Chose</a></td>
+      <td><a href='?view=users&sub=group&uid=!-g_id-!&gid=!-group["id"]-!'>!-language CHOSE-!</a></td>
       !-else-!
-      <td>Allready member</td>
+      <td>!-language IS_MEMBER-!</td>
       !-endblock-!
     </tr>
     !-endblock-!

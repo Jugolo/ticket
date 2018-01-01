@@ -8,6 +8,7 @@ use Lib\Report;
 use Lib\Tempelate;
 use Lib\Page;
 use Lib\Access;
+use Lib\Language\Language;
 
 class PageView implements P{
   public function loginNeeded() : string{
@@ -23,8 +24,9 @@ class PageView implements P{
   }
   
   function body(Tempelate $tempelate, Page $pageObj){
+    Language::load("error");
     if(!empty($_GET["id"]) && $data = $this->getData(intval($_GET["id"]))){
-      $this->showError($data, $tempelate, $pageObj);
+      $this->showError($data, $tempelate);
       return;
     }
     $page = !empty($_GET["ep"]) && is_numeric($_GET["ep"]) ? intval($_GET["ep"]) : 0;
@@ -58,7 +60,7 @@ class PageView implements P{
       $errors[] = $row->toArray();
     }
     $tempelate->put("system_error", $errors);
-    $tempelate->render("error", $pageObj);
+    $tempelate->render("error");
   }
   
   private function deleteErrors(){
@@ -70,25 +72,27 @@ class PageView implements P{
     }
     
     Database::get()->query($queryString.implode(" OR ", $ids));
-    Report::okay("Errors message is now deleted");
+    Report::okay(Language::get("ERROR_DELETED"));
   }
   
-  private function showError($data, $tempelate, $page){
+  private function showError($data, $tempelate){
     $tempelate->put("file",    $data->errfile);
     $tempelate->put("line",    $data->errline);
     $tempelate->put("time",    $data->errtime);
     $tempelate->put("message", $data->errstr);
     
-    $file = file($data->errfile);
     $lines = [];
-    $max = min(count($file), $data->errline+10)-1;
-    $min = max(1, $data->errline-10)-1;
+    if(file_exists($data->errfile)){
+      $file = file($data->errfile);
+      $max = min(count($file), $data->errline+10);
+      $min = max(1, $data->errline-10)-1;
     
-    for($i=$min;$i<$max;$i++){
-      $lines[] = [
-        "line"   => $file[$i],
-        "number" => $i+1
+      for($i=$min;$i<$max;$i++){
+        $lines[] = [
+          "line"   => $file[$i],
+          "number" => $i+1
         ];
+      }
     }
     $tempelate->put("lines", $lines);
     
@@ -98,13 +102,14 @@ class PageView implements P{
                          WHERE `id`<>'{$data->id}'
                          AND `errstr`='{$db->escape($data->errstr)}'
                          AND `errline`='{$db->escape($data->errline)}'
-                         AND `errfile`='{$db->escape($data->errfile)}'");
+                         AND `errfile`='{$db->escape($data->errfile)}'
+                         LIMIT 0, 30");
     $other_error = [];
     while($row = $query->fetch())
       $other_error[] = $row->toArray();
     $tempelate->put("other_error", $other_error);
     
-    $tempelate->render("show_error", $page);
+    $tempelate->render("show_error");
   }
   
   private function getData(int $id){

@@ -2,6 +2,7 @@
 namespace Lib;
 
 use Lib\Controler\Page\PageView;
+use Lib\Language\Language;
 
 class Page{
   private $controlers = [];
@@ -44,35 +45,37 @@ class Page{
     $page->body($tempelate, $this);
   }
   
-  private function notfound(Tempelate $tempelate){
+  public function notfound(Tempelate $tempelate){
     if($tempelate->hasControler()){
       $controler = $tempelate->getControler();
-      if($controler->hasError() && ($page = $controler->error()->notfound())){
-        $tempelate->render($page, $this);
-        exit;
+      if($controler->hasError()){
+        $error = $controler->error();
+        if($error->hasNotFound()){
+          $tempelate->render($error->notfound());
+        }
       }
     }
     $tempelate = new Tempelate("");
-    $tempelate->put("error", "The requested page was not found");
-    $tempelate->render("error", $this);
-    exit;
+    $tempelate->put("error", Language::get("NOT_FOUND"));
+    $tempelate->render("error");
   }
   
   private function accessdenid(Tempelate $tempelate){
     if($tempelate->hasControler()){
       $controler = $tempelate->getControler();
-      if($controler->hasError() && ($page = $controler->error()->accessdenid())){
-        $tempelate->render($page, $this);
-        exit;
+      if($controler->hasError()){
+        $error = $controler->error();
+        if($error->hasAccessDenid()){
+          $tempelate->render($error->accessdenid());
+        }
       }
     }
-    $tempelate = new Tempelate("");
-    $tempelate->put("error", "Access denied");
-    $tempelate->render("error", $this);
-    exit;
+    $tempelate = new Tempelate("", $this);
+    $tempelate->put("error", Language::get("ACCESS_DENIAD"));
+    $tempelate->render("error");
   }
   
-  private function hasAccess(array $access){
+  public function hasAccess(array $access){
     if(count($access) == 0)
       return true;
     foreach($access as $name){

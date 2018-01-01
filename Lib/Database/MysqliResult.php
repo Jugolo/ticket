@@ -1,7 +1,7 @@
 <?php
 namespace Lib\Database;
 
-class MysqliResult{
+class MysqliResult implements DatabaseResult{
   private $mysqli;
   private $result;
   

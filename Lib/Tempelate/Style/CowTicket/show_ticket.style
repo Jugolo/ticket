@@ -8,10 +8,10 @@
 !-include admin_ticket-!
 !-endblock-!
 <div class='box'>
-  <div class='title'>Data</div>
+  <div class='title'>!-language DATA-!</div>
   <table class='table-fill border'>
     <tr>
-      <th>User name</th>
+      <th>!-language USERNAME-!</th>
       !-if access USER_PROFILE-!
       <td><a href='?view=profile&user=!-ticket_uid-!'>!-ticket_username-!</a></td>
       !-else-!
@@ -20,7 +20,7 @@
     </tr>
     !-if age-!
     <tr>
-      <th>Age</th>
+      <th>!-language AGE-!</th>
       <td>!-age-!</td>
     </tr>
     !-endblock-!
@@ -42,14 +42,14 @@
     !-endblock-!
     !-else-!
     <tr>
-      <td colspan='2'><div class='information'>Sorry no data to show</div></td>
+      <td colspan='2'><div class='information'>!-language NO_DATA-!</div></td>
     </tr>
     !-endblock-!
   </table>
 </div>
 !-if log-!
 <div class='box'>
-  <div class='title'>Log</div>
+  <div class='title'>!-language LOG-!</div>
   !-foreach log as l-!
   <div>
     [!-l["time"]-!]
@@ -60,7 +60,7 @@
 !-endblock-!
 !-if seen-!
 <div class='box'>
-  <div class='title'>Watch list</div>
+  <div class='title'>!-language WATCH_LIST-!</div>
   <table class='makeup-table'>
     !-foreach seen as data-!
     <tr>
@@ -72,20 +72,20 @@
 </div>
 !-endblock-!
 <div class='box'>
-  <div class='title'>Comments</div>
+  <div class='title'>!-language COMMENTS-!</div>
   !-if comments-!
   !-foreach comments as comment-!
   <div class='comment'>
     !-if comment["public"] == 0-!
     <div class='comment-secret'>
-      This comment is hiden from the user
+      !-language COMMENT_HIDEN-!
     </div>
     !-endblock-!
     <div class='comment-body'>
       <div class='comment-information'>
         <ul>
-          <li>Username: !-if access USER_PROFILE-!<a href='?view=profile&user=!-comment["uid"]-!'>!-endblock-!!-comment["username"]-!!-if access USER_PROFILE-!</a>!-endblock-!</li>
-          <li>Created: !-comment["created"]-!</li>
+          <li>!-language USERNAME-!: !-if access USER_PROFILE-!<a href='?view=profile&user=!-comment["uid"]-!'>!-endblock-!!-comment["username"]-!!-if access USER_PROFILE-!</a>!-endblock-!</li>
+          <li>!-language CREATED-!: !-comment["created"]-!</li>
         </ul>
         <div class='clear'></div>
       </div>
@@ -96,25 +96,25 @@
     </div>
     !-if not owen and access COMMENT_DELETE-!
     <div class='comment-admin'>
-      <a href='?view=tickets&ticket_id=!-ticket_id-!&deleteComment=!-comment["id"]-!'>Delete</a>
+      <a href='?view=tickets&ticket_id=!-ticket_id-!&deleteComment=!-comment["id"]-!'>!-language DELETE-!</a>
     </div>
     !-endblock-!
   </div>
   !-endblock-!
   !-else-!
-  <div class='information'>No one has writed a comment yet</div>
+  <div class='information'>!-language NO_COMMENT-!</div>
   !-endblock-!
 </div>
 !-if ticket_open-!
 <div class='box'>
-  <div class='title'>Write comment</div>
+  <div class='title'>!-language WRITE_COMMENT-!</div>
   !-set texteditor_name="comments"-!
   !-set texteditor_submitname="create"-!
   <form action='#' method='post'>
     !-include texteditor-!
     !-if not owen-!
     <div>
-      Let user seen this <input type="checkbox" name="public">
+      !-language LET_CREATOR-! <input type="checkbox" name="public">
     </div>
   </form>
   !-endblock-!

@@ -2,6 +2,7 @@
 namespace Lib;
 
 use Lib\Database\DatabaseDriver;
+use Lib\Language\Language;
 
 class Database{
   private static $db;
@@ -23,12 +24,12 @@ class Database{
     }
     
     if(!defined("IN_SETUP") && !defined("db_driver")){
-      trigger_error("Missing defined value 'db_driver' to tell wich database driver to use", E_USER_ERROR);
+      trigger_error(Language::get("DB_DRIVER"), E_USER_ERROR);
       return false;
     }
     $driver = defined("IN_SETUP") ? $_SESSION["setup"]["db_driver"] : db_driver;
     if(!file_exists(BASE."Lib/Database/".$driver.".php")){
-      trigger_error("Missing database driver '".$driver."'", E_USER_ERROR);
+      trigger_error(Language::get("UNKNOWN_DB_DRIVER", $driver), E_USER_ERROR);
       return false;
     }
     
@@ -39,7 +40,7 @@ class Database{
       return true;
     }
     
-    trigger_error(get_class($driver)." is not instance of DatabaseDriver");
+    trigger_error(Language::get("INVALID_DB_DRIVER", get_class($driver)));
     return false;
   }
 }

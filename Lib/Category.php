@@ -8,12 +8,12 @@ use Lib\Email;
 class Category{
   public static function getNames() : array{
     if(Cache::exists("category_names"))
-      return json_decode(Cache::get("category_names"), true);
+      return Cache::get("category_names");
     $names = [];
     $query = Database::get()->query("SELECT `name` FROM `catogory`");
     while($row = $query->fetch())
       $names[] = $row->name;
-    Cache::create("category_names", json_encode($names));
+    Cache::create("category_names", $names);
     return $names;
   }
   
@@ -24,29 +24,40 @@ class Category{
   }
   
   public static function create(string $name, bool $isOpen = false, int $age = -1){
-    if(in_array($name, self::getNames()))
+    $names = self::getNames();
+    if(in_array($name, $names))
        return;
-    $db = Database::get();
-    $id = $db->query("INSERT INTO `catogory` VALUES (NULL, '{$db->escape($name)}', ".($isOpen ? "1" : "0").", ".($age == -1 ? "NULL" : "'{$age}'").");");
-    if(Cache::exists("category_names"))
-      Cache::delete("category_names");
-    return $id;
+    if(Plugin::trigger_event("system.category.create", $name, $isOpen, $age)){
+      $db = Database::get();
+      $id = $db->query("INSERT INTO `catogory` VALUES (NULL, '{$db->escape($name)}', ".($isOpen ? "1" : "0").", ".($age == -1 ? "NULL" : "'{$age}'").", 0, 0, ".count($names).");");
+      Log::system("LOG_CAT_CREATED", defined("user") ? user["username"] : "unknown", $name);
+      if(Cache::exists("category_names"))
+        Cache::delete("category_names");
+      return $id;
+    }
   }
   
-  public static function delete(int $id){
+  public static function delete(int $id) : bool{
     $db = Database::get();
     $data = $db->query("SELECT * FROM `catogory` WHERE `id`='".$id."'")->fetch();
     if(!$data){
       throw new CategoryNotFound();
-      Report::error("No catogroy found to delete");
-      return;
     }
-    if($data->open != 0){
+    if(!Plugin::trigger_event("system.category.delete", $data->id, $data->name))
+      return false;
+    if($data->open == 1){
       Config::set("cat_open", intval(Config::get("cat_open"))-1);
     }
     if(Cache::exists("category_names"))
       Cache::delete("category_names");
-    Log::system("%s deletede the category '%s'", defined("user") ? user["username"] : "unknown", $data->name);
-    Plugin::trigger_event("system.category.delete", $data);
+    
+    $db->query("SELECT `id` FROM `ticket` WHERE `cid`='{$id}'")->render(function($row){
+      Plugin::trigger_event("system.ticket.delete", $row->id);
+    });
+    $db->query("DELETE FROM `catogory` WHERE `id`='{$id}'");
+    $db->query("DELETE FROM `category_item` WHERE `cid`='{$id}'");
+    
+    Log::system("LOG_CAT_DELETED", defined("user") ? user["username"] : "unknown", $data->name);
+    return true;
   }
 }

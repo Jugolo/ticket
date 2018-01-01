@@ -37,11 +37,19 @@ class Error{
       });
   }
   
+  public static function systemError(string $message){
+    self::printError("system", $message);
+  }
+  
   public static function tempelateError(TempelateException $e){
+    self::printError("tempelate", htmlentities($e->getMessage())."<br>In file: ".htmlentities($e->getFile())."({$e->getLine()})");
+  }
+  
+  private static function printError(string $type, string $message){
     echo "<!DOCTYPE html>
     <html>
       <head>
-        <title>Sorry but a tempelate error happen</title>
+        <title>Sorry but a {$type} error happen</title>
         <style>
           body{
             background-color: black;
@@ -60,9 +68,10 @@ class Error{
       <body>
         <fieldset id='container'>
           <legend>The error message</legend>
-          {$e->getMessage()}
+          {$message}
         </fieldset>
       </body>
     </html>";
+    exit;
   }
 }

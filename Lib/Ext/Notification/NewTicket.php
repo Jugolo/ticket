@@ -3,6 +3,7 @@ namespace Lib\Ext\Notification;
 
 use Lib\Database;
 use Lib\Database\DatabaseFetch;
+use Lib\Plugin\Event;
 
 class NewTicket{
   public static function notify(int $id, string $name){
@@ -14,13 +15,13 @@ class NewTicket{
                          WHERE notify_setting.name='".$db->escape(__CLASS__)."'
                          AND access.name='TICKET_OTHER'");
     $query->render(function(DatabaseFetch $row) use($id, $name){
-      if($row->id != user["id"]){
+      if(!defined("user") || $row->id != user["id"]){
         NewTicket::notifyUser($row->id, $id, $name);
       }
     });
   }
   
-  public static function onTicketDelete(int $id){
+  public static function onTicketDelete(Event $event, int $id){
     $db = Database::get();
     $db->query("DELETE FROM `notify` WHERE `name`='{$db->escape(__CLASS__)}' AND `item_id`='{$id}'");
   }
@@ -35,7 +36,8 @@ class NewTicket{
       $tid,
       __CLASS__,
       "?view=tickets&ticket_id={$tid}",
-      user["username"]." has just created a new ticket"
+      "NOTIFY_CREATE_TICKET",
+      [defined("user") ? user["username"] : "unknown"]
       );
   }
 }

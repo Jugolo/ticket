@@ -1,13 +1,12 @@
 !-addCss style.front-!
 !-addCss style.bbcode-!
-!-addCss style.bbcode-!
 !-include head-!
 <div class='box bbcode'>
   <div class='title'>!-config system_name-!</div>
 !-if access SYSTEM_FRONT-!
 <div id='root-front-right'>
   <div class='box-mini'>
-    <a href='?view=front&change=yes'>Change front page</a>
+    <a href='?view=front&change=yes'>!-language CHANGE_FRONT-!</a>
   </div>
 </div>
 !-endblock-!

@@ -11,6 +11,7 @@ use Lib\Email;
 use Lib\Tempelate;
 use Lib\Page;
 use Lib\Access;
+use Lib\Language\Language;
 
 class PageView implements P{
   public function loginNeeded() : string{
@@ -26,11 +27,12 @@ class PageView implements P{
   }
   
   public function body(Tempelate $tempelate, Page $page){
+    Language::load("profile");
     $user = $this->getUser();
     if(!$user){
-      Report::error("Could not find the user");
-      notfound();
-      return;
+      Report::error(Language::get("NOT_FOUND"));
+      header("location: ?view=users");
+      exit;
     }
     
     if($user->id == user["id"]){
@@ -70,7 +72,7 @@ class PageView implements P{
     $tempelate->put("year",             $user->birth_year);
     $tempelate->put("group",            $user->name);
     
-    $tempelate->render($user->id == user["id"] ? "owen_profile" : "other_profile", $page);
+    $tempelate->render($user->id == user["id"] ? "owen_profile" : "other_profile");
   }
   
   private function getUser(){
@@ -85,15 +87,15 @@ class PageView implements P{
     $error = Report::count("ERROR");
     
     if(empty($_POST["day"]) || !trim($_POST["day"]) || !is_numeric($_POST["day"])){
-      Report::error("Missing birth day");
+      Report::error(Language::get("MISSING_B_D"));
     }
     
     if(empty($_POST["month"]) || !trim($_POST["month"]) || !is_numeric($_POST["month"])){
-       Report::error("Missing month");
+       Report::error(Language::get("MISSING_B_M"));
     }
     
     if(empty($_POST["year"]) || !trim($_POST["year"]) || !is_numeric($_POST["year"])){
-       Report::error("Missing year");
+       Report::error(Language::get("MISSING_B_Y"));
     }
     
     if($error == Report::count("ERROR")){
@@ -103,7 +105,7 @@ class PageView implements P{
                   `birth_month` = '{$db->escape($_POST["month"])}',
                   `birth_year`  = '{$db->escape($_POST["year"])}'
                  WHERE `id`='".user["id"]."'");
-      Report::okay("Bith data is now updated");
+      Report::okay(Language::get("BIRTH_UPDATED"));
     }
     
     header("location: #");
@@ -112,31 +114,32 @@ class PageView implements P{
   
   private function updatePass(){
     $count = Report::count("ERROR");
+    Language::load("auth");
     
     if(empty($_POST["password"]) || !trim($_POST["password"])){
-      Report::error("Missing password");
+      Report::error(Language::get("MISSING_PASSWORD"));
     }
     
     if(empty($_POST["repeat_password"]) || !trim($_POST["password"])){
-      Report::error("Missing repeat password");
+      Report::error(Language::get("MISSING_R_PASSWORD"));
     }
     
     if($count == Report::count("ERROR") && $_POST["password"] != $_POST["repeat_password"]){
-      Report::error("They two password is not equel");
+      Report::error(Language::get("PASSWORD_N_EQUEL"));
     }
     
     if(empty($_POST["current_password"]) || !trim($_POST["current_password"])){
-      Report::error("Missing your current password");
+      Report::error(Language::get("MISSING_CURRENT_PASS"));
     }
     
     if($count == Report::count("ERROR") && Auth::salt_password($_POST["current_password"], user["salt"]) != user["password"]){
-      Report::error("Wrong current passowrd");
+      Report::error(Language::get("WRONG_PASSWORD"));
     }
     
     if($count == Report::count("ERROR")){
       $db = Database::get();
       $db->query("UPDATE `user` SET `password`='{$db->escape(Auth::salt_password($_POST["password"], user["salt"]))}' WHERE `id`='".user["id"]."'");
-      Report::okay("Password is now updated");                                         
+      Report::okay(Language::get("PASSWORD_UPDATED"));                                         
     }
     header("location: #");
     exit;
@@ -144,32 +147,32 @@ class PageView implements P{
   
   private function updateProfile(){
     $error = Report::count("ERROR");
-    
+    Language::load("auth");
     if(empty($_POST["username"]) || !trim($_POST["username"])){
-      Report::error("Missing username");
+      Report::error(Language::get("MISSING_USERNAME"));
     }
     
     if(empty($_POST["email"]) || !trim($_POST["email"])){
-      Report::error("Missing email");
+      Report::error(Language::get("MISSING_EMAIL"));
     }
     
     if(empty($_POST["password"]) || !trim($_POST["password"])){
-      Report::error("Missing controle password");
+      Report::error(Language::get("MISSING_CONTROLE_PASS"));
     }
     
     if($error == Report::count("ERROR")){
       if($data = Auth::controleDetail($_POST["username"], $_POST["email"])){
-        Report::error($data." is taken");
+        Report::error(Language::get("P_DATA_TAKEN", [$data]));
       }else{
         $password = Auth::salt_password($_POST["password"], user["salt"]);
         if($password == user["password"]){
           //wee find out what there has changed.
           $extra = "";
           if(user["username"] !== $_POST["username"])
-            Log::user(user["id"], "%s changed nick to %s", user["username"], $_POST["username"]);
+            Log::user(user["id"], "LOG_EMAIL_CHANGE", user["username"], $_POST["username"]);
           if(user["email"] !== $_POST["email"]){
-            Log::user(user["id"], "%s changed the email from %s to %s", user["username"], user["email"], $_POST["email"]);
-            Report::error("Becuse you have changed you email you need to activate the account again");
+            Log::user(user["id"], "LOG_EMAIL_CHANGE", user["username"], user["email"], $_POST["email"]);
+            Report::error(Language::get("NEED_ACTIVATE_E"));
             $extra = ", `isActivatet`='0'";
             $this->sendReActivateEmail($_POST["email"]);
           }
@@ -178,9 +181,9 @@ class PageView implements P{
                        `username`='{$db->escape($_POST["username"])}',
                        `email`='{$db->escape($_POST["email"])}'{$extra}
                       WHERE `id`='".user["id"]."'");
-          Report::okay("Your profile is now updated");
+          Report::okay(Language::get("ACCOUNT_UPDATED"));
         }else{
-          Report::error("Controle password was wrong");
+          Report::error(Language::get("MISSING_CONTROLE_PASS"));
         }
       }
     }
@@ -189,16 +192,16 @@ class PageView implements P{
   }
   
   private function sendReActivateEmail(string $email){
-    $e = new Email();
+    $e = new Email("email_change");
     $e->pushArg("username", user["username"]);
     $e->pushArg("link",     geturl()."?salt=".urlencode(user["salt"])."&email=".urlencode($email));
-    $e->send("email_change", $email);
+    $e->send($email);
   }
   
   private function activateUser(int $id){
     Database::get()->query("UPDATE `user` SET `isActivatet`='1' WHERE `id`='{$id}'");
-    Report::okay("The user is now activated and can log in");
-    Log::user($id, "%s activated the user", user["username"]);
+    Report::okay(Language::get("USER_ACTIVATED"));
+    Log::user($id, "LOG_OTHER_ACTIVATE", user["username"]);
     header("location: ?view=profile&user=".$_GET["user"]);
     exit;
   }

@@ -2,22 +2,22 @@
 !-addCss style.table-!
 !-include head-!
 <div class='box'>
-  <div class='title'>Error detail</div>
+  <div class='title'>!-language ERROR_DETAIL-!</div>
   <table id='error-detail'>
     <tr>
-      <th>File</th>
+      <th>!-language FILE-!</th>
       <td>!-file-!</td>
     </tr>
     <tr>
-      <th>Line</th>
+      <th>!-language LINE-!</th>
       <td>!-line-!</td>
     </tr>
     <tr>
-      <th>Time</th>
+      <th>!-language TIME-!</th>
       <td>!-time-!</td>
     </tr>
     <tr>
-      <th colspan="2">Message</th>
+      <th colspan="2">!-language MESSAGE-!</th>
     </tr>
     <tr>
       <td colspan="2">!-message-!</td>
@@ -26,7 +26,7 @@
 </div>
 
 <div class="box">
-  <div class='title'>Error file</div>
+  <div class='title'>!-language ERROR_FILE-!</div>
   <table id="error-file">
     !-foreach lines as data-!
     <tr class="!-if data['number'] == line-!current!-else-!not!-endblock-!">
@@ -39,7 +39,7 @@
 
 !-if other_error-!
 <div class="box">
-  <div class="title">Same error</div>
+  <div class="title">!-language SAME_ERROR-!</div>
   <table class="makeup-table">
     !-foreach other_error as error-!
     <tr>

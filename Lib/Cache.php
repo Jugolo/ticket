@@ -1,6 +1,8 @@
 <?php
 namespace Lib;
 
+use Lib\Exception\CacheException;
+
 class Cache{
   public static function exists(string $name) : bool{
     return file_exists(self::getTempName($name));
@@ -15,16 +17,40 @@ class Cache{
     return true;
   }
   
-  public static function get(string $name) : string{
+  public static function get(string $name){
     if(!self::exists($name))
       return "";
-    return file_get_contents(self::getTempName($name));
+    $name = self::getTempName($name);
+    $stream = fopen($name, "r");
+    $type = fread($stream, 1);
+    $fsize = filesize($name)-1;
+    $context = "";
+    if($fsize > 0){
+      $context = fread($stream, $fsize);
+    }
+    fclose($stream);
+    
+    switch($type){
+      case 'S':
+        return $context;
+      case 'A':
+        return json_decode($context, true);
+      default:
+        throw new CacheException("Unknown cache type '{$type}'");
+    }
   }
   
-  public static function create(string $name, string $data) : bool{
+  public static function create(string $name, $data) : bool{
     if(self::exists($name)){
       return false;
     }
+    
+    if(is_array($data))
+      $data = "A".json_encode($data);
+    elseif(is_string($data))
+      $data = "S".$data;
+    else
+      throw new CacheException("Unknown cache data type '".gettype($data)."'");
     
     $name = self::getTempName($name);
     $fopen = fopen($name, "w");

@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Ticket system * !-config system_name-!</title>
+    <title>!-language PAGE_TITLE-! * !-config system_name-!</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     !-getStyle-!
@@ -24,7 +24,7 @@
         </a>
         !-if access SYSTEM_NAME -!
         <a href='?view=front&changeSystemName=true'>
-          (Change)
+          (!-language CHANGE-!)
         </a>
         !-endblock-!
       </div>
@@ -34,22 +34,23 @@
         !-if loggedIn-!
         <div class='box link-box'>
           <div class='title'>!-username-!</div>
-          <a href='?view=front&logout=!-session_id-!'>Logout</a>
-          <a href='?view=profile'>Profile</a>
+          <a href='?view=front&logout=!-session_id-!'>!-language LOGOUT-!</a>
+          <a href='?view=profile'>!-language PROFILE-!</a>
         </div>
         !-else-!
         !-include login-!
         !-endblock-!
       </div>
       <div class='box link-box'>
-        <div class='title'>Menu</div>
-        <a href='?view=front'>Front</a>
+        <div class='title'>!-language MENU-!</div>
+        <a href='?view=front'>!-language FRONT-!</a>
         !-if loggedIn-!
         !-if config cat_open != 0-!
-        <a href='?view=apply'>Apply</a>
+        <a href='?view=apply'>!-language APPLY-!</a>
         !-endblock-!
-        <a href='?view=tickets'>Ticket</a>
+        <a href='?view=tickets'>!-language TICKET-!</a>
         !-endblock-!
+        !-plugin menu.after-!
       </div>
       !-if loggedIn-!
       !-include admin_menu-!

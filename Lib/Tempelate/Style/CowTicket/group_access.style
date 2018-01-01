@@ -2,170 +2,27 @@
 !-addCss style.group_access-!
 !-include head-!
 <div class='box'>
-  <div class='title'>Update access for the group '!-name-!'</div>
+  <div class='title'>!-language UPDATE_ACCESS name-!</div>
   <div class='access-menu compurter'>
-    <span class='item'>Category</span><span class='item'>Ticket</span><span class='item'>User</span><span class='item'>Group</span><span class='item'>Error</span><span class='item'>System</span>
+    !-foreach cat as name : value-!!-if value-!<span class='item'>!-name-!</span>!-endblock-!!-endblock-!
   </div>
   <form action="#" method="post">
     <div class='access-context'>
-      <div class='access-data' for='Category'>
+      !-foreach cat as name : data-!
+      <div class='access-data' for='!-name-!'>
         <div class='mobile mobile-head'>
-          Category
+          !-name-!
         </div>
         <table>
+          !-foreach data as item-!
           <tr>
-            <th>Create category</th>
-            <td><input type='checkbox' name='CATEGORY_CREATE'!-if group["CATEGORY_CREATE"]-! checked!-endblock-!></td>
+            <th>!-item["dec"]-!</th>
+            <td><input type='checkbox' name='!-item["access"]-!'!-if group[item["access"]]-! checked!-endblock-!></td>
           </tr>
-          <tr>
-            <th>Delete category</th>
-            <td><input type='checkbox' name='CATEGORY_DELETE'!-if group["CATEGORY_DELETE"]-! checked!-endblock-!></td>
-          </tr>
-          <tr>
-            <th>Open/Close category</th>
-            <td><input type='checkbox' name='CATEGORY_CLOSE'!-if group["CATEGORY_CLOSE"]-! checked!-endblock-!></td>
-          </tr>
-          <tr>
-            <th>Append input to category</th>
-            <td><input type='checkbox' name='CATEGORY_APPEND'!-if group["CATEGORY_APPEND"]-! checked!-endblock-!></td>
-          </tr>
-          <tr>
-            <th>Delete input in category</th>
-            <td><input type='checkbox' name='CATEGORY_ITEM_DELETE'!-if group["CATEGORY_ITEM_DELETE"]-! checked!-endblock-!></td>
-          </tr>
-          <tr>
-            <th>Change setting in category</th>
-            <td><input type='checkbox' name='CATEGORY_SETTING'!-if group["CATEGORY_SETTING"]-! checked!-endblock-!></td>
-          </tr>
+          !-endblock-!
         </table>
       </div>
-      <div class="access-data" for='Ticket'>
-        <div class='mobile mobile-head'>
-          Ticket
-        </div>
-        <table>
-          <tr>
-            <th>Show others ticket</th>
-            <td><input type='checkbox' name='TICKET_OTHER'!-if group["TICKET_OTHER"]-! checked!-endblock-!></td>
-          </tr>
-          <tr>
-            <th>Close/Open ticket</th>
-            <td><input type="checkbox" name="TICKET_CLOSE"!-if group['TICKET_CLOSE']-! checked!-endblock-!></td>
-          </tr>
-          <tr>
-            <th>Delete tickets</th>
-            <td><input type='checkbox' name='TICKET_DELETE'!-if group['TICKET_DELETE']-! checked!-endblock-!></td>
-          </tr>
-          <tr>
-            <th>Delete comments</th>
-            <td><input type='checkbox' name='COMMENT_DELETE'!-if group['COMMENT_DELETE']-! checked!-endblock-!></td>
-          </tr>
-          <tr>
-            <th>See ticket log</th>
-            <td><input type='checkbox' name='TICKET_LOG'!-if group['TICKET_LOG']-! checked!-endblock-!></td>
-          </tr>
-          <tr>
-            <th>See who have seen the ticket</th>
-            <td><input type="checkbox" name="TICKET_SEEN"!-if group["TICKET_SEEN"]-! checked!-endblock-!></td>
-          </tr>
-        </table>
-      </div>
-      <div class='access-data' for='User'>
-        <div class='mobile mobile-head'>
-          User
-        </div>
-        <table>
-          <tr>
-            <th>Change user group</th>
-            <td><input type='checkbox' name='USER_GROUP'!-if group['USER_GROUP']-! checked!-endblock-!></td>
-          </tr>
-          <tr>
-            <th>Show user profile</th>
-            <td><input type='checkbox' name='USER_PROFILE'!-if group["USER_PROFILE"]-! checked!-endblock-!></td>
-          </tr>
-          <tr>
-            <th>Delete user</th>
-            <td><input type='checkbox' name='USER_DELETE'!-if group["USER_DELETE"]-! checked!-endblock-!></td>
-          </tr>
-          <tr>
-            <th>Show user log</th>
-            <td><input type='checkbox' name='USER_LOG'!-if group["USER_LOG"]-! checked!-endblock-!></td>
-          </tr>
-          <tr>
-            <th>Activate unativated user</th>
-            <td><input type='checkbox' name='USER_ACTIVATE'!-if group["USER_ACTIVATE"]-! checked!-endblock-!></td>
-          </tr>
-        </table>
-      </div>
-      <div class='access-data' for='Group'>
-        <div class='mobile mobile-head'>
-          Group
-        </div>
-        <table>
-          <tr>
-            <th>Create new group</th>
-            <td><input type='checkbox' name='GROUP_CREATE'!-if group['GROUP_CREATE']-! checked!-endblock-!></td>
-          </tr>
-          <tr>
-            <th>Delete group</th>
-            <td><input type='checkbox' name='GROUP_DELETE'!-if group['GROUP_DELETE']-! checked!-endblock-!></td>
-          </tr>
-          <tr>
-            <th>Change group access</th>
-            <td><input type='checkbox' name='GROUP_ACCESS'!-if group['GROUP_ACCESS']-! checked!-endblock-!></td>
-          </tr>
-          <tr>
-            <th>Change standart group</th>
-            <td><input type='checkbox' name='GROUP_STANDART'!-if group['GROUP_STANDART']-! checked!-endblock-!></td>
-          </tr>
-        </table>
-      </div>
-      <div class='access-data' for='Error'>
-        <div class='mobile mobile-head'>
-          Error
-        </div>
-        <table>
-          <tr>
-            <th>Show error</th>
-            <td><input type='checkbox' name='ERROR_SHOW'!-if group['ERROR_SHOW']-! checked!-endblock-!></td>
-          </tr>
-          <tr>
-            <th>Delete error</th>
-            <td><input type='checkbox' name='ERROR_DELETE'!-if group["ERROR_DELETE"]-!  checked!-endblock-!></td>
-          </tr>
-        </table>
-      </div>
-      <div class='access-data' for='System'>
-        <div class='mobile mobile-head'>
-          System
-        </div>
-        <table>
-          <tr>
-            <th>Change system frontpage</th>
-            <td><input type='checkbox' name='SYSTEM_FRONT'!-if group['SYSTEM_FRONT']-! checked!-endblock-!></td>
-          </tr>
-          <tr>
-            <th>Change system name</th>
-            <td><input type='checkbox' name='SYSTEM_NAME'!-if group['SYSTEM_NAME']-! checked!-endblock-!></td>
-          </tr>
-          <tr>
-            <th>View system log</th>
-            <td><input type='checkbox' name='SYSTEMLOG_SHOW'!-if group['SYSTEMLOG_SHOW']-! checked!-endblock-!></td>
-          </tr>
-          <tr>
-            <th>Change tempelate</th>
-            <td><input type='checkbox' name='TEMPELATE_SELECT'!-if group['TEMPELATE_SELECT']-! checked!-endblock-!></td>
-          </tr>
-          <tr>
-            <th>Install plugin</th>
-            <td><input type='checkbox' name='PLUGIN_INSTALL'!-if group['PLUGIN_INSTALL']-! checked!-endblock-!></td>
-          </tr>
-          <tr>
-            <th>Uninstall plugin</th>
-            <td><input type='checkbox' name='PLUGIN_UNINSTALL'!-if group['PLUGIN_UNINSTALL']-! checked!-endblock-!></td>
-          </tr>
-        </table>
-      </div>
+      !-endblock-!
     </div>
     <input type="submit" name="update" class="input" value="Update access">
   </form>

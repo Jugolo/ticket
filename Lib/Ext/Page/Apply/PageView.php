@@ -8,6 +8,7 @@ use Lib\Age;
 use Lib\Tempelate;
 use Lib\Page;
 use Lib\Ticket\Ticket;
+use Lib\Language\Language;
 
 class PageView implements P{
   public function loginNeeded() : string{
@@ -23,8 +24,9 @@ class PageView implements P{
   }
   
   public function body(Tempelate $tempelate, Page $page){
+    Language::load("apply");
     if(empty($_GET["to"]) || !($data = $this->data())){
-      $this->select_to($tempelate, $page);
+      $this->select_to($tempelate);
       return;
     }
   
@@ -70,7 +72,7 @@ class PageView implements P{
     $save->delete();
     $tempelate->put("field", $field, $page);
     
-    $tempelate->render("apply", $page);
+    $tempelate->render("apply");
   }
   
   private function controle_apply(array $data){
@@ -81,16 +83,16 @@ class PageView implements P{
     $saver = new SaveInputs($data["id"]);
     while($row = $query->fetch()){
       if(!array_key_exists($row->id, $_POST)){
-        Report::error("Missing '".htmlentities($row->text)."'");
+        Report::error(Language::get("A_MISSING", [htmlentities($row->text)]));
         $errcount++;
       }elseif($row->type != 3 && !trim($_POST[$row->id])){
-        Report::error("Missing '".htmlentities($row->text)."'");
+        Report::error(Language::get("A_MISSING", [htmlentities($row->text)]));
         $errcount++;
       }elseif($row->type == 3){
         $count = count(($option = explode(",", $row->placeholder)))-1;
         $value = intval($_POST[$row->id]);
         if($value < 0 || $value > $count){
-          Report::error("Missing '".htmlentities($row->text)."'");
+          Report::error(Language::get("A_MISSING", [htmlentities($row->text)]));
           $errcount++;
         }else{
           $fields[] = [
@@ -112,26 +114,26 @@ class PageView implements P{
     
     if($errcount !== 0 || count($fields) == 0){
       if(count($fields) == 0 && $errcount == 0){
-        Report::error("Could not save a empty ticket");
+        Report::error(Language::get("EMPTY_TICKET"));
       }
       $saver->save();
       header("location: ?view=apply&to=".$data["id"]);
       exit;
     }else{
       $id = Ticket::createTicket(user["id"], $data["id"], $fields);
-      Report::okay("You ticket is saved");
+      Report::okay(Language::get("TICKET_SAVED"));
       header("location: ?view=tickets&ticket_id=".$id);
       exit;
     }
   }
   
-  private function select_to(Tempelate $tempelate, Page $page){
+  private function select_to(Tempelate $tempelate){
     if(!empty($_GET["to"])){
       notfound();
       return;
     }
     
-    $query = Database::get()->query("SELECT `id`, `name`, `age` FROM `catogory` WHERE `open`='1'");
+    $query = Database::get()->query("SELECT `id`, `name`, `age` FROM `catogory` WHERE `open`='1' ORDER BY `sort_ordre` ASC");
     
     $options = [];
     $count = 0;
@@ -151,8 +153,8 @@ class PageView implements P{
     }
          
     if($count == 0){
-      $tempelate->put("apply_error", "No category to apply to");
-      $tempelate->render("apply_error");
+      $tempelate->put("apply_error", Language::get("NO_CAT"));
+      $tempelate->render("apply_error", $page);
       return;   
     }
     
@@ -162,7 +164,7 @@ class PageView implements P{
     }
     
     $tempelate->put("category", $options);
-    $tempelate->render("select_to", $page);
+    $tempelate->render("select_to");
   }
   
   private function data(){

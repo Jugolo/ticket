@@ -1,7 +1,7 @@
 !-addCss style.table-!
 !-include head-!
 <div class='box'>
-  <div class='title'>User list</div>
+  <div class='title'>!-language USER_LIST-!</div>
   <table class='table-fill border'>
     !-foreach users as user-!
     <tr>
@@ -11,10 +11,10 @@
       <th>!-user["username"]-!</th>
       !-endblock-!
       !-if access USER_GROUP-!
-      <td><a href='?view=users&sub=group&uid=!-user["id"]-!'>Change group</a></td>
+      <td><a href='?view=users&sub=group&uid=!-user["id"]-!'>!-language CHANGE_GROUP-!</a></td>
       !-endblock-!
       !-if access USER_DELETE-!
-      <td><a href='?view=users&delete=!-user["id"]-!'>Delete</a></td>
+      <td><a href='?view=users&delete=!-user["id"]-!'>!-language DELETE-!</a></td>
       !-endblock-!
     </tr>
     !-endblock-!

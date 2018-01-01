@@ -1,12 +1,12 @@
 !-include head-!
 <div class='box'>
-  <div class='title'>Change front</div>
+  <div class='title'>!-language CHANGE_SYS_NAME-!</div>
   <form action='#' method='post'>
     <div>
       <input type='text' name='systemname' value='!-config system_name-!' class='input'>
     </div>
     <div>
-      <input type='submit' value='Change' class='input'>
+      <input type='submit' value='!-language CHANGE-!' class='input'>
     </div>
   </form>
 </div>

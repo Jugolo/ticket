@@ -8,6 +8,8 @@ use Lib\Email;
 use Lib\Report;
 use Lib\Ajax;
 use Lib\Plugin\Plugin;
+use Lib\Language\LanguageDetector;
+use Lib\Language\Language;
 
 class Auth{
   
@@ -57,23 +59,25 @@ class Auth{
         `email`,
         `salt`,
         `isActivatet`,
-        `groupid`
+        `groupid`,
+        `lang`
       ) VALUES (
         '".$db->escape($username)."',
         '".$db->escape(self::salt_password($raw_password, $salt))."',
         '".$db->escape($email)."',
         '".$db->escape($salt)."',
         '".($isActivated ? '1' : '0')."',
-        '".Config::get("standart_group")."'
+        '".Config::get("standart_group")."',
+        '".(defined("force_lang") ? force_lang : Language::getCode())."'
       );");
     Notification::getNotification(function(string $name) use($db, $id){
         $db->query("INSERT INTO `notify_setting` VALUES ('{$id}', '{$db->escape($name)}');");
     });
     if(!$isActivated){
-      $emails = new Email();
+      $emails = new Email("account_create");
       $emails->pushArg("username", $username);
       $emails->pushArg("link", geturl()."?salt=".urlencode($salt)."&email=".urlencode($email));
-      $emails->send("account_create", $email);
+      $emails->send($email);
     }
     return $id;
   }
@@ -89,13 +93,15 @@ class Auth{
   }
   
   private static function doLogin(){
+    LanguageDetector::detect();
+    Language::load("auth");
     $count = Report::count("ERROR");
     
     if(empty($_POST["username"]) || !trim($_POST["username"]))
-      Report::error("Missing username");
+      Report::error(Language::get("MISSING_USERNAME"));
     
     if(empty($_POST["password"]) || !trim($_POST["password"]))
-      Report::error("Missing password");
+      Report::error(Language::get("MISSING_PASSWORD"));
     
     if($count == Report::count("ERROR")){
       $db = Database::get();
@@ -103,11 +109,11 @@ class Auth{
                           FROM `user`
                           WHERE LOWER(`username`)='{$db->escape(strtolower($_POST["username"]))}'")->fetch();
       if(!$data || self::salt_password($_POST["password"], $data->salt) != $data->password)
-        Report::error("Could not finde the username or/and password");
+        Report::error(Language::get("USER_N_FOUND"));
       elseif($data->isActivatet != 1)
-        Report::error("You account is not activated yet");
+        Report::error(Language::get("USER_N_ACTIV"));
       else{
-        Report::okay("You are now logged in");
+        Report::okay(Language::get("USER_LOGEDIN"));
         $_SESSION["uid"] = $data->id;
       }
     }
@@ -117,30 +123,32 @@ class Auth{
   
   private static function doCreate(){
     $count = Report::count("ERROR");
+    LanguageDetector::detect();
+    Language::load("auth");
     
     if(empty($_POST["username"]) || !trim($_POST["username"]))
-      Report::error("Missing username");
+      Report::error(Language::get("MISSING_USERNAME"));
     
     $p = true;
     if(empty($_POST["password"]) || !trim($_POST["password"])){
-      Report::error("Missing password");
+      Report::error(Language::get("MISSING_PASSWORD"));
       $p = false;
     }
     
     if(empty($_POST["repeat_password"]) || !trim($_POST["repeat_password"])){
-      Report::error("Missing repeat password");
+      Report::error(Language::get("MISSING_R_PASSWORD"));
       $p = false;
     }
     
     if($p && $_POST["repeat_password"] != $_POST["password"])
-      Report::error("The two passowrd is not equel");
+      Report::error(Language::get("PASSWORD_N_EQUEL"));
     
     if(empty($_POST["email"]) || !trim($_POST["email"]))
-      Report::error("Missing email");
+      Report::error(Language::get("MISSING_EMAIL"));
     
     if($count == Report::count("ERROR")){
       if(self::controleDetail($_POST["username"], $_POST["email"]) != null)
-        Report::error("Username or/and email is taken");
+        Report::error(Language::get("DATA_TAKEN"));
       else{
         self::createUser(
           $_POST["username"],
@@ -148,7 +156,7 @@ class Auth{
           $_POST["email"],
           false
           );
-        Report::okay("You account is created. Please look in you email for activate it");
+        Report::okay(Language::get("ACCOUNT_CREATET"));
       }
     }
     
@@ -178,6 +186,8 @@ class Auth{
   
   private static function doActivate(){
     $db = Database::get();
+    LanguageDetector::detect();
+    Language::load("auth");
     $data = $db->query("SELECT `id`
                         FROM `user`
                         WHERE `email`='{$db->escape($_GET["email"])}'
@@ -185,8 +195,8 @@ class Auth{
                         AND `isActivatet`='0';")->fetch();
     if($data){
       $db->query("UPDATE `user` SET `isActivatet`='1' WHERE `id`='{$data->id}';");
-      Report::okay("You account is now activated and can use the account");
+      Report::okay(Language::get("ACCOUNT_ACTIVATED"));
     }else
-      Report::error("Could not find the account");
+      Report::error(Language::get("UNKNOWN_ACCOUNT"));
   }
 }

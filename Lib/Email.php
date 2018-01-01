@@ -2,40 +2,42 @@
 namespace Lib;
 
 class Email{
+  private $args = [];
+  private $title = "";
+  private $message;
   private $arg = [];
   
-  public function pushArg(string $name, string $value){
-    $this->arg[$name] = $value;
-  }
-  
-  public function send(string $temp, string $to){
+  public function __construct(string $temp){
     $file = "Lib/Tempelate/Email/{$temp}.temp";
     if(!file_exists($file)){
-      exit("here");
       return false; 
     }
     
-    $title = "";
     $f = fopen($file, "r");
     if(!$f){
       return false;
     }
     
     while($line = trim(fgets($f))){
-      $title .= $line;
+      $this->title .= $line;
     }
     
-    $arg = [];
     while($line = trim(fgets($f))){
-      $arg[] = $line;
+      $this->arg[] = $line;
     }
-          
-    $message = "";
+    
     while(($line = fgets($f)) !== false){
-      $message .= $line;
+      $this->message .= $line;
     }
-    $arg[] = "from:".$this->convertEmailName(Config::get("system_name"))."@".$_SERVER["SERVER_NAME"];
-    mail($to, $title, $this->parseMessage($message), implode("\r\n", $arg));
+    $this->arg[] = "from:".$this->convertEmailName(Config::get("system_name"))."@".$_SERVER["SERVER_NAME"];
+  }
+  
+  public function send(string $to){
+    mail($to, $this->title, $this->parseMessage($this->message), implode("\r\n", $this->arg));
+  }
+  
+  public function pushArg(string $name, string $value){
+    $this->args[$name] = $value;
   }
   
   private function convertEmailName(string $name){
@@ -47,7 +49,7 @@ class Email{
   }
   
   private function parseMessage(string $message){
-    $arg = $this->arg;
+    $arg = $this->args;
     return preg_replace_callback(
       "/\{\{([a-zA-Z_.]*)\}\}/",
       function($m) use($arg){

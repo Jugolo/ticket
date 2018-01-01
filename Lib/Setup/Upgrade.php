@@ -4,6 +4,7 @@ namespace Lib\Setup;
 use Lib\Config;
 use Lib\Report;
 use Lib\Log;
+use Lib\Language\Language;
 
 class Upgrade{
   public static function upgrade(){
@@ -12,13 +13,13 @@ class Upgrade{
     $upgrade = new Upgrade(function($c){
       if($c->upgrade()){
         Config::set("version", $c->version);
-        Report::okay("Upgraded to ".$c->version);
+        Report::okay(Language::get("UPGRADE_TO", [$c->version]));
         if(version_compare(\Lib\Config::get("version"), "V3.3", '>')){
-          Log::system("System upgraded to %s", $c->version);
+          Log::system("LOG_SYSTEM_UPDATE", $c->version);
         }
         return true;
       }else{
-        Report::error("Failed to upgrade to ".$c->version);
+        Report::error(Language::get("FAILED_UPGRADE", [$c->version]));
         return false;
       }
     });

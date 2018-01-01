@@ -3,6 +3,7 @@ namespace Lib\Ext\Notification;
 
 use Lib\Database;
 use Lib\Database\DatabaseFetch;
+use Lib\Plugin\Event;
 
 class NewComment{
   public static function createNotify(int $hid, int $creater, bool $isPublic){
@@ -15,7 +16,7 @@ class NewComment{
                          GROUP BY comment.uid");
     $found = false;
     while($row = $query->fetch()){
-      if($row->uid != user["id"]){
+      if(!defined("user") || $row->uid != user["id"]){
         if($row->uid == $creater){
           if(!$isPublic){
            continue; 
@@ -38,7 +39,7 @@ class NewComment{
     }
   }
   
-  public static function onTicketDelete(int $id){
+  public static function onTicketDelete(Event $event, int $id){
     $db = Database::get();
     $db->query("DELETE FROM `notify` WHERE `name`='{$db->escape(__CLASS__)}' AND `item_id`='{$id}'");
   }
@@ -53,7 +54,8 @@ class NewComment{
       $hid,
       __CLASS__,
       "?view=tickets&ticket_id=".$hid,
-      user["username"]." has just comment on the ticket"
+      "NOTIFY_CREATE_COMMENT",
+      [defined("user") ? user["username"] : "unknwon"]
       );
   }
 }

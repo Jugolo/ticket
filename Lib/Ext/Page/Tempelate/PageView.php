@@ -7,6 +7,7 @@ use Lib\Config;
 use Lib\Report;
 use Lib\Log;
 use Lib\Page;
+use Lib\Language\Language;
 
 class PageView implements P{
   public function loginNeeded() : string{
@@ -24,21 +25,22 @@ class PageView implements P{
   }
   
   public function body(Tempelate $tempelate, Page $page){
+    Language::load("tempelate");
     if(!empty($_GET["select"]))
       $this->select($_GET["select"]);
     $tempelate->put("tempelates", $this->getTempelate());
-    $tempelate->render("tempelate", $page);
+    $tempelate->render("tempelate");
   }
   
   private function select(string $name){
     if(is_dir("Lib/Tempelate/Style/".$name)){
       Config::set("tempelate", $name);
-      Report::okay("Tempelate is updated");
-      Log::system("%s updated tempelate to %s", user["username"], $name);
+      Report::okay(Language::get("IS_UPDATED"));
+      Log::system("LOG_TEMPELATE_CHANGE", user["username"], $name);
       header("location: ?view=tempelate");
       exit;
     }else{
-      Report::error("Unknown tempelate");
+      Report::error(Language::get("UNKNWON_TEMPELATE"));
     }
   }
   

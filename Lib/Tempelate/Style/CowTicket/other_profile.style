@@ -2,13 +2,13 @@
 !-include head-!
 !-if not_activate-!
 <div class='box'>
-  <div class='information'>The account is not activated yet!-if access USER_ACTIVATE-!
-    <a href='?view=profile&user=!-uid-!&activate=true'>(Activate user)</a>!-endblock-!</div>
+  <div class='information'>!-language NOT_ACTIVATE-!!-if access USER_ACTIVATE-!
+    <a href='?view=profile&user=!-uid-!&activate=true'>(!-language ACTIVATE_USER-!)</a>!-endblock-!</div>
 </div>
 !-endblock-!
 !-if logs-!
 <div class='box'>
-  <div class='title'>Log</div>
+  <div class='title'>!-language LOG-!</div>
   !-foreach logs as log-!
   <div>
     [!-log["time"]-!]
@@ -18,22 +18,22 @@
 </div>
 !-endblock-!
 <div class='box'>
-  <div class='title'>Information</div>
+  <div class='title'>!-language INFO-!</div>
   <table class="table-fill">
     <tr>
-      <th>Username</th>
+      <th>!-language USERNAME-!</th>
       <td>!-profile_username-!</td>
     </tr>
     <tr>
-      <th>Email</th>
+      <th>!-language EMAIL-!</th>
       <td>!-email-!</td>
     </tr>
     <tr>
-      <th>Age</th>
+      <th>!-language AGE-!</th>
       <td>!-age-!</td>
     </tr>
     <tr>
-      <th>Group</th>
+      <th>!-language GROUP-!</th>
       <td>!-group-!</td>
     </tr>
   </table>

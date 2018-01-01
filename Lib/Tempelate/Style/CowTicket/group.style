@@ -2,22 +2,22 @@
 !-addCss style.input-!
 !-include head-!
 <div class='box'>
-  <div class='title'>Handle group</div>
+  <div class='title'>!-language HANDLE_GROUP-!</div>
   <table class='table-fill'>
     !-foreach groups as group-!
     <tr>
       <th>!-group["name"]-!</th>
       !-if access GROUP_DELETE-!
-      <td><a href='?view=handleGroup&sub=Delete&gid=!-group["id"]-!'>Delete group</a></td>
+      <td><a href='?view=handleGroup&sub=Delete&gid=!-group["id"]-!'>!-language DELETE_GROUP-!</a></td>
       !-endblock-!
       !-if access GROUP_ACCESS-!
-      <td><a href='?view=handleGroup&sub=Access&gid=!-group["id"]-!'>Change access</a></td>
+      <td><a href='?view=handleGroup&sub=Access&gid=!-group["id"]-!'>!-language CHANGE_ACCESS-!</a></td>
       !-endblock-!
       !-if access GROUP_STANDART-!
       !-if group["id"] == standart-!
       <td></td>
       !-else-!
-      <td><a href='?view=handleGroup&sub=Standart&gid=!-group["id"]-!'>Set standart</a></td>
+      <td><a href='?view=handleGroup&sub=Standart&gid=!-group["id"]-!'>!-language SET_STANDART-!</a></td>
       !-endblock-!
       !-endblock-!
     </tr>
@@ -26,13 +26,13 @@
 </div>
 !-if access GROUP_CREATE-!
 <div class='box'>
-  <div class='title'>Create new group</div>
+  <div class='title'>!-language CREATE_GROUP-!</div>
   <form action='#' method='post'>
     <div>
-      <input type='text' name='name' class='input' placeholder='Name'>
+      <input type='text' name='name' class='input' placeholder='!-language NAME-!'>
     </div>
     <div>
-      <input type='submit' value='Create group' class='input'>
+      <input type='submit' value='!-language CREATE_GROUP-!' class='input'>
     </div>
   </form>
 </div>

@@ -21,7 +21,9 @@ class Setup{
   
   public static function uninstall(){
     Auth::deleteUser(Config::get("github_user"));
-    Category::delete(Config::get("github_cat"));
+    $id = Config::get("github_cat");
+    Config::set("github_cat", "");
+    Category::delete($id);
     Config::delete("github_cat");
     Config::delete("github_user");
     $db = Database::get();

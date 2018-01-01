@@ -4,12 +4,26 @@ namespace Lib\Tempelate;
 use Lib\Exception\TempelateException;
 
 class Tokenizer{
-  private $index = 0;
-  private $code;
+  private $reader;
   private $buffer;
+  private $controler = "";
+  private $systemKeyword = [
+    "and",
+    "or",
+    "not",
+    "as",
+    "config",
+    "access",
+    "else",
+    "elseif",
+    "loggedIn",
+    "endblock",
+    "pageAccess",
+    ];
   
-  public function __construct(string $code){
-    $this->code = $code;
+  public function __construct(TempelateFileReader $reader, TempelateControler $controler){
+    $this->reader    = $reader;
+    $this->controler = $controler;
   }
   
   public function current() : TokenBuffer{
@@ -20,10 +34,6 @@ class Tokenizer{
   
   public function next() : TokenBuffer{
     return $this->buffer = $this->generate();
-  }
-  
-  public function end(){
-    return $this->index > strlen($this->code)-1;
   }
   
   private function generate() : TokenBuffer{
@@ -45,27 +55,41 @@ class Tokenizer{
   
   private function getPunctor(string $code){
     switch($code){
+      case "@":
+        return $this->buffer("PUNCTOR", "@");
+      case "?":
+        return $this->buffer("PUNCTOR", "?");
       case ".":
-        return new TokenBuffer("PUNCTOR", ".");
+        return $this->buffer("PUNCTOR", ".");
       case ":":
-        return new TokenBuffer("PUNCTOR", ":");
-      case "!":
-        if($this->end() || $this->code[$this->index] != "=")
-          throw new TempelateException("Unexpected char !");
-        $this->index++;
-        return new TokenBuffer("PUNCTOR", "!=");
-      case "=":
-        if(!$this->end() && $this->code[$this->index] == "="){
-          $this->index++;
-          return new TokenBuffer("PUNCTOR", "==");
+        return $this->buffer("PUNCTOR", ":");
+      case "(":
+        return $this->buffer("PUNCTOR", "(");
+      case ")":
+        return $this->buffer("PUNCTOR", ")");
+      case "-":
+        if($this->reader->peek() == "!"){
+          $this->reader->read();
+          return $this->buffer("ECB", "End code block");
         }
-        return new TokenBuffer("PUNCTOR", "=");
+        return $this->buffer("PUNCTOR", "-");
+      case "!":
+        if($this->reader->eof() || $this->reader->peek() != "=")
+          throw new TempelateException("Unexpected char !", $this->reader->getFile(), $this->reader->getLine());
+        $this->reader->read();
+        return $this->buffer("PUNCTOR", "!=");
+      case "=":
+        if(!$this->reader->eof() && $this->reader->peek() == "="){
+          $this->reader->read();
+          return $this->buffer("PUNCTOR", "==");
+        }
+        return $this->buffer("PUNCTOR", "=");
       case "[":
-        return new TokenBuffer("PUNCTOR", "[");
+        return $this->buffer("PUNCTOR", "[");
       case "]":
-        return new TokenBuffer("PUNCTOR", "]");
+        return $this->buffer("PUNCTOR", "]");
     }
-    throw new TempelateException("Unexpected char ".$code);
+    throw new TempelateException("Unexpected char '{$code}'(".ord($code).")", $this->reader->getFile(), $this->reader->getLine());
   }
   
   private function number(string $char){
@@ -76,31 +100,29 @@ class Tokenizer{
   private function getString(string $end){
     $str = "";
     while(true){
-      if($this->end())
-        throw new TempelateException("Missing end of string. Get end of file");
-      $char = $this->code[$this->index];
-      $this->index++;
+      if($this->reader->eof())
+        throw new TempelateException("Missing end of string. Get end of file", $this->reader->getFile(), $this->reader->getLine());
+      $char = $this->reader->read();
       if($end == $char)
         break;
       $str .= $char;
     }
-    return new TokenBuffer("STRING", $str);
+    return $this->buffer("STRING", $str);
   }
   
   private function getNumber(string $char){
     $number = $char.$this->getRawNumber();
-    if(!$this->end() && $this->code[$this->index] == "."){
-      $this->index++;
+    if(!$this->reader->eof() && $this->reader->peek() == "."){
+      $this->reader->read();
       $number .= ".".$this->getRawNumber();
     }
-    return new TokenBuffer("NUMBER", $number);
+    return $this->buffer("NUMBER", $number);
   }
   
   private function getRawNumber(){
     $result = "";
-    while(!$this->end() && $this->number($this->code[$this->index])){
-      $result .= $this->code[$this->index];
-      $this->index++;
+    while(!$this->reader->eof() && $this->number($this->reader->peek())){
+      $result .= $this->reader->read();
     }
     return $result;
   }
@@ -115,13 +137,12 @@ class Tokenizer{
   }
   
   private function getVariabel(string $identify){
-    while(!$this->end()){
-      if(!$this->variabel($this->code[$this->index]))
-        break;
-      $identify .= $this->code[$this->index];
-      $this->index++;
-    }
-    
+    while(!$this->reader->eof() && $this->variabel($this->reader->peek()))
+      $identify .= $this->reader->read();
+     
+    if($this->controler->hasControler($identify) || in_array($identify, $this->systemKeyword))
+      return $this->buffer("KEYWORD", $identify);
+    /*
     if(in_array($identify, [
       "include",
       "addCss",
@@ -142,22 +163,27 @@ class Tokenizer{
       "set",
       "or",
       "and",
-      "not"
+      "not",
+      "language",
+      "plugin",
       ]))
-       return new TokenBuffer("KEYWORD", $identify);
+       return new TokenBuffer("KEYWORD", $identify);*/
     
-    return new TokenBuffer("IDENTIFY", $identify);
+    return $this->buffer("IDENTIFY", $identify);
   }
   
   private function toNextChar(){
-    while(!$this->end()){
-      $char = $this->code[$this->index];
-      $this->index++;
-      if($char == " "){
+    while(!$this->reader->eof()){
+      $char = $this->reader->read();
+      if($char == " " || $char == "\r"){
         continue;
       }
       return $char;
     }
     return null;
+  }
+  
+  private function buffer(string $type, string $value){
+    return new TokenBuffer($type, $value, $this->reader);
   }
 }

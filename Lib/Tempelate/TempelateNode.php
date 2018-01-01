@@ -2,5 +2,5 @@
 namespace Lib\Tempelate;
 
 interface TempelateNode{
-  public function toCode() : string;
+  public function toString() : string;
 }
