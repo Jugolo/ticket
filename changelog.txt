@@ -1,3 +1,16 @@
+V4.1 - 4.2.2020
+--New--
+File upload: Its now posiple to allow file uploads in ticket
+Email flood controle - From now on it will deniad to send email if it detect to many trying to send them. 
+Page in ticket over view, Comments.
+On users profile page you will now finde any ticket the user have writen.
+Tempelate now support macros
+--Change--
+BB code smylie now change to use char and not image
+Table name now containe a prefix
+From now we not save date time but save the return value of time() when data is saved in database
+Ticket overview are redesigned to more clean looking and easy over view
+
 V3.0 - 6.10.2017
 --New--
 Send email to user when a new ticket is created or on new comments. 
