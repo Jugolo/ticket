@@ -3,7 +3,7 @@
 <div class='box'>
   <div class='title'>!-language APPLY_TO name-!</div>
   !-if field-!
-  <form method='post' action='?view=apply&to=!-category_id-!&done=true'>
+  <form method='post' action='?view=apply&to=!-category_id-!&done=true' enctype="multipart/form-data">
     <table class="table-fill">
       !-foreach field as item-!
       !-if item["type"] != 2-!
@@ -14,6 +14,8 @@
           <option value="!-option['id']-!">!-option["value"]-!</option>
           !-endblock-!
           </select>
+          !-elseif item["type"] == 4-!
+          <input type='file' name='!-item["id"]-!'>
           !-else-!
           <input type='text' name='!-item["id"]-!' placeholder='!-item["placeholder"]-!' class='input'!-if item["saved"]-! value='!-item["saved"]-!'!-endblock-!>
           !-endblock-!</td>

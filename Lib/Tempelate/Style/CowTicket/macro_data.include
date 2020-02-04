@@ -1,0 +1,13 @@
+!-macro pageNumber(before, data, next, current, all, url_prefix)-!
+  !-if data-!
+  <div class='pages_container'>
+    <div class='pages' data-current='!-current-!' data-last='!-all-!' data-url='!-url_prefix-!'>
+      !-if before-!
+      <button data-state='front'><</button><button data-state='back'><<</button>!-endblock-!
+      !-foreach data as page-!<button !-if page["current"]-!disabled!-endblock-! data-page='!-page["page"]-!'>!-page["show"]-!</button>!-endblock-!
+      !-if forward-!<button data-state='next'>>></button><button data-state='last'>></button>
+      !-endblock-!
+    </div>
+  </div>
+  !-endblock-!
+!-endblock-!

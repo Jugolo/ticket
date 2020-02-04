@@ -30,6 +30,43 @@ var System = {
   }
 };
 
+System.onclick = {
+  buffer : [],
+  
+  add : function(callback){
+    if(typeof callback == "function")
+      this.buffer.push(callback);
+  },
+  
+  remove : function(callback){
+    this.buffer.splice(this.buffer.indexOf(callback, 1));
+  },
+  
+  trigger : function(e){
+    var obj = {
+      isIn : function(dom){
+        var target = e.target;
+        while(target){
+          if(target == dom)
+            return true;
+          target = target.parentNode;
+        }
+        return false;
+      }
+    };
+    for(var i=0;i<this.buffer.length;i++)
+      this.buffer[i](obj);
+  },
+  
+  getIndex : function(callback){
+    for(var i=0;i<this.buffer.length;i++){
+      if(this.buffer[i] == callback)
+        return i;
+    }
+    return -1;
+  }
+};
+
 System.dom = {
   remove : function(dom){
     dom.parentNode.removeChild(dom);
@@ -104,7 +141,6 @@ System.notify = {
   update : function(data){
     if(data.length == 0)
       return;
-    
     this.cache = this.cache.concat(data);
     for(var i=0;i<data.length;i++){
       if(data[i].seen == 0)
@@ -114,10 +150,21 @@ System.notify = {
         this.id = id;
     }
     
-    document.getElementsByClassName("notify")[0].getElementsByClassName("count")[0].innerHTML = this.unseen;
+    this.getUnseen(this.unseen);
+  },
+  
+  getUnseen : function(num){
+    var dom = document.getElementsByClassName("notify")[0].getElementsByClassName("count")[0];
+    if(typeof num === "number")
+      dom.innerHTML = num;
+   
+    return dom.innerHTML;
   },
   
   showList : function(dom){
+    if(this.cache.length == "0")
+      return;
+    
     var menu = document.getElementById("notify_menu");
     if(!menu){
       menu = document.createElement("div");
@@ -173,6 +220,34 @@ System.notify = {
 
 window.onerror = function(msg){
   alert(msg);
+};
+
+System.onload.push(function(){
+  var profile = element("#profile-container");
+  var button = element("#root-head-right .profile");
+  if(profile.count){
+    button.on("click", function(){
+      profile.style("display", "block");
+      System.onclick.add(function g(h){
+        if(!h.isIn(profile.getDom()) && !h.isIn(button.getDom())){
+          System.onclick.remove(g);
+          profile.style("display", "none");
+        }
+      });
+    });
+    var db = button.getDom();
+    profile.style("top", (db.offsetTop + db.offsetHeight + 10)+"px");
+    var cw = document.body.clientWidth;
+    var left = db.offsetLeft;
+    if(left + db.offsetWidth > cw)
+      profile.style("right", "3px");
+    else
+      profile.style("left", left+"px");
+  }
+});
+
+document.onclick = function(e){
+  System.onclick.trigger(e);
 };
 
 window.onload = function(){

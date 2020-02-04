@@ -42,7 +42,7 @@ class Event implements PluginInterface{
   }
   
   public function onTicketDelete(E $event, int $id){
-    Database::get()->query("DELETE FROM `githubbot` WHERE `ticket_id`='{$id}'");
+    Database::get()->query("DELETE FROM `".DB_PREFIX."githubbot` WHERE `ticket_id`='{$id}'");
   }
   
   public function onTicketOpen(E $event, int $tid, int $uid, string $username){
@@ -50,7 +50,7 @@ class Event implements PluginInterface{
        return;
     
     $db = Database::get();
-    $data = $db->query("SELECT `number` FROM `githubbot` WHERE `ticket_id`='{$tid}';")->fetch();
+    $data = $db->query("SELECT `number` FROM `".DB_PREFIX."githubbot` WHERE `ticket_id`='{$tid}';")->fetch();
     if(!$data)
       return;
     
@@ -73,7 +73,7 @@ class Event implements PluginInterface{
        return;
     
     $db = Database::get();
-    $data = $db->query("SELECT `number` FROM `githubbot` WHERE `ticket_id`='{$tid}';")->fetch();
+    $data = $db->query("SELECT `number` FROM `".DB_PREFIX."githubbot` WHERE `ticket_id`='{$tid}';")->fetch();
     if(!$data)
       return;
     
@@ -97,7 +97,7 @@ class Event implements PluginInterface{
     
     //wee se if this belongs to a github issues ticket
     $db = Database::get();
-    $data = $db->query("SELECT `number` FROM `githubbot` WHERE `ticket_id`='{$tid}'")->fetch();
+    $data = $db->query("SELECT `number` FROM `".DB_PREFIX."githubbot` WHERE `ticket_id`='{$tid}'")->fetch();
     if(!$data)
       return;
     
@@ -159,7 +159,7 @@ class Event implements PluginInterface{
       return;
     //Get first the data from our owen database to finde link betwen the issues and our ticket
     $db = Database::get();
-    $data = $db->query("SELECT `ticket_id` FROM `githubbot` WHERE `item_id`='{$controler->id()}';")->fetch(function(int $id) use($controler){
+    $data = $db->query("SELECT `ticket_id` FROM `".DB_PREFIX."githubbot` WHERE `item_id`='{$controler->id()}';")->fetch(function(int $id) use($controler){
       Ticket::createComment(
         $id,
         Config::get("github_user"),
@@ -188,13 +188,13 @@ class Event implements PluginInterface{
   }
   
   private function openTicket($issues){
-    Database::get()->query("SELECT `ticket_id` FROM `githubbot` WHERE `item_id`='{$issues->id()}';")->fetch(function(int $id) use($controler){
+    Database::get()->query("SELECT `ticket_id` FROM `".DB_PREFIX."githubbot` WHERE `item_id`='{$issues->id()}';")->fetch(function(int $id) use($controler){
       Ticket::open($id, Config::get("github_user"));
     });
   }
   
   private function closeTicket($issues){
-    Database::get()->query("SELECT `ticket_id` FROM `githubbot` WHERE `item_id`='{$issues->id()}';")->fetch(function(int $id) use($controler){
+    Database::get()->query("SELECT `ticket_id` FROM `".DB_PREFIX."githubbot` WHERE `item_id`='{$issues->id()}';")->fetch(function(int $id) use($controler){
       Ticket::close($id, Config::get("github_user"));
     });
   }
@@ -218,7 +218,7 @@ class Event implements PluginInterface{
         ]
       ]);
     $db = Database::get();
-    $db->query("INSERT INTO `githubbot` VALUES ('ISSUES', '{$issues->id()}', '{$id}', '{$issues->number()}');");
+    $db->query("INSERT INTO `".DB_PREFIX."githubbot` VALUES ('ISSUES', '{$issues->id()}', '{$id}', '{$issues->number()}');");
     echo "Thanks the issues is now saved in our database";
   }
   

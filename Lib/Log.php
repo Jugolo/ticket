@@ -6,7 +6,7 @@ use Lib\Plugin\Event;
 
 class Log{
   public static function onTicketDelete(Event $event, int $id){
-    Database::get()->query("DELETE FROM `log` WHERE `type`='TICKET' AND `tid`='{$id}'");
+    Database::get()->query("DELETE FROM `".DB_PREFIX."log` WHERE `type`='TICKET' AND `tid`='{$id}'");
   }
   
   public static function system(string $message, ...$arg){
@@ -38,12 +38,12 @@ class Log{
     if($hid > 1){
       $extra = " AND `tid`='{$hid}'";
     }
-    return new LogResult(Database::get()->query("SELECT `created`, `message`, `arg` FROM `log` WHERE `type`='{$type}'{$extra}"));
+    return new LogResult(Database::get()->query("SELECT `created`, `message`, `arg` FROM `".DB_PREFIX."log` WHERE `type`='{$type}'{$extra}"));
   }
   
   private static function save(string $type, int $tid, string $msg, array $data){
      $db = Database::get();
-     $db->query("INSERT INTO `log` (
+     $db->query("INSERT INTO `".DB_PREFIX."log` (
        `type`,
        `created`,
        `uid`,
@@ -52,7 +52,7 @@ class Log{
        `arg`
      ) VALUES (
        '{$type}',
-       NOW(),
+       '".time()."',
        '".(defined("user") ? user["id"] : "0")."',
        '{$tid}',
        '{$db->escape($msg)}',

@@ -33,7 +33,11 @@ class Email{
   }
   
   public function send(string $to){
-    mail($to, $this->title, $this->parseMessage($this->message), implode("\r\n", $this->arg));
+    //clean old floods control 
+    if(Flood::controle("EMAIL"))
+      mail($to, $this->title, $this->parseMessage($this->message), implode("\r\n", $this->arg));
+    else
+      Log::system("LOG_EMAIL_FLOOD", $to, IP);
   }
   
   public function pushArg(string $name, string $value){

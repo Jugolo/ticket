@@ -18,7 +18,7 @@ class Error{
         return;
       }
   
-      $db->query("INSERT INTO `error` (
+      $db->query("INSERT INTO `".DB_PREFIX."error` (
           `errno`,
           `errstr`,
           `errfile`,

@@ -13,6 +13,7 @@ use Lib\Tempelate\Builder\TempelateGetStyleBuilder;
 use Lib\Tempelate\Builder\TempelateAddScriptBuilder;
 use Lib\Tempelate\Builder\TempelateGetScriptBuilder;
 use Lib\Tempelate\Builder\TempelateSetBuilder;
+use Lib\Tempelate\Builder\TempelateMacroBuilder;
 use Lib\Exception\TempelateException;
 use Lib\Tempelate;
 
@@ -31,6 +32,7 @@ class TempelateControler{
     $controler->put("addScript", new TempelateAddScriptBuilder());
     $controler->put("getScript", new TempelateGetScriptBuilder());
     $controler->put("set",       new TempelateSetBuilder());
+    $controler->put("macro",     new TempelateMacroBuilder());
     
     Plugin::trigger_event("system.tempelate.controler.init", $controler);
     return $controler;

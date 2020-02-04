@@ -10,4 +10,6 @@ $lang = [
   "DATA_DEC"        => "All data you publish will you lose your rights to. It is up to the owner of this page to decide what will be released. We only try to collect the necessary data to make the site work. All data that the page has is something you have given this page.",
   "EMAIL"           => "Email",
   "EMAIL_DEC"       => "This page sends you emails via the email address you provided during your user's creation or the one you've changed it to. It sends mail to you when things happen that you have shown intrinsically. This may be the ticket you have made or there is an answer to a ticket you have commented on.",
+  "COOKIE"          => "Cookie",
+  "COOKIE_DEC"      => "This site use cookie and if you not have accept it we try each time you load one of our page to get your accept. When you try to login you accept we save cookie in your browser. when you not have accept cookie we want not save cookie on your browser."
   ];

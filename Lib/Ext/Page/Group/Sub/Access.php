@@ -72,7 +72,7 @@ class Access{
   
   private static function getData(){
     $db = Database::get();
-    return $db->query("SELECT * FROM `group` WHERE `id`='{$db->escape($_GET["gid"])}';")->fetch();
+    return $db->query("SELECT * FROM `".DB_PREFIX."group` WHERE `id`='{$db->escape($_GET["gid"])}';")->fetch();
   }
   
   private static function buildAccessTree(Tempelate $tempelate) : AccessTreeBuilder{

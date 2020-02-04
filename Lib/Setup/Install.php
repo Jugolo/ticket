@@ -10,6 +10,9 @@ class Install{
   private static $okay = false;
   
   public static function install(){
+    if(empty($_COOKIE["accept_cookie"]))
+      session_start();
+    
     switch(empty($_GET["step"]) ? "1" : $_GET["step"]){
       case "1":
         self::information();
@@ -43,6 +46,7 @@ class Install{
     fwrite($fopen, "\r\ndefine('DB_USER', '{$_SESSION["setup"]["db_user"]}');");
     fwrite($fopen, "\r\ndefine('DB_PASS', '{$_SESSION["setup"]["db_password"]}');");
     fwrite($fopen, "\r\ndefine('DB_TABLE', '{$_SESSION["setup"]["db_table"]}');");
+    fwrite($fopen, "\r\ndefine('DB_PREFIX', '{$_SESSION["setup"]["db_prefix"]}');");
     fwrite($fopen, "\r\ndefine('db_driver', 'Mysqli');");
     fclose($fopen);
     echo "<h3 style='color:green;'>Setup done</h3>";
@@ -121,11 +125,13 @@ class Install{
       self::$okay = false;
       return;
     }
+    
+    define("DB_PREFIX", $_SESSION["setup"]["db_prefix"]);
     $db = Database::get();
     
-    $db->query("INSERT INTO `group` VALUES (1, 'User'),
+    $db->query("INSERT INTO `".DB_PREFIX."group` VALUES (1, 'User'),
                                            (2, 'Admin');");
-    $db->query("INSERT INTO `access` VALUES (2, 'CATEGORY_CREATE'),
+    $db->query("INSERT INTO `".DB_PREFIX."access` VALUES (2, 'CATEGORY_CREATE'),
                                             (2, 'CATEGORY_DELETE'),
                                             (2, 'CATEGORY_CLOSE'),
                                             (2, 'CATEGORY_APPEND'),
@@ -155,13 +161,21 @@ class Install{
                                             (2, 'TICKET_SEEN'),
                                             (2, 'PLUGIN_INSTALL'),
                                             (2, 'PLUGIN_UNINSTALL');");
-    $db->query("INSERT INTO `config` VALUES ('version', '".Main::SETUP_VERSION."'),
+    $db->query("INSERT INTO `".DB_PREFIX."config` VALUES ('version', '".Main::SETUP_VERSION."'),
                                             ('standart_group', '1'),
                                             ('cat_open', '0'),
                                             ('front', ''),
                                             ('system_name', '{$db->escape($_POST["system_name"])}'),
                                             ('tempelate', 'CowTicket'),
                                             ('standart_language', 'En');");
+    $db->query("INSERT INTO `".DB_PREFIX."cronwork` (`id`, `cronwork`, `next`, `interval`) VALUES (NULL, 'Lib\\\\Cronwork\\\\Image::gc', 0, 2052000)");
+    $db->query("INSERT INTO `".DB_PREFIX."cronwork` (`id`, `cronwork`, `next`, `interval`) VALUES (NULL, 'Lib\\\\Ticket\\\\TicketDeleter::gc', '0', '2052000');");
+    $db->query("INSERT INTO `".DB_PREFIX."file_group` (`id`, `name`) VALUES (NULL, '@language.IMAGE');");
+    $db->query("INSERT INTO `".DB_PREFIX."ticket_extension` (`gid`, `name`, `mimetype`) VALUES
+                                                            ('1', 'jpg', 'image/jpg'),
+                                                            ('1', 'jpeg', 'image/jpg'),
+                                                            ('1', 'png', 'image/png');");
+    
     define("force_lang", "En");
     $id =Auth::createUser(
       $_POST["username"],
@@ -169,7 +183,7 @@ class Install{
       $_POST["email"],
       true
       );
-    $db->query("UPDATE `user` SET `groupid`='2' WHERE `id`='{$id}'");
+    $db->query("UPDATE `".DB_PREFIX."user` SET `groupid`='2' WHERE `id`='{$id}'");
     if(!is_dir("Lib/Temp"))
       mkdir("Lib/Temp");
     Log::system("LOG_SYSTEM_INSTALL");
@@ -182,17 +196,20 @@ class Install{
       header("location: ?step=2");
       exit;
     }
+    
+    $prefix = $_SESSION["setup"]["db_prefix"];
+    
     $table = [
-        "plugin"    => "CREATE TABLE `plugin` ( 
+        "plugin"    => "CREATE TABLE `{$prefix}plugin` ( 
                           `id` INT(11) NOT NULL AUTO_INCREMENT,
                           `path` VARCHAR(255) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
                           PRIMARY KEY(`id`)
                         ) ENGINE = InnoDB DEFAULT CHARSET=utf8;",
-        "access"    => "CREATE TABLE IF NOT EXISTS `access` (
+        "access"    => "CREATE TABLE IF NOT EXISTS `{$prefix}access` (
                           `gid` int(11) NOT NULL,
                           `name` varchar(255) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL
                         ) ENGINE=InnoDB DEFAULT CHARSET=utf8;",
-        "catogory" => "CREATE TABLE IF NOT EXISTS `catogory` (
+        "catogory" => "CREATE TABLE IF NOT EXISTS `{$prefix}catogory` (
                          `id` int(11) NOT NULL AUTO_INCREMENT,
                          `name` varchar(255) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
                          `open` int(1) NOT NULL,
@@ -202,7 +219,7 @@ class Install{
                          `sort_ordre` int(11) DEFAULT NULL,
                          PRIMARY KEY (`id`)
                        ) ENGINE=InnoDB DEFAULT CHARSET=utf8;",
-        "category_item"  => "CREATE TABLE IF NOT EXISTS `category_item` (
+        "category_item"  => "CREATE TABLE IF NOT EXISTS `{$prefix}category_item` (
                                `id` int(11) NOT NULL AUTO_INCREMENT,
                                `cid` int(11) NOT NULL,
                                `type` int(11) NOT NULL,
@@ -210,21 +227,21 @@ class Install{
                                `placeholder` text CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
                                PRIMARY KEY (`id`)
                              ) ENGINE=InnoDB DEFAULT CHARSET=utf8;",
-        "comment"  => "CREATE TABLE IF NOT EXISTS `comment` (
+        "comment"  => "CREATE TABLE IF NOT EXISTS `{$prefix}comment` (
                          `id` int(11) NOT NULL AUTO_INCREMENT,
                          `tid` int(11) NOT NULL,
                          `uid` int(11) NOT NULL,
                          `public` int(1) NOT NULL,
-                         `created` datetime NOT NULL,
-                         `message` text CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
-                         `parsed_message` text CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
+                         `created` int(11) NOT NULL,
+                         `message` text CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+                         `parsed_message` text CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
                          PRIMARY KEY (`id`)
-                       ) ENGINE=InnoDB DEFAULT CHARSET=utf8;",
-        "config"   => "CREATE TABLE IF NOT EXISTS `config` (
+                       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
+        "config"   => "CREATE TABLE IF NOT EXISTS `{$prefix}config` (
                          `name` varchar(255) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
                          `value` text CHARACTER SET utf8 COLLATE utf8_bin NOT NULL
                        ) ENGINE=InnoDB DEFAULT CHARSET=utf8;",
-        "error"    => "CREATE TABLE IF NOT EXISTS `error` (
+        "error"    => "CREATE TABLE IF NOT EXISTS `{$prefix}error` (
                          `id` int(11) NOT NULL AUTO_INCREMENT,
                          `errno` int(11) NOT NULL,
                          `errstr` varchar(255) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
@@ -233,21 +250,22 @@ class Install{
                          `errtime` datetime NOT NULL,
                          PRIMARY KEY (`id`)
                        ) ENGINE=InnoDB DEFAULT CHARSET=utf8;",
-        "group"    => "CREATE TABLE IF NOT EXISTS `group` (
+        "group"    => "CREATE TABLE IF NOT EXISTS `{$prefix}group` (
                          `id` int(11) NOT NULL AUTO_INCREMENT,
                          `name` varchar(255) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
                          PRIMARY KEY (`id`)
                        ) ENGINE=InnoDB DEFAULT CHARSET=utf8;",
-        "log"      => "CREATE TABLE IF NOT EXISTS `log` ( 
+        "log"      => "CREATE TABLE IF NOT EXISTS `{$prefix}log` ( 
                          `id` INT(11) NOT NULL AUTO_INCREMENT ,
                          `type` VARCHAR(255) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL ,
-                         `created` DATETIME NOT NULL , `uid` INT(11) NOT NULL,
+                         `created` int(11) NOT NULL ,
+                         `uid` INT(11) NOT NULL,
                          `tid` INT(11) NOT NULL,
                          `message` TEXT CHARACTER SET utf8 COLLATE utf8_bin NOT NULL, 
                          `arg` TEXT CHARACTER SET utf8 COLLATE utf8_bin NULL, 
                          PRIMARY KEY (`id`)
                        ) ENGINE = InnoDB DEFAULT CHARSET=utf8;",
-        "notify"   => "CREATE TABLE IF NOT EXISTS `notify` (
+        "notify"   => "CREATE TABLE IF NOT EXISTS `{$prefix}notify` (
                          `id` int(11) NOT NULL AUTO_INCREMENT,
                          `uid` int(11) NOT NULL,
                          `item_id` int(11) NOT NULL,
@@ -255,32 +273,32 @@ class Install{
                          `link` varchar(255) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
                          `message` text CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
                          `arg` text CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
-                         `created` datetime NOT NULL,
+                         `created` int(11) NOT NULL,
                          `seen` int(1) NOT NULL,
                          PRIMARY KEY (`id`)
                        ) ENGINE=InnoDB DEFAULT CHARSET=utf8;",
-        "notify_setting" => "CREATE TABLE IF NOT EXISTS `notify_setting` (
+        "notify_setting" => "CREATE TABLE IF NOT EXISTS `{$prefix}notify_setting` (
                               `uid` int(11) NOT NULL,
                               `name` varchar(255) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL
                             ) ENGINE=InnoDB DEFAULT CHARSET=utf8;",
-        "ticket"  => "CREATE TABLE IF NOT EXISTS `ticket` (
+        "ticket"  => "CREATE TABLE IF NOT EXISTS `{$prefix}ticket` (
                         `id` int(11) NOT NULL AUTO_INCREMENT,
                         `cid` int(11) NOT NULL,
                         `uid` int(11) NOT NULL,
                         `comments` int(11) NOT NULL,
                         `admin_comments` int(11) NOT NULL,
-                        `created` datetime NOT NULL,
-                        `user_changed` datetime NOT NULL,
-                        `admin_changed` datetime NOT NULL,
+                        `created` int(11) NOT NULL,
+                        `user_changed` int(11) NOT NULL,
+                        `admin_changed` int(11) NOT NULL,
                         `open` int(1) NOT NULL,
                         PRIMARY KEY (`id`)
                       ) ENGINE=InnoDB DEFAULT CHARSET=utf8;",
-         "ticket_track" => "CREATE TABLE IF NOT EXISTS `ticket_track` (
+         "ticket_track" => "CREATE TABLE IF NOT EXISTS `{$prefix}ticket_track` (
                               `uid` int(11) NOT NULL,
                               `tid` int(11) NOT NULL,
-                              `visit` datetime NOT NULL
+                              `visit` int(11) NOT NULL
                             ) ENGINE=InnoDB DEFAULT CHARSET=utf8;",
-         "ticket_value" => "CREATE TABLE IF NOT EXISTS `ticket_value` (
+         "ticket_value" => "CREATE TABLE IF NOT EXISTS `{$prefix}ticket_value` (
                               `id` int(11) NOT NULL AUTO_INCREMENT,
                               `hid` int(11) NOT NULL,
                               `text` varchar(255) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
@@ -288,7 +306,7 @@ class Install{
                               `value` varchar(255) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
                               PRIMARY KEY (`id`)
                             ) ENGINE=InnoDB DEFAULT CHARSET=utf8;",
-        "user" => "CREATE TABLE IF NOT EXISTS `user` (
+        "user" => "CREATE TABLE IF NOT EXISTS `{$prefix}user` (
                      `id` int(11) NOT NULL AUTO_INCREMENT,
                      `username` varchar(255) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
                      `password` varchar(255) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
@@ -301,7 +319,40 @@ class Install{
                      `birth_year` int(11) DEFAULT NULL,
                      `lang` varchar(255) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
                      PRIMARY KEY (`id`)
-                   ) ENGINE=InnoDB DEFAULT CHARSET=utf8;"
+                   ) ENGINE=InnoDB DEFAULT CHARSET=utf8;",
+        "cronwork" => "CREATE TABLE `{$prefix}cronwork` (
+                         `id` INT(11) NOT NULL AUTO_INCREMENT,
+                         `cronwork` VARCHAR(255) NOT NULL,
+                         `next` INT(11) NOT NULL,
+                         `interval` INT(11) NOT NULL,
+                         PRIMARY KEY (`id`)
+                       ) ENGINE = InnoDB;",
+        "file_group" => "CREATE TABLE `{$prefix}file_group`(
+                           `id` INT(11) NOT NULL AUTO_INCREMENT,
+                           `name` VARCHAR(255) NOT NULL,
+                           PRIMARY KEY  (`id`)
+                         ) ENGINE = InnoDB;",
+        "file_extension" => "CREATE TABLE `{$prefix}file_extension`(
+                               `id` INT(11) NOT NULL AUTO_INCREMENT, 
+                               `gid` INT(11) NOT NULL,  
+                               `name` VARCHAR(255) NOT NULL , 
+                               `mimetype` VARCHAR(255) NOT NULL,   
+                               PRIMARY KEY  (`id`)
+                             ) ENGINE = InnoDB;",
+        "flood" => "CREATE TABLE `{$prefix}flood`(
+                      `id` int(11) NOT NULL AUTO_INCREMENT,
+                      `time` int(11) NOT NULL,
+                      `type` varchar(255) COLLATE utf8mb4_bin NOT NULL,
+                      `ip` varchar(255) COLLATE utf8mb4_bin NOT NULL,
+                      PRIMARY KEY (`id`)
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;",
+        "files" => "CREATE TABLE `{$prefix}files`(
+                      `id` int(11) NOT NULL AUTO_INCREMENT,
+                      `item_id` int(11) NOT NULL,
+                      `name` varchar(255) COLLATE utf8mb4_bin NOT NULL,
+                      `created` int(11) NOT NULL,
+                      PRIMARY KEY (`id`)
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;"
       ];
     $db = Database::get();
     
@@ -347,6 +398,10 @@ class Install{
           <td><input type='text' name='table'></td>
         </tr>
         <tr>
+          <th>Database prefix</th>
+          <td><input type='text' name='prefix'></td>
+        </tr>
+        <tr>
           <td colspan='2'>
             <input type='submit' name='test' value='Test config' style='width:100%;'>
           </td>
@@ -373,6 +428,10 @@ class Install{
       self::$okay = false;
       return;
     }
+    if(empty($_POST["prefix"]) || !trim($_POST["prefix"])){
+      self::$okay = false;
+      return;
+    }
     $mysqli = new \Mysqli($_POST["host"], $_POST["user"], $_POST["password"], $_POST["table"]);
     if($mysqli->connect_error){
       self::$okay = false;
@@ -383,6 +442,7 @@ class Install{
         "db_user"     => $_POST["user"],
         "db_password" => $_POST["password"],
         "db_table"    => $_POST["table"],
+        "db_prefix"   => $_POST["prefix"],
         "db_driver"   => "Mysqli"
       ];
     header("location: ?step=3");

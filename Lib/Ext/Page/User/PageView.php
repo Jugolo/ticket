@@ -36,7 +36,7 @@ class PageView implements P{
       if(!empty($_GET["delete"]) && Access::userHasAccess("USER_DELETE")){
         $this->deleteuser(intval($_GET["delete"]));
       }
-      $query = Database::get()->query("SELECT `id`, `username` FROM `user`");
+      $query = Database::get()->query("SELECT `id`, `username` FROM `".DB_PREFIX."user`");
       $list = [];
       while($row = $query->fetch())
         $list[] = $row->toArray();
@@ -60,7 +60,7 @@ class PageView implements P{
   
     $db = Database::get();
     //wee found the user now
-    $user = $db->query("SELECT `id`, `username`, `groupid` FROM `user` WHERE `id`='".$db->escape($_GET["uid"])."'")->fetch();
+    $user = $db->query("SELECT `id`, `username`, `groupid` FROM `".DB_PREFIX."user` WHERE `id`='".$db->escape($_GET["uid"])."'")->fetch();
     if(!$user){
       notfound();
       return;
@@ -68,13 +68,13 @@ class PageView implements P{
   
     if(!empty($_GET["gid"])){
       $gid = (int)$_GET["gid"];
-      $db->query("UPDATE `user` SET `groupid`='{$gid}' WHERE `id`='{$user->id}';");
+      $db->query("UPDATE `".DB_PREFIX."user` SET `groupid`='{$gid}' WHERE `id`='{$user->id}';");
       Report::okay(Language::get("GROUP_UPDATED"));
       header("location: ?view=users&sub=group&uid=".$_GET["uid"]);
       exit;
     }
   
-    $query = $db->query("SELECT * FROM `group`");
+    $query = $db->query("SELECT * FROM `".DB_PREFIX."group`");
     $groups = [];
     while($row = $query->fetch()){
       $groups[] = [

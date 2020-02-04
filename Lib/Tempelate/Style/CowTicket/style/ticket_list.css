@@ -1,38 +1,67 @@
 .ticket{
-  border-bottom: 1px solid black;
-}
-
-.ticket:last-child{
-  border-bottom:0px;
-}
-
-.ticket .read-status{
-  height: 42px;
-  width: 42px;
-  padding: 2px;
-  float:left;
-}
-
-.ticket .read-status div{
-  width: 40px;
-  height: 40px;
+  float: left;
+  margin: 10px;
   border: 1px solid black;
-  border-radius: 100px;
-  background-color: green;
+  border-radius: 10px;
+  overflow: hidden;
 }
 
-.ticket .read-status div.closed{
+.ticket .ticket-title{
+  padding: 10px;
+  text-align: center;
+}
+
+.ticket .ticket-title.closed{
+  color: white;
   background-color: black;
 }
 
-.ticket .read-status div.not-read{
+.ticket .ticket-title.read{
+  background-color: green;
+}
+
+.ticket .ticket-title.unread{
   background-color: red;
 }
 
-.ticket .ticket-data{
-  float:left;
+.ticket .ticket-col{
+  overflow: visible;
+  width: 200px;
 }
 
-.ticket .ticket-data .ticket-name{
-  font-weight: bolder;
+
+.ticket .ticket-col div:not(.clear){
+  float: left;
+}
+
+.pages_container{
+  text-align: center;
+}
+
+.pages{
+  display: inline-block;
+  border: 1px solid grey;
+  border-radius: 10px;
+  margin: 10px;
+  overflow: hidden;
+  width: auto;
+}
+
+.pages button{
+  margin: 0px;
+  padding: 10px;
+  font-size: 15px;
+  display: inline-block;
+  border: none;
+  background-color: #2C2525;
+  color: white;
+  border-right: 1px solid grey;
+}
+
+.pages button:last-child{
+  border: none;
+}
+
+.pages button:disabled{
+  color: grey;
 }

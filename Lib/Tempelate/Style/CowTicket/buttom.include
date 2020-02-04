@@ -1,3 +1,15 @@
     </div>
+    !-if loggedIn-!
+    <div id='profile-container'>
+      <div><a href='?view=profile'>!-language PROFILE-!</a></div>
+      <div><a href='?view=front&logout=!-session_id-!'>!-language LOGOUT-!</a></div>
+    </div>
+    !-endblock-!
+    !-if no_cookie-!
+    <div id='no-cookie'>
+      <div>!-language NO_COOKIE-! <a href="?accept_cookie=true">!-language ACCEPT_COOKIE-!</a></div>
+      <div><a href='?view=cookie'>!-language READ_COOKIE-!</a></div>
+    </div>
+    !-endblock-!
   </body>
 </html>

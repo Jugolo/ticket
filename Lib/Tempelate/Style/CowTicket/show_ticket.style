@@ -2,7 +2,9 @@
 !-addCss style.texteditor-!
 !-addCss style.comment-!
 !-addCss style.bbcode-!
+!-addCss style.ticket_list-!
 !-addScript script.comment-!
+!-addScript script.ticket_list-!
 !-include head-!
 !-if not owen-!
 !-include admin_ticket-!
@@ -29,7 +31,11 @@
     !-if data["type"] != 2-!
     <tr>
       <th>!-data["text"]-!</th>
+      !-if data["type"] == 4-!
+      <td><a href='?view=tickets&ticket_id=!-ticket_id-!&dawnload=!-data["id"]-!'>!-language DAWNLOAD-!</a></td>
+      !-else-!
       <td>!-data["value"]-!</td>
+      !-endblock-!
     </tr>
     !-else-!
     <tr>
@@ -74,6 +80,8 @@
 <div class='box'>
   <div class='title'>!-language COMMENTS-!</div>
   !-if comments-!
+  !-pageNumber(back, pages, forward, p_number, p_last, ticket_url)-!
+  <div class='clear'></div>
   !-foreach comments as comment-!
   <div class='comment'>
     !-if comment["public"] == 0-!
@@ -101,6 +109,7 @@
     !-endblock-!
   </div>
   !-endblock-!
+  !-pageNumber(back, pages, forward, p_number, p_last, ticket_url)-!
   !-else-!
   <div class='information'>!-language NO_COMMENT-!</div>
   !-endblock-!

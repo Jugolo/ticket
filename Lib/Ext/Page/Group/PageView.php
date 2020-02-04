@@ -38,7 +38,7 @@ class PageView implements P{
       $this->create($_POST["name"]);
     }
     $standart = Config::get("standart_group");
-    $query = Database::get()->query("SELECT `id`, `name` FROM `group`");
+    $query = Database::get()->query("SELECT `id`, `name` FROM `".DB_PREFIX."group`");
     $groups = [];
     while($row = $query->fetch())
       $groups[] = $row->toArray();

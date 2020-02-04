@@ -9,12 +9,12 @@ class Notification{
   public static function create(int $uid, int $item_id, string $name, string $link, string $message, array $arg = []){
     $db = Database::get();
     $arg = json_encode($arg);
-    $db->query("INSERT INTO `notify` VALUES (NULL, '{$db->escape($uid)}', '{$db->escape($item_id)}', '{$db->escape($name)}', '{$db->escape($link)}', '{$db->escape($message)}', '{$db->escape($arg)}', NOW(), 0);");
+    $db->query("INSERT INTO `".DB_PREFIX."notify` VALUES (NULL, '{$db->escape($uid)}', '{$db->escape($item_id)}', '{$db->escape($name)}', '{$db->escape($link)}', '{$db->escape($message)}', '{$db->escape($arg)}', ".time().", 0);");
   }
   
   public static function markRead(int $uid, int $item_id, string $name){
     $db = Database::get();
-    $db->query("UPDATE `notify` SET `seen`='1' WHERE `uid`='".$db->escape($uid)."' AND `name`='{$db->escape($name)}' AND `item_id`='".$db->escape($item_id)."'");
+    $db->query("UPDATE `".DB_PREFIX."notify` SET `seen`='1' WHERE `uid`='".$db->escape($uid)."' AND `name`='{$db->escape($name)}' AND `item_id`='".$db->escape($item_id)."'");
   }
   
   public static function getNotification($callback){
@@ -38,17 +38,17 @@ class Notification{
       }
       $db = Database::get();
       $query = $db->query("SELECT `id`, `link`, `message`, `arg`, `seen`
-                           FROM `notify`                          
+                           FROM `".DB_PREFIX."notify`                          
                            WHERE `uid`='".user["id"]."'
-                           AND DATE_SUB(`created`, INTERVAL 1 MONTH) < NOW()
+                           AND `created` > '".strtotime("-1 month")."'
                            ".(!empty($_POST["notify_id"]) ? " AND `id`>'".$db->escape($_POST["notify_id"])."'" : "")."
                            ORDER BY `id` DESC");
       while($row = $query->fetch()){
         $ajax[] = [
-          "id"      => $row->id,
-          "link"    => $row->link,
-          "message" => Language::get($row->message, json_decode($row->arg, true)),
-          "seen"    => $row->seen
+            "id"      => $row->id,
+            "link"    => $row->link,
+            "message" => Language::get($row->message, json_decode($row->arg, true)),
+            "seen"    => $row->seen
           ];
       }
     }

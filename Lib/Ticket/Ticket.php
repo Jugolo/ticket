@@ -10,31 +10,50 @@ use Lib\Bbcode\Parser;
 use Lib\Plugin\Plugin;
 use Lib\Log;
 use Lib\User\Info;
+use Lib\File\FileExtension;
 
 class Ticket{
   public static function createTicket(int $uid, int $head, array $fields){
     $db = Database::get();
     //wee need to create a ticket first
-    $ticket_id = $db->query("INSERT INTO `ticket` VALUES (
+    $ticket_id = $db->query("INSERT INTO `".DB_PREFIX."ticket` VALUES (
                                NULL,
                                '{$head}',
                                '{$uid}',
                                '0',
                                '0',
-                               NOW(),
-                               NOW(),
-                               NOW(),
+                               ".time().",
+                               ".time().",
+                               ".time().",
                                '1'
                              );");
     //update the ticket count
-    $db->query("UPDATE `catogory` SET `ticket_count`=ticket_count+1 WHERE `id`='{$head}'");
+    $db->query("UPDATE `".DB_PREFIX."catogory` SET `ticket_count`=ticket_count+1 WHERE `id`='{$head}'");
     //let us insert all fields in the database
     $sql = [];
+    $f = new FileExtension();
     foreach($fields as $field){
-      $sql[] = "(NULL, '{$ticket_id}', '{$db->escape($field["text"])}', '{$db->escape($field["type"])}', '{$db->escape($field["value"])}')";
+      if($field["type"] == 4){
+        if(is_array($field["value"])){
+          list($name, $extension) = $field["value"];
+        }else{
+          $name = $field["value"];
+          $extension = get_extension($field["value"]);
+        }
+        
+        list($id, $nn) = $f->createFile($ticket_id, $extension);
+        if(is_uploaded_file($name)){
+          move_uploaded_file($name, "Lib/Uploaded/".$nn);
+        }else{
+          copy($name, "Lib/Uploaded/".$nn);
+        }
+        
+        $field["value"] = $id;
+      }
+      $sql[] = "(NULL, '{$ticket_id}', '{$head}', '{$db->escape($field["text"])}', '{$db->escape($field["type"])}', '{$db->escape($field["value"])}')";
     }
     
-    $db->query("INSERT INTO `ticket_value` VALUES ".implode(", ", $sql).";");
+    $db->query("INSERT INTO `".DB_PREFIX."ticket_value` VALUES ".implode(", ", $sql).";");
     $name = Category::getNameFromId($head);
     NewTicket::notify($ticket_id, $name);
     self::sendEmailOnNewTicket($uid, $name, $ticket_id);
@@ -43,32 +62,34 @@ class Ticket{
   
   public static function open(int $id, int $uid){
     $username = Info::getUsername($uid);
-    Database::get()->query("UPDATE `ticket` SET `open`='1' WHERE `id`='{$id}'");
+    Database::get()->query("UPDATE `".DB_PREFIX."ticket` SET `open`='1', `admin_changed`='".time()."', `user_changed`='".time()."' WHERE `id`='{$id}'");
     Log::ticket($id, "LOG_TICKET_OPEN", $username);
     Plugin::trigger_event("system.ticket.open", $id, $uid, $username);
   }
   
   public static function close(int $id, int $uid){
     $username = Info::getUsername($uid);
-    Database::get()->query("UPDATE `ticket` SET `open`='0' WHERE `id`='{$id}'");
+    Database::get()->query("UPDATE `".DB_PREFIX."ticket` SET `open`='0', `admin_changed`='".time()."', `user_changed`='".time()."' WHERE `id`='{$id}'");
     Log::ticket($id, "LOG_TICKET_CLOSE", $username);
     Plugin::trigger_event("system.ticket.close", $id, $uid, $username);
   }
   
-  public static function createComment(int $tid, int $uid, string $message, bool $public = true){
+  public static function createComment(int $tid, int $cid, int $uid, string $message, bool $public = true){
     $parser = new Parser($message);
     $db = Database::get();
+    //exit("<!DOCTYPE html> <html><head><meta charset='utf8'></head><body>".$db->escape($parser->getHtml())."</body></html>");
     $isPublic = $public ? "1" : "0";
-    $cid = $db->query("INSERT INTO `comment` VALUES (
+    $cid = $db->query("INSERT INTO `".DB_PREFIX."comment` VALUES (
                   NULL,
                   '{$tid}',
+                  '{$cid}',
                   '{$uid}',
                   '{$isPublic}',
-                  NOW(),
+                  '".time()."',
                   '{$db->escape($message)}',
                   '{$db->escape($parser->getHtml())}'
                 );");
-    $db->query("UPDATE `ticket` SET `admin_changed`=NOW(), ".($public ? "`comments`=comments+1, `user_changed`=NOW()" : "`admin_comments`=admin_comments+1")." WHERE `id`='{$tid}'");
+    $db->query("UPDATE `".DB_PREFIX."ticket` SET `admin_changed`='".time()."', ".($public ? "`comments`=comments+1, `user_changed`='".time()."'" : "`admin_comments`=admin_comments+1")." WHERE `id`='{$tid}'");
     NewComment::createNotify($tid, $uid, $public);
     Plugin::trigger_event("system.comment.created", $tid, $uid, $message, $public);
     self::sendEmailOnNewComment($tid, $uid, $public);
@@ -78,11 +99,11 @@ class Ticket{
     $email = new Email("new_comment");
     $db = Database::get();
     $query = $db->query("SELECT user.username, user.email, catogory.name
-                         FROM `user`
-                         LEFT JOIN `access` ON access.gid=user.groupid
-                         LEFT JOIN `comment` ON comment.uid=user.id
-                         LEFT JOIN `ticket` ON ticket.id=comment.tid
-                         LEFT JOIN `catogory` ON catogory.id=ticket.cid
+                         FROM `".DB_PREFIX."user` AS user
+                         LEFT JOIN `".DB_PREFIX."access` AS access ON access.gid=user.groupid
+                         LEFT JOIN `".DB_PREFIX."comment` AS comment ON comment.uid=user.id
+                         LEFT JOIN `".DB_PREFIX."ticket` AS ticket ON ticket.id=comment.tid
+                         LEFT JOIN `".DB_PREFIX."catogory` AS catogory ON catogory.id=ticket.cid
                          WHERE access.name='TICKET_OTHER'
                          AND comment.tid='{$tid}'
                          ".($public ? "" : "AND user.id <> ticket.uid")."
@@ -101,8 +122,8 @@ class Ticket{
     $email = new Email("new_ticket");
     $db = Database::get();
     $query = $db->query("SELECT user.username, user.email
-                         FROM `user`
-                         LEFT JOIN `access` ON user.groupid=access.gid
+                         FROM `".DB_PREFIX."user` AS user
+                         LEFT JOIN `".DB_PREFIX."access` AS access ON user.groupid=access.gid
                          WHERE access.name='TICKET_OTHER'
                          AND user.id<>'".user["id"]."'");
     $email->pushArg("ticket_category", $catName);

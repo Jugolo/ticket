@@ -6,7 +6,7 @@ use Lib\Exception\TempelateException;
 
 class TempelateData{
   private $styles  = [];
-  private $scripts = ["Lib/Tempelate/Script/CowTicket.js"];
+  private $scripts = ["Lib/Tempelate/Script/CowTicket.js", "Lib/Tempelate/Script/Element.js"];
   private $page;
   
   public function __construct(Page $page, $info){

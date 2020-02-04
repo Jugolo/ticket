@@ -12,6 +12,8 @@ $lang = [
   "BIRTH_SAVE"   => "Save birth data",
   "NO_ITEM"      => "Sorry no input avarible in this category",
   "A_MISSING"    => "You missing to fill '%s'",
+  "F_MISSING"    => "You missing to upload '%s' file",
+  "F_SUPPORT"    => "Unknown file type uploaded to '%s'",
   "EMPTY_TICKET" => "Cant save a empty ticket",
   "TICKET_SAVED" => "The ticket is saved",
   ];

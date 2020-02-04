@@ -11,7 +11,7 @@ class Setup{
     Config::set("github_cat", Category::create("Github Issues"));
     Config::set("github_user", Auth::createUser("Github", (string)uniqid(), "github@localhost.local", true));
     $db = Database::get();
-    $db->query("CREATE TABLE `githubbot`(
+    $db->query("CREATE TABLE `".DB_PREFIX."githubbot`(
       `type` VARCHAR(255) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
       `item_id` INT(11) NOT NULL,
       `ticket_id` INT(11) NOT NULL,
@@ -27,6 +27,6 @@ class Setup{
     Config::delete("github_cat");
     Config::delete("github_user");
     $db = Database::get();
-    $db->query("DROP TABLE `githubbot`");
+    $db->query("DROP TABLE `".DB_PREFIX."githubbot`");
   }
 }

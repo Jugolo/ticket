@@ -4,9 +4,9 @@ namespace Lib\Bbcode;
 class TextNode implements BBNode{
   private $str;
   private $smylie = [
-    ":)" => "img/smylie/glad.gif",
-    ":D" => "img/smylie/happy.png",
-    ":(" => "img/smylie/sad.png"
+    ":)" => "\u{1F60A}",
+    ":D" => "\u{1F603}",
+    ":(" => "\u{1F622}"
   ];
   
   public function __construct(string $str){
@@ -27,7 +27,7 @@ class TextNode implements BBNode{
       return "<a href='{$url}' target='_blank'>{$reg[0]}</a>";
     }, nl2br(htmlentities($this->str)));
     return preg_replace_callback("/(".$this->getRexExpSmylie().")/", function($code) use ($cache){
-       return "<img src='{$cache[$code[0]]}' alt='{$code[0]}' class='smylie'>";
+       return $cache[$code[0]];
     }, $this->str);
   }
   

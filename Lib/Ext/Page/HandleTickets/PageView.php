@@ -15,6 +15,7 @@ use Lib\Cache;
 use Lib\Category;
 use Lib\Exception\CategoryNotFound;
 use Lib\Language\Language;
+use Lib\File\FileExtension;
 
 class PageView implements P{
   public function loginNeeded() : string{
@@ -68,11 +69,24 @@ class PageView implements P{
       $this->deleteInput($_GET["delete"], $data);
     }
     
-    $query = Database::get()->query("SELECT * FROM `category_item` WHERE `cid`='{$data->id}'");
+    $extension = new FileExtension();
+    $query = Database::get()->query("SELECT * FROM `".DB_PREFIX."category_item` WHERE `cid`='{$data->id}'");
     $item = [];
-    while($row = $query->fetch())
-      $item[] = $row->toArray();
+    while($row = $query->fetch()){
+      $d = $row->toArray();
+      if($row->type == 4)
+        $d["placeholder"] = $extension->getGroupName((int)$row->placeholder);
+      $item[] = $d;
+    }
     $tempelate->put("item", $item);
+    
+    $item = [];
+    foreach($extension->getGroup() as $ex)
+      $item[] = [
+        "id"   => $ex->getID(),
+        "name" => $ex->getName()
+      ];
+    $tempelate->put("file_extension", $item);
     
     $tempelate->put("category_id", $data->id);
     $tempelate->put("age", $data->age);
@@ -93,7 +107,7 @@ class PageView implements P{
     foreach($input as $name => $value){
       $buffer[] = "`{$name}`=".$value;
     }
-    Database::get()->query("UPDATE `catogory` SET ".implode(", ", $buffer)." WHERE `id`='{$id}'");
+    Database::get()->query("UPDATE `".DB_PREFIX."catogory` SET ".implode(", ", $buffer)." WHERE `id`='{$id}'");
     Report::okay(Language::get("SETTING_UPDATED"));
     header("location: #");
     exit;
@@ -101,12 +115,12 @@ class PageView implements P{
   
   public function deleteInput(int $id, $data){
     $db = Database::get();
-    $db->query("DELETE FROM `category_item` WHERE `id`='{$id}'");
+    $db->query("DELETE FROM `".DB_PREFIX."category_item` WHERE `id`='{$id}'");
     $extra = "";
     if($data->open === 1 && $data->input_count-1 <= 0){
       $extra = ", `open`='0'";
     }
-    $db->query("UPDATE `catogory` SET `input_count`=input_count-1{$extra} WHERE `id`='{$data->id}'");
+    $db->query("UPDATE `".DB_PREFIX."catogory` SET `input_count`=input_count-1{$extra} WHERE `id`='{$data->id}'");
     Report::okay(Language::get("INPUT_DELETED"));
     header("location: ?view={$_GET["view"]}&catogory=".$_GET["catogory"]);
     exit;
@@ -118,23 +132,28 @@ class PageView implements P{
       Report::error(Language::get("MISSING_I_NAME"));
     }
     
-    if(empty($_POST["type"]) || $_POST["type"] < 0 || $_POST["type"] > 3){
+    if(empty($_POST["type"]) || $_POST["type"] < 0 || $_POST["type"] > 4){
       Report::error(Language::get("MISSING_I_TYPE"));
     }
     
-    if(empty($_POST["placeholder"]) || !trim($_POST["placeholder"])){
-      Report::error(Language::get("MISSING_PLACEHOLDER"));
+    if(empty($_POST["type"]) || $_POST["type"] != 4){
+      if(empty($_POST["placeholder"]) || !trim($_POST["placeholder"])){
+        Report::error(Language::get("MISSING_PLACEHOLDER"));
+      }
+    }elseif(!empty($_POST["type"]) && $_POST["type"] == 4){
+      if(empty($_POST["file_type"]) || !trim($_POST["file_type"]))
+        Report::error(Language::get("MISSING_FILE_TYPE"));
     }
     
     if($error_count == Report::count("ERROR")){
       $db = Database::get();
-      $db->query("UPDATE `catogory` SET `input_count`=input_count+1 WHERE `id`='{$id}'");
-      $db->query("INSERT INTO `category_item` VALUES (
+      $db->query("UPDATE `".DB_PREFIX."catogory` SET `input_count`=input_count+1 WHERE `id`='{$id}'");
+      $db->query("INSERT INTO `".DB_PREFIX."category_item` VALUES (
                    NULL,
                    '{$id}',
                    '{$db->escape($_POST["type"])}',
                    '{$db->escape($_POST["name"])}',
-                   '{$db->escape($_POST["placeholder"])}'
+                   '{$db->escape($_POST["type"] == 4 ? $_POST["file_type"] : $_POST["placeholder"])}'
                  );");
       Report::okay(Language::get("INPUT_SAVED"));
     }
@@ -144,7 +163,7 @@ class PageView implements P{
   
   private function getData(){
     $db = Database::get();
-    return $db->query("SELECT * FROM `catogory` WHERE `id`='{$db->escape($_GET["catogory"])}'")->fetch();
+    return $db->query("SELECT * FROM `".DB_PREFIX."catogory` WHERE `id`='{$db->escape($_GET["catogory"])}'")->fetch();
   }
   
   private function overview(Tempelate $tempelate, Page $page, bool $ticket_access){
@@ -166,7 +185,7 @@ class PageView implements P{
       }
     }
     
-    $query = Database::get()->query("SELECT * FROM `catogory` ORDER BY `sort_ordre` ASC");
+    $query = Database::get()->query("SELECT * FROM `".DB_PREFIX."catogory` ORDER BY `sort_ordre` ASC");
     $cat = [];
     while($row = $query->fetch())
       $cat[] = $row->toArray();
@@ -180,13 +199,13 @@ class PageView implements P{
   
   private function changeOpen(int $id){
     $db = Database::get();
-    $data = $db->query("SELECT `open`, `name`, `input_count` FROM `catogory` WHERE `id`='{$id}'")->fetch();
+    $data = $db->query("SELECT `open`, `name`, `input_count` FROM `".DB_PREFIX."catogory` WHERE `id`='{$id}'")->fetch();
     if(!$data){
       return;
     }
     
     if($data->input_count > 0){
-      $db->query("UPDATE `catogory` SET `open`='".($data->open == 1 ? '0' : '1')."' WHERE `id`='{$id}'");
+      $db->query("UPDATE `".DB_PREFIX."catogory` SET `open`='".($data->open == 1 ? '0' : '1')."' WHERE `id`='{$id}'");
       if($data->open == 1){
         Config::set("cat_open", Config::get("cat_open")-1);
         Report::okay(Language::get("CAT_CLOSED"));
@@ -194,7 +213,7 @@ class PageView implements P{
       }else{
         Report::okay(Language::get("CAT_OPNED"));
         Log::system("LOG_CAT_OPEN", user["username"], $data->name);
-        Config::set("cat_open", Config::get("cat_open")+1);
+        Config::set("cat_open", (int)Config::get("cat_open")+1);
       }
     }else{
       Report::error(Language::get("CANT_OPEN_INPUT"));
@@ -206,7 +225,7 @@ class PageView implements P{
   
   private function delete(int $id, Tempelate $tempelate, Page $page){
     //first wee get the count of ticket in this category
-    $data = Database::get()->query("SELECT * FROM `catogory` WHERE `id`='{$id}'")->fetch();
+    $data = Database::get()->query("SELECT * FROM `".DB_PREFIX."catogory` WHERE `id`='{$id}'")->fetch();
     if($data->ticket_count > 0){
       $this->selectTicketMove($data, $tempelate, $page);
     }
@@ -225,11 +244,11 @@ class PageView implements P{
       return;//the category deleter function will delete all tickets in the category
     
     $db = Database::get();
-    $query = $db->query("SELECT `id`, `name` FROM `catogory` WHERE `id`<>'{$data->id}'");
+    $query = $db->query("SELECT `id`, `name` FROM `".DB_PREFIX."catogory` WHERE `id`<>'{$data->id}'");
     while($row = $query->fetch()){
       if($to == $row->id){
-        $db->query("UPDATE `ticket` SET `cid`='{$row->id}' WHERE `cid`='{$data->id}'");
-        $db->query("UPDATE `catogory` SET `ticket_count`=ticket_count+{$data->ticket_count} WHERE `id`='{$row->id}'");
+        $db->query("UPDATE `".DB_PREFIX."ticket` SET `cid`='{$row->id}' WHERE `cid`='{$data->id}'");
+        $db->query("UPDATE `".DB_PREFIX."catogory` SET `ticket_count`=ticket_count+{$data->ticket_count} WHERE `id`='{$row->id}'");
         return;
       }
       $select[] = ["to" => $row->id, "name" => $row->name];
@@ -263,28 +282,28 @@ class PageView implements P{
   
   public function moveUp(int $id){
     $db = Database::get();
-    $data = $db->query("SELECT `sort_ordre` FROM `catogory` WHERE `id`='{$id}'")->fetch();
+    $data = $db->query("SELECT `sort_ordre` FROM `".DB_PREFIX."catogory` WHERE `id`='{$id}'")->fetch();
     if($data->sort_ordre == 0){
       Report::error(Language::get("CANT_UP"));
       return;
     }
-    $db->query("UPDATE `catogory` SET `sort_ordre`=sort_ordre+1 WHERE `sort_ordre`='".($data->sort_ordre-1)."'");
-    $db->query("UPDATE `catogory` SET `sort_ordre`=sort_ordre-1 WHERE `id`='{$id}'");
+    $db->query("UPDATE `".DB_PREFIX."catogory` SET `sort_ordre`=sort_ordre+1 WHERE `sort_ordre`='".($data->sort_ordre-1)."'");
+    $db->query("UPDATE `".DB_PREFIX."catogory` SET `sort_ordre`=sort_ordre-1 WHERE `id`='{$id}'");
     Report::okay(Language::get("SORT_O_O"));
   }
   
   public function moveDown(int $id){
     //two stop eventuel error in our sort system wee need to finde the heigst sort score.
     $db = Database::get();
-    $top = $db->query("SELECT COUNT(`id`) AS id FROM `catogory`")->fetch()->id-1;
-    $data = $db->query("SELECT `sort_ordre` FROM `catogory` WHERE `id`='{$id}'")->fetch();
+    $top = $db->query("SELECT COUNT(`id`) AS id FROM `".DB_PREFIX."catogory`")->fetch()->id-1;
+    $data = $db->query("SELECT `sort_ordre` FROM `".DB_PREFIX."catogory` WHERE `id`='{$id}'")->fetch();
     if($data->sort_ordre == $top){
       Report::error(Language::get("CANT_DOWN"));
       return;
     }
     
-    $db->query("UPDATE `catogory` SET `sort_ordre`=sort_ordre-1 WHERE `sort_ordre`='".($data->sort_ordre+1)."'");
-    $db->query("UPDATE `catogory` SET `sort_ordre`=sort_ordre+1 WHERE `id`='{$id}'");
+    $db->query("UPDATE `".DB_PREFIX."catogory` SET `sort_ordre`=sort_ordre-1 WHERE `sort_ordre`='".($data->sort_ordre+1)."'");
+    $db->query("UPDATE `".DB_PREFIX."catogory` SET `sort_ordre`=sort_ordre+1 WHERE `id`='{$id}'");
     Report::okay(Language::get("SORT_D_O"));
   }
 }

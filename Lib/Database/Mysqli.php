@@ -26,7 +26,7 @@ class Mysqli extends DatabaseDriver{
     }
     $this->db = new \mysqli($db[0], $db[1], $db[2], $db[3]);
     if(!$this->hasError()){
-      $this->db->set_charset("utf8"); 
+      $this->db->set_charset("utf8mb4"); 
     }else{
       exit("Database error");
     }
@@ -65,7 +65,7 @@ class Mysqli extends DatabaseDriver{
     }elseif($this->db->error){
       $err = $this->db->error;
       $this->set();
-      trigger_error($err, E_USER_ERROR);
+      trigger_error("[database error]".$err, E_USER_ERROR);
     }
   }
   

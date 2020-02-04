@@ -34,7 +34,7 @@ class PageMain implements PageView{
       $this->item($tempelate, $data);
     }else{
       $db = Database::get();
-      $query = $db->query("SELECT `id`, `name` FROM `faq`");
+      $query = $db->query("SELECT `id`, `name` FROM `".DB_PREFIX."faq`");
       $cat = [];
       while($row = $query->fetch())
         $cat[$row->id] = $row->name;
@@ -59,7 +59,7 @@ class PageMain implements PageView{
   }
   
   private function delete(int $id){
-    Database::get()->query("DELETE FROM `faq` WHERE `id`='{$id}'");
+    Database::get()->query("DELETE FROM `".DB_PREFIX."faq` WHERE `id`='{$id}'");
     Report::okay(Language::get("FAQ_DELETED"));
     header("location: ?view=event&event=faq.main");
     exit;
@@ -77,7 +77,7 @@ class PageMain implements PageView{
   
   private function updateItem(int $id){
     $db = Database::get();
-    $db->query("UPDATE `faq` SET 
+    $db->query("UPDATE `".DB_PREFIX."faq` SET 
                   `name`='{$db->escape(Request::toString(Request::POST, "name"))}',
                   `dec`='{$db->escape(Request::toString(Request::POST, "dec"))}'
                 WHERE `id`='{$id}';");
@@ -87,7 +87,7 @@ class PageMain implements PageView{
   }
   
   private function getItemData(int $id){
-    return Database::get()->query("SELECT * FROM `faq` WHERE `id`='{$id}'")->fetch();
+    return Database::get()->query("SELECT * FROM `".DB_PREFIX."faq` WHERE `id`='{$id}'")->fetch();
   }
   
   private function create(Tempelate $tempelate, Page $page){
@@ -100,13 +100,13 @@ class PageMain implements PageView{
     $tempelate->put("name", $name);
     $tempelate->put("dec",  $dec);
     $db = Database::get();
-    $current = $db->query("SELECT `id` FROM `faq` WHERE `name`='{$db->escape($name)}'")->fetch();
+    $current = $db->query("SELECT `id` FROM `".DB_PREFIX."faq` WHERE `name`='{$db->escape($name)}'")->fetch();
     if($current){
       Report::error(Language::get("FAQ_CAT_EXISTS"));
       return;
     }
     
-    $id = $db->query("INSERT INTO `faq` VALUES (null, '{$db->escape($name)}', '{$db->escape($dec)}');");
+    $id = $db->query("INSERT INTO `".DB_PREFIX."faq` VALUES (null, '{$db->escape($name)}', '{$db->escape($dec)}');");
     Report::okay(Language::get("FAQ_CAT_CREATED"));
     header("location: ?view=event&event=faq.main&item=".$id);
     exit;

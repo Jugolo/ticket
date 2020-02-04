@@ -27,7 +27,7 @@ class PluginRender{
       return;
     }
     $array = [];
-    Database::get()->query("SELECT `path` FROM `plugin`")->fetch(function($path) use(&$array){
+    Database::get()->query("SELECT `path` FROM `".DB_PREFIX."plugin`")->fetch(function($path) use(&$array){
       $array[] = $path;
     });
     Cache::create("PluginList", $array);

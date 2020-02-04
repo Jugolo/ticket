@@ -13,7 +13,8 @@ class V33{
     $db->query("ALTER TABLE `group` ADD `viewSystemLog` INT(1) NOT NULL AFTER `viewUserLog`;");
     $db->query("ALTER TABLE `group` ADD `handleTempelate` INT(1) NOT NULL AFTER `viewSystemLog`");
     Config::set("tempelate", "CowTicket");
-    mkdir("Lib/Temp");
+    if(!file_exists("Lib/Temp"))
+      mkdir("Lib/Temp");
     $db->query("SELECT `id`, `message` FROM `comment`")->fetch(function($id, $message) use($db){
       $parser = new Parser($message);
       $db->query("UPDATE `comment` SET `parsed_message`='{$db->escape($parser->getHtml())}' SET `id`='{$id}'");

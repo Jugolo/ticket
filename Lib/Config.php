@@ -15,9 +15,9 @@ class Config{
   public static function set(string $name, string $value){
     $db = Database::get();
     if(array_key_exists($name, self::$item)){
-      $db->query("UPDATE `config` SET `value`='{$db->escape($value)}' WHERE `name`='{$db->escape($name)}'");
+      $db->query("UPDATE `".DB_PREFIX."config` SET `value`='{$db->escape($value)}' WHERE `name`='{$db->escape($name)}'");
     }else{
-      $db->query("INSERT INTO `config` VALUES ('{$db->escape($name)}', '{$db->escape($value)}');");
+      $db->query("INSERT INTO `".DB_PREFIX."config` VALUES ('{$db->escape($name)}', '{$db->escape($value)}');");
     }
     self::$item[$name] = $value;
   }
@@ -25,17 +25,17 @@ class Config{
   public static function delete(string $name){
     if(array_key_exists($name, self::$item)){
       $db = Database::get();
-      $db->query("DELETE FROM `config` WHERE `name`='{$db->escape($name)}';");
+      $db->query("DELETE FROM `".DB_PREFIX."config` WHERE `name`='{$db->escape($name)}';");
       unset(self::$item[$name]);
     }
   }
   
   private static function ensureInit(){
     if(!self::$item){
-      $query = Database::get()->query("SELECT `name`, `value` FROM `config`");
+      $query = Database::get()->query("SELECT `name`, `value` FROM `".DB_PREFIX."config`");
       self::$item = [];
       if(!$query){
-        Error::systemError("The database query return zero result");
+        Error::systemError("System failed to get config data from database");
       }
       while($row = $query->fetch()){
         self::$item[$row->name] = $row->value;

@@ -12,7 +12,7 @@ class Access{
     $db = Database::get();
     foreach($accesses as $access)
       $sql[] = "`gid`='{$gid}' AND `name`='{$db->escape($access)}'";
-    $db->query("DELETE FROM `access` WHERE ".implode(" OR ", $sql).";");
+    $db->query("DELETE FROM `".DB_PREFIX."access` WHERE ".implode(" OR ", $sql).";");
     if(Cache::exists("access_".$gid))
       Cache::delete("access_".$gid);
   }
@@ -22,7 +22,7 @@ class Access{
     $db = Database::get();
     foreach($accesses as $access)
       $sql[] = "('{$gid}', '{$db->escape($access)}')";
-    $db->query("INSERT INTO `access` VALUES ".implode(", ", $sql).";");
+    $db->query("INSERT INTO `".DB_PREFIX."access` VALUES ".implode(", ", $sql).";");
     if(Cache::exists("access_".$gid))
       Cache::delete("access_".$gid);
   }
@@ -46,7 +46,7 @@ class Access{
     //delete saved cache
     if(Cache::exists("access_".$id))
       Cache::delete("access_".$id);
-    Database::get()->query("DELETE FROM `access` WHERE `gid`='{$id}';");
+    Database::get()->query("DELETE FROM `".DB_PREFIX."access` WHERE `gid`='{$id}';");
   }
   
   public static function userHasAccess(string $key) : bool{
@@ -69,7 +69,7 @@ class Access{
       return;
     }
     
-    $query = Database::get()->query("SELECT `name` FROM `access` WHERE `gid`='{$gid}'");
+    $query = Database::get()->query("SELECT `name` FROM `".DB_PREFIX."access` WHERE `gid`='{$gid}'");
     self::$cache[$gid] = [];
     while($row = $query->fetch()){
       self::$cache[$gid][] = $row->name;

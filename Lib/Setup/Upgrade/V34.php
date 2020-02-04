@@ -123,7 +123,7 @@ class V34{
     $db = Database::get();
     $sql = [];
     foreach($insert as $data)
-      $sql[] = " ('{$row->id}', '{$data}')";
-    $db->query("INSERT INTO `access` VALUES (".implode(", ", $sql).");");
+      $sql[] = " '{$row->id}', '{$data}'";
+    $db->query("INSERT INTO `access` VALUES (".implode("), (", $sql).");");
   }
 }

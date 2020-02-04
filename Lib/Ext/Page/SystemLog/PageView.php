@@ -27,7 +27,7 @@ class PageView implements P{
     $logs = [];
     Log::getSystemLog()->render(function($time, $message) use(&$logs){
       $logs[] = [
-        "time"    => $time,
+        "time"    => date("H:i d/m/Y", $time),
         "message" => $message
         ];
     });

@@ -57,7 +57,7 @@ class Age{
             if($day < 1 || cal_days_in_month(CAL_GREGORIAN, $month, $year) < $day){
               Report::error(Language::get("WRONG_DAY"));
             }else{
-              Database::get()->query("UPDATE `user` SET 
+              Database::get()->query("UPDATE `".DB_PREFIX."user` SET 
                                         `birth_day`='{$day}',
                                         `birth_month`='{$month}',
                                         `birth_year`='{$year}'
@@ -71,6 +71,6 @@ class Age{
       }
     }
     
-    $tempelate->render("get_age", $page);
+    $tempelate->render("get_age");
   }
 }

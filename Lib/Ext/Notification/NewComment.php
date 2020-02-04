@@ -9,8 +9,8 @@ class NewComment{
   public static function createNotify(int $hid, int $creater, bool $isPublic){
     $db = Database::get();
     $query = $db->query("SELECT notify_setting.uid
-                         FROM `notify_setting`
-                         LEFT JOIN `comment` ON notify_setting.uid=comment.uid
+                         FROM `".DB_PREFIX."notify_setting` AS notify_setting
+                         LEFT JOIN `".DB_PREFIX."comment` AS comment ON notify_setting.uid=comment.uid
                          WHERE `name`='{$db->escape(__CLASS__)}'
                          AND comment.tid='{$hid}'
                          GROUP BY comment.uid");
@@ -30,7 +30,7 @@ class NewComment{
     
     if(!$found && $creater != user["id"] && $isPublic){
       $row = $db->query("SELECT COUNT(`uid`) AS uid
-                           FROM `notify_setting` 
+                           FROM `".DB_PREFIX."notify_setting` 
                            WHERE `uid`='{$creater}' 
                            AND `name`='{$db->escape(__CLASS__)}'")->fetch();
       if($row->uid == 1){
@@ -41,7 +41,7 @@ class NewComment{
   
   public static function onTicketDelete(Event $event, int $id){
     $db = Database::get();
-    $db->query("DELETE FROM `notify` WHERE `name`='{$db->escape(__CLASS__)}' AND `item_id`='{$id}'");
+    $db->query("DELETE FROM `".DB_PREFIX."notify` WHERE `name`='{$db->escape(__CLASS__)}' AND `item_id`='{$id}'");
   }
   
   public static function markRead(int $hid){

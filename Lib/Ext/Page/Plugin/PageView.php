@@ -55,7 +55,7 @@ class PageView implements P{
   
   private function getInstalled() : array{
     $result = [];
-    $query = Database::get()->query("SELECT * FROM `plugin`");
+    $query = Database::get()->query("SELECT * FROM `".DB_PREFIX."plugin`");
     while($row = $query->fetch()){
       $result[$row->path] = $row->id;
     }

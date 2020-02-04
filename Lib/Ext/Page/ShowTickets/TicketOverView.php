@@ -7,59 +7,93 @@ use Lib\Tempelate;
 use Lib\Page;
 use Lib\Access;
 use Lib\Language\Language;
+use Lib\Request;
 
 class TicketOverView{
   public static function body(Tempelate $tempelate, Page $page){
     Language::load("ticket_overview");
     $db = Database::get();
-    $query = $db->query("SELECT ticket.id, ticket.open, ticket.user_changed, ticket.created, ticket.comments, catogory.name, ticket_track.visit
-                         FROM `ticket`
-                         LEFT JOIN `catogory` ON catogory.id=ticket.cid
-                         LEFT JOIN `ticket_track` ON ticket_track.tid=ticket.id AND ticket_track.uid=ticket.uid
-                         WHERE ticket.uid='".user["id"]."'
-                         ".(!empty($_GET["showclosed"]) ? "" : "AND ticket.open='1'")."
-                         GROUP BY ticket.id
-                         ORDER BY ticket.user_changed DESC");
-    $owen = [];
-    while($data = $query->fetch()){
-      $owen[] = [
-        "closed"   => $data->open == 0,
-        "readed"   => strtotime($data->visit) >= strtotime($data->user_changed),
-        "id"       => $data->id,
-        "cat_name" => $data->name,
-        "created"  => $data->created,
-        "changed"  => $data->user_changed,
-        "comments" => $data->comments
-      ];
+    $sql = "SELECT ticket.id, ticket.uid, catogory.name, ticket.open, ticket_track.visit, ticket.created, ticket.user_changed, ticket.admin_changed, user.username
+            FROM `".DB_PREFIX."ticket` AS ticket
+            LEFT JOIN `".DB_PREFIX."catogory` AS catogory ON catogory.id=ticket.cid
+            LEFT JOIN `".DB_PREFIX."ticket_track` AS ticket_track ON ticket_track.tid=ticket.id AND ticket_track.uid='".user["id"]."'
+            LEFT JOIN `".DB_PREFIX."user` AS user ON user.id=ticket.uid";
+    
+    
+    if(!Access::userHasAccess("TICKET_OTHER")){
+      $sql .= " WHERE ticket.uid='".user["id"]."'";
     }
-    $tempelate->put("owen_ticket", $owen);
-    if(Access::userHasAccess("TICKET_OTHER")){
-      $query = $db->query("SELECT ticket.id, ticket.open, ticket.admin_changed, ticket.created, ticket.comments, ticket.admin_comments, catogory.name, ticket_track.visit, user.username
-                           FROM `ticket`
-                           LEFT JOIN `catogory` ON catogory.id=ticket.cid
-                           LEFT JOIN `ticket_track` ON ticket_track.tid=ticket.id AND ticket_track.uid='".user["id"]."'
-                           LEFT JOIN `user` ON user.id=ticket.uid
-                           WHERE ticket.uid<>'".user["id"]."'
-                           GROUP BY ticket.id
-                           ORDER BY ticket.admin_changed DESC");
-      $other_ticket = [];
-      while($data = $query->fetch()){
-        $other_ticket[] = [
-          "closed"   => $data->open == 0,
-          "readed"   => strtotime($data->visit) >= strtotime($data->admin_changed),
-          "id"       => $data->id,
-          "cat_name" => $data->name,
-          "created"  => $data->created,
-          "changed"  => $data->admin_changed,
-          "comments" => $data->comments+$data->admin_comments,
-          "username" => $data->username
-        ];
+    
+    $page = self::getPage();
+    
+    self::pageSelect($tempelate, $sql, $page);
+    
+    $sql .= " ORDER BY IF(ticket.uid='".user["id"]."', ticket.user_changed, ticket.admin_changed) DESC";
+    
+    $query = $db->query($sql." LIMIT ".ceil($page * 30).", 30");
+    $result = [];
+    while($row = $query->fetch()){
+      $data = $row->toArray();
+      $data["read"]    = $row->visit >= ($row->uid == user["id"] ? $row->user_changed : $row->admin_changed);
+      $data["changed"] = date("H:i d/m/y", $row->uid == user["id"] ? $row->user_changed : $row->admin_changed);
+      $data["created"] = date("H:i d/m/y", $row->created);
+      $result[] = $data;
+    }
+    $tempelate->put("tickets", $result);
+    
+    $tempelate->render('ticket_list');
+  }
+  
+  private static function pageSelect(Tempelate $tempelate, string $sql, int $page){
+    $tempelate->put("p_number", $page);
+    $s = explode("\n", $sql);
+    $s[0] = "SELECT COUNT(ticket.id) AS id";
+    $size = Database::get()->query(implode("\n", $s))->fetch()->id;
+    $pages = ceil($size / 30);
+    $tempelate->put("p_last", $pages);
+    if($pages < 10){
+      if($pages == 1)
+        return;
+      $tempelate->put("back", false);
+      $tempelate->put("forward", false);
+      $min = 0;
+      $max = $pages;
+    }else{
+      if($page - 5 < 0){
+        $tempelate->put("back", false);
+        $tempelate->put("forward", $pages > $page + 5);
+        $min = 0;
+        $max = 10;
+      }else{
+        if($pages < $page + 5){
+          $tempelate->put("back", true);
+          $tempelate->put("forward", false);
+          $min = $pages - 10;
+          $max = $pages;
+        }else{
+          $tempelate->put("back", true);
+          $tempelate->put("forward", true);
+          $min = $page - 5;
+          $max = $page + 5;
+        }
       }
-      $tempelate->put("other_ticket", $other_ticket);
     }
+    $pages = [];
+    for($i=$min;$i<$max;$i++){
+      $pages[] = [
+        "page"    => $i,
+        "show"    => $i+1,
+        "current" => $i == $page
+        ];
+    }
+    $tempelate->put("pages", $pages);
+  }
+  
+  private static function getPage() : int{
+    $current = Request::toInt(Request::GET, "page");
+    if($current == -1)
+      return 0;
     
-    $tempelate->put("closedTicket", !empty($_GET["showclosed"]));
-    
-    $tempelate->render("ticket_list");
+    return $current;
   }
 }

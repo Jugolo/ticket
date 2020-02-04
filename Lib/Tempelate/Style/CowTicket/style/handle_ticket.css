@@ -1,0 +1,11 @@
+#input-placeholder .item:not(.stand){
+  display: none;
+}
+
+#placeholder-input .item:not(.stand){
+  display: none;
+}
+
+.table-fill th, .table-fill td{
+  width: 50%;
+}

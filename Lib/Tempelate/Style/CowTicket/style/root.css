@@ -4,7 +4,7 @@
   left: 160px;
   right: 0px;
   bottom: 0px;
-  overflow: scroll;
+  overflow: auto;
 }
 
 #root .box{

@@ -3,10 +3,11 @@ namespace Lib\Setup;
 
 use Lib\Report;
 use Lib\Ajax;
+use Lib\Config;
 use Lib\Language\Language;
 
 class Main{
-  const SETUP_VERSION = "V4.0";
+  const SETUP_VERSION = "V4.1";
   
   public static function controle(){
     if(Ajax::isAjaxRequest()){
@@ -28,6 +29,6 @@ class Main{
   }
   
   private static function needUpgrade() : bool{
-    return version_compare(Main::SETUP_VERSION, \Lib\Config::get("version"), '>');
+    return version_compare(Main::SETUP_VERSION, Config::get("version"), '>');
   }
 }

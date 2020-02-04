@@ -32,7 +32,7 @@ class PageView implements P{
     $page = !empty($_GET["ep"]) && is_numeric($_GET["ep"]) ? intval($_GET["ep"]) : 0;
     $db = Database::get();
     
-    $count = $db->query("SELECT COUNT(`id`) AS id FROM `error`")->fetch()->id;
+    $count = $db->query("SELECT COUNT(`id`) AS id FROM `".DB_PREFIX."error`")->fetch()->id;
     
     if($page*30 > $count){
       $page = round($count/30);
@@ -48,7 +48,7 @@ class PageView implements P{
     }
     $tempelate->put("links", $link);
     
-    $query = $db->query("SELECT `id`, `errstr` FROM `error` LIMIT {$page}, 30");
+    $query = $db->query("SELECT `id`, `errstr` FROM `".DB_PREFIX."error` LIMIT {$page}, 30");
     
     if(!empty($_POST["delete"]) && !empty($_POST["errorSelect"]) && Access::userHasAccess("ERROR_DELETE")){
       $this->deleteErrors();
@@ -64,7 +64,7 @@ class PageView implements P{
   }
   
   private function deleteErrors(){
-    $queryString = "DELETE FROM `error` WHERE ";
+    $queryString = "DELETE FROM `".DB_PREFIX."error` WHERE ";
     $ids = [];
     $db = Database::get();
     foreach($_POST["errorSelect"] as $id){
@@ -98,7 +98,7 @@ class PageView implements P{
     
     $db = Database::get();
     $query = $db->query("SELECT `id`, `errstr`
-                         FROM `error`
+                         FROM `".DB_PREFIX."error`
                          WHERE `id`<>'{$data->id}'
                          AND `errstr`='{$db->escape($data->errstr)}'
                          AND `errline`='{$db->escape($data->errline)}'
@@ -113,6 +113,6 @@ class PageView implements P{
   }
   
   private function getData(int $id){
-    return Database::get()->query("SELECT * FROM `error` WHERE `id`='{$id}'")->fetch();
+    return Database::get()->query("SELECT * FROM `".DB_PREFIX."error` WHERE `id`='{$id}'")->fetch();
   }
 }

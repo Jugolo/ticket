@@ -19,6 +19,7 @@ class Tokenizer{
     "loggedIn",
     "endblock",
     "pageAccess",
+    "macro",
     ];
   
   public function __construct(TempelateFileReader $reader, TempelateControler $controler){
@@ -61,6 +62,8 @@ class Tokenizer{
         return $this->buffer("PUNCTOR", "?");
       case ".":
         return $this->buffer("PUNCTOR", ".");
+      case ",":
+        return $this->buffer("PUNCTOR", ",");
       case ":":
         return $this->buffer("PUNCTOR", ":");
       case "(":

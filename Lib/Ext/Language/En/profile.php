@@ -30,4 +30,6 @@ $lang = [
   "BIRTH_UPDATED"         => "You birth data is saved",
   "NEED_ACTIVATE_E"       => "Becurce you have updated you email you need to activate the acount agin width the link there is sent to you new email",
   "ACCOUNT_UPDATED"       => "The data is updated",
+  "USER_TICKET"           => "Users ticket",
+  "NO_TICKET"             => "User have not created ant ticket",
   ];

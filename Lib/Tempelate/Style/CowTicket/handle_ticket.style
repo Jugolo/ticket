@@ -1,5 +1,6 @@
 !-addCss style.table-!
 !-addCss style.input-!
+!-addCss style.handle_ticket-!
 !-addScript script.handle_ticket-!
 !-include head-!
 !-if access CATEGORY_APPEND-!
@@ -18,12 +19,34 @@
             <option value='1'>!-language INPUT-!</option>
             <option value='2'>!-language TEXTAREA-!</option>
             <option value='3'>!-language SELECT-!</option>
+            <option value='4'>!-language FILE-!</option>
           </select>
         </td>
       </tr>
       <tr>
-        <th id='input-placeholder'>!-language PLACEHOLDER-!</th>
-        <td><input type='text' name='placeholder' class='input'></td>
+        <th id='input-placeholder'>
+          <div class='item stand'>
+            !-language PLACEHOLDER-!
+          </div>
+          <div class='item select'>
+            !-language PLACE_SELECT-!
+          </div>
+          <div class='item file'>
+            !-language PLACE_FILE-!
+          </div>
+        </th>
+        <td id='placeholder-input'>
+          <div class='item stand'>
+            <input type='text' name='placeholder' class='input'>
+          </div>
+          <div class='item file'>
+            <select name='file_type' class='input'>
+              !-foreach file_extension as ex-!
+              <option value='!-ex["id"]-!'>!-ex["name"]-!</option>
+              !-endblock-!
+            </select>
+          </div>
+        </td>
       </tr>
       <tr>
         <td colspan='2'><input type='submit' name='append' value='!-language CREATE-!' class='input'></td>
@@ -51,8 +74,10 @@
       !-language INPUT-!
       !-elseif input["type"] == 2-!
       !-language TEXTAREA-!
-      !-else-!
+      !-elseif input["type"] == 3-!
       !-language SELECT-!
+      !-else-!
+      !-language FILE-!
       !-endblock-!</td>
       <td>!-input["placeholder"]-!</td>
       !-if access CATEGORY_ITEM_DELETE-!

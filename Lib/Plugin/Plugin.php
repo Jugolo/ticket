@@ -19,12 +19,6 @@ class Plugin{
     }
     
     self::$events = [
-      "system.ticket.delete" => [
-        "Lib\\Ticket\\TicketDeleter::onTicketDelete",
-        "Lib\\Ext\\Notification\\NewTicket::onTicketDelete",
-        "Lib\\Ext\\Notification\\NewComment::onTicketDelete",
-        "Lib\\Log::onTicketDelete"
-      ],
       "system.comment.delete" => [
         "Lib\\Ticket\\TicketDeleter::onCommentDelete"
       ],
@@ -44,6 +38,8 @@ class Plugin{
   public static function install(string $path){
     if(!self::isInit())
       return;
+    
+    $db = Database::get();
     
     if(!file_exists($path."info.xml"))
       throw new PluginInstallException("MISSING_INFO");
@@ -75,19 +71,44 @@ class Plugin{
       call_user_func(str_replace("/", "\\", $path).((string)$xml->setup->install["call"]));
     }
     
+    //if this plugin need to use our cronwork system wee install it here
+    if($xml->cronworks){
+      foreach($xml->cronworks->cronwork as $cronwork){
+        if($cronwork["call"] && $cronwork["interval"]){
+          $db->query("INSERT INTO `".DB_PREFIX."cronwork` (
+                        `cronwork`,
+                        `next`,
+                        `interval`
+                      ) VALUES (
+                        '{$db->escape((string)$cronwork["call"])}',
+                        '0',
+                        '{$db->escape((int)$cronwork["interval"])}'
+                      );");
+        }
+      }
+    }
+    
     $db = Database::get();
-    $db->query("INSERT INTO `plugin` VALUES (NULL, '{$db->escape($path)}');");
+    $db->query("INSERT INTO `".DB_PREFIX."plugin` VALUES (NULL, '{$db->escape($path)}');");
     PluginRender::unset();
   }
   
   public static function uninstall(string $path){
+    $db = Database::get();
     if(file_exists($path."info.xml")){
       $xml = new \SimpleXMLElement(file_get_contents($path."info.xml"));
       if($xml->setup && $xml->setup->uninstall && $xml->setup->uninstall["call"])
         call_user_func(str_replace("/", "\\", $path).((string)$xml->setup->uninstall["call"]));
+      
+      if($xml->cronworks){
+        foreach($xml->cronworks->cronwork as $cronwork){
+          if($cronwork["call"]){
+            $db->query("DELETE FROM `".DB_PREFIX."cronwork` WHERE `cronwork`='{$db->escape((string)$cronwork["call"])}'");
+          }
+        }
+      }
     }
-    $db = Database::get();
-    $db->query("DELETE FROM `plugin` WHERE `path`='{$path}';");
+    $db->query("DELETE FROM `".DB_PREFIX."plugin` WHERE `path`='{$path}';");
     PluginRender::unset();
   }
   

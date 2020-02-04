@@ -29,7 +29,7 @@ class Language{
         return true;
       }
     });
-    return $result ? true : false;
+    return $result === true ? true : false;
   }
   
   public static function renderPluginDir(string $dir){

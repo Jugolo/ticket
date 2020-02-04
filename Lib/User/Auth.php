@@ -27,7 +27,7 @@ class Auth{
   public static function controleDetail(string $username, string $email){
     $db = Database::get();
     $query = $db->query("SELECT LOWER(`username`) AS username, LOWER(`email`) AS email
-                         FROM `user` 
+                         FROM `".DB_PREFIX."user` 
                          WHERE (LOWER(`email`)='{$db->escape(strtolower($email))}' OR LOWER(`username`)='{$db->escape(strtolower($username))}')
                          ".(defined("user") ? " AND `id`<>'".user["id"]."'" : ""));
     if($query->count() != 0){
@@ -53,7 +53,7 @@ class Auth{
   public static function createUser(string $username, string $raw_password, string $email, bool $isActivated){
     $salt = self::randomString(200);
     $db = Database::get();
-    $id = $db->query("INSERT INTO `user` (
+    $id = $db->query("INSERT INTO `".DB_PREFIX."user` (
         `username`,
         `password`,
         `email`,
@@ -71,7 +71,7 @@ class Auth{
         '".(defined("force_lang") ? force_lang : Language::getCode())."'
       );");
     Notification::getNotification(function(string $name) use($db, $id){
-        $db->query("INSERT INTO `notify_setting` VALUES ('{$id}', '{$db->escape($name)}');");
+        $db->query("INSERT INTO `".DB_PREFIX."notify_setting` VALUES ('{$id}', '{$db->escape($name)}');");
     });
     if(!$isActivated){
       $emails = new Email("account_create");
@@ -84,12 +84,11 @@ class Auth{
   
   public static function deleteUser(int $id){
     $db = Database::get();
-    $db->query("DELETE FROM `comment` WHERE `uid`=".$id);
-    $db->query("SELECT `id` FROM `ticket` WHERE `uid`='".$id."'")->fetch(function($id){
-      Plugin::trigger_event("system.ticket.delete", $id);
-    });
-    $db->query("DELETE FROM `user` WHERE `id`='".$id."'");
-    $db->query("DELETE FROM `notify_setting` WHERE `uid`='{$id}'");
+    $db->query("DELETE FROM `".DB_PREFIX."comment` WHERE `uid`=".$id);
+    $db->query("DELETE FROM `".DB_PREFIX."ticket` WHERE `uid`='".$id."'");
+    $db->query("DELETE FROM `".DB_PREFIX."user` WHERE `id`='".$id."'");
+    $db->query("DELETE FROM `".DB_PREFIX."ticket_track` WHERE `uid`='{$id}'");
+    $db->query("DELETE FROM `".DB_PREFIX."notify_setting` WHERE `uid`='{$id}'");
   }
   
   private static function doLogin(){
@@ -106,7 +105,7 @@ class Auth{
     if($count == Report::count("ERROR")){
       $db = Database::get();
       $data = $db->query("SELECT `id`, `password`, `salt`, `isActivatet`
-                          FROM `user`
+                          FROM `".DB_PREFIX."user`
                           WHERE LOWER(`username`)='{$db->escape(strtolower($_POST["username"]))}'")->fetch();
       if(!$data || self::salt_password($_POST["password"], $data->salt) != $data->password)
         Report::error(Language::get("USER_N_FOUND"));
@@ -114,6 +113,10 @@ class Auth{
         Report::error(Language::get("USER_N_ACTIV"));
       else{
         Report::okay(Language::get("USER_LOGEDIN"));
+        if(empty($_COOKIE["accept_cookie"])){
+          session_start();
+          setcookie("accept_cookie", "true", time() + (86400 * 30), "/");
+        }
         $_SESSION["uid"] = $data->id;
       }
     }
@@ -175,7 +178,7 @@ class Auth{
     
     $db = Database::get();
     
-    $user = $db->query("SELECT * FROM `user` WHERE `id`='".intval($_SESSION["uid"])."' AND `isActivatet`='1'")->fetch();
+    $user = $db->query("SELECT * FROM `".DB_PREFIX."user` WHERE `id`='".intval($_SESSION["uid"])."' AND `isActivatet`='1'")->fetch();
     if(!$user){
       unset($_SESSION["uid"]);
       return false;
@@ -189,7 +192,7 @@ class Auth{
     LanguageDetector::detect();
     Language::load("auth");
     $data = $db->query("SELECT `id`
-                        FROM `user`
+                        FROM `".DB_PREFIX."user`
                         WHERE `email`='{$db->escape($_GET["email"])}'
                         AND `salt`='{$db->escape($_GET["salt"])}'
                         AND `isActivatet`='0';")->fetch();

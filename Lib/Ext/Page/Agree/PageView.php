@@ -26,7 +26,8 @@ class PageView implements P{
       Language::get("IN_USE")      => Language::get("IN_USE_DEC"),
       Language::get("JUGOLO")      => Language::get("JUGOLO_DEC"),
       Language::get("DATA")        => Language::get("DATA_DEC"),
-      Language::get("EMAIL")       => Language::get("EMAIL_DEC")
+      Language::get("EMAIL")       => Language::get("EMAIL_DEC"),
+      Language::get("COOKIE")      => Language::get("COOKIE_DEC")
     ]);
     $tempelate->render("agree");
   }

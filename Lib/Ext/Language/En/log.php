@@ -16,4 +16,6 @@ $lang = [
   "LOG_NEW_CAT"          => "%s created a new category '%s'",
   "LOG_PLUGIN_U"         => "%s uninstalled the plugin '%s'",
   "LOG_PLUGIN_I"         => "%s installed the plugin '%s'",
+  "LOG_TICKET_DELETE"    => "%s deleted a ticket in '%s' created by %s",
+  "LOG_EMAIL_FLOOD"      => "System tried to send to many email to '%s'. The visitor ip was: %s"
   ];

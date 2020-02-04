@@ -1,4 +1,6 @@
 !-addCss style.table-!
+!-addCss style.ticket_list-!
+!-addScript script.ticket_list-!
 !-include head-!
 !-if not_activate-!
 <div class='box'>
@@ -38,4 +40,31 @@
     </tr>
   </table>
 </div>
+!-if access TICKET_OTHER-!
+<div class='box'>
+  <div class='title'>!-language USER_TICKET-!</div>
+  !-if tickets-!
+  !-pageNumber(back, pages, forward, p_number, p_last, page_prefix)-!
+  <div>
+    !-foreach tickets as ticket-!
+    <div class='ticket' ticket-id='!-ticket["id"]-!'>
+      <div class='ticket-title !-if ticket["open"] == 0-!closed!-elseif ticket["read"]-!read!-else-!unread!-endblock-!'>!-ticket["name"]-!</div>
+      <div>
+        <span class='ticket-key'>!-language CREATED-!</span>
+        <span class='ticket-value'> !-ticket["created"]-!</span>
+      </div>
+      <div class='ticket-col'>
+        <span class='ticket-key'>!-language CHANGED-!</span>
+        <span class='ticket-value'> !-ticket["changed"]-!</span>
+      </div>
+  </div>
+  !-endblock-!
+  <div class='clear'></div>
+  </div>
+  !-pageNumber(back, pages, forward, p_number, p_last, page_prefix)-!
+  !-else-!
+  <div class='information'>!-language NO_TICKET-!</div>
+  !-endblock-!
+</div>
+!-endblock-!
 !-include buttom-!

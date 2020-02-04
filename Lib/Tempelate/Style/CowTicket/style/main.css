@@ -43,3 +43,18 @@ a{
   background-color: #3F7FBF;
   font-weight: bolder;
 }
+
+#no-cookie{
+  position: absolute;
+  left: 0px;
+  right: 0px;
+  bottom: 0px;
+  text-align: center;
+  background-color: #2C2525;
+  padding: 10px;
+  color: white;
+}
+
+#no-cookie a{
+  color: white;
+}

@@ -24,4 +24,6 @@ $lang = [
   "COMMENT_CLOSED"  => "You cant comment on a closed ticket",
   "MISSING_MESSAGE" => "Missing message",
   "COMMENT_SAVED"   => "The comment is saved",
+  "DAWNLOAD"        => "Download file",
+  "UNKNOWN_FILE"    => "Unknown file",
   ];

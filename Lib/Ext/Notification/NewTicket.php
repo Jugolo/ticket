@@ -8,12 +8,12 @@ use Lib\Plugin\Event;
 class NewTicket{
   public static function notify(int $id, string $name){
     $db = Database::get();
-    $query = $db->query("SELECT user.id 
-                         FROM `notify_setting`
-                         LEFT JOIN `user` ON user.id=notify_setting.uid
-                         LEFT JOIN `access` ON user.groupid=access.gid
-                         WHERE notify_setting.name='".$db->escape(__CLASS__)."'
-                         AND access.name='TICKET_OTHER'");
+    $query = $db->query("SELECT u.id 
+                         FROM `".DB_PREFIX."notify_setting` AS n
+                         LEFT JOIN `".DB_PREFIX."user` AS u ON u.id=n.uid
+                         LEFT JOIN `".DB_PREFIX."access` AS a ON u.groupid=a.gid
+                         WHERE n.name='".$db->escape(__CLASS__)."'
+                         AND a.name='TICKET_OTHER'");
     $query->render(function(DatabaseFetch $row) use($id, $name){
       if(!defined("user") || $row->id != user["id"]){
         NewTicket::notifyUser($row->id, $id, $name);
@@ -23,7 +23,7 @@ class NewTicket{
   
   public static function onTicketDelete(Event $event, int $id){
     $db = Database::get();
-    $db->query("DELETE FROM `notify` WHERE `name`='{$db->escape(__CLASS__)}' AND `item_id`='{$id}'");
+    $db->query("DELETE FROM `".DB_PREFIX."notify` WHERE `name`='{$db->escape(__CLASS__)}' AND `item_id`='{$id}'");
   }
   
   public static function markRead(int $item_id){

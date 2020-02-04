@@ -1,4 +1,5 @@
 !-addCss style.main-!
+!-include macro_data-!
 <!DOCTYPE html>
 <html>
   <head>
@@ -9,7 +10,7 @@
     !-getScript-!
   </head>
   <body>
-    <div id="root-head">
+    <div id="root-head" onclick=''>
       <div id="root-head-left">
         <span class='mobile' onclick='System.toogleMenu()'>&#9776;</span>
         !-if loggedIn-!
@@ -23,24 +24,21 @@
           !-config system_name-!
         </a>
         !-if access SYSTEM_NAME -!
-        <a href='?view=front&changeSystemName=true'>
+        <a href='?view=front&changeSystemName=true' id="root-head-right-name-change">
           (!-language CHANGE-!)
         </a>
         !-endblock-!
-      </div>
-    </div>
-    <div id="root-left">
-      <div id="root-left-user">
         !-if loggedIn-!
-        <div class='box link-box'>
-          <div class='title'>!-username-!</div>
-          <a href='?view=front&logout=!-session_id-!'>!-language LOGOUT-!</a>
-          <a href='?view=profile'>!-language PROFILE-!</a>
-        </div>
-        !-else-!
-        !-include login-!
+        <img class='profile' src='img/profile.png'>
         !-endblock-!
       </div>
+    </div>
+    <div id="root-left" onclick=''>
+      !-if not loggedIn-!
+      <div id="root-left-user">
+        !-include login-!
+      </div>
+      !-endblock-!
       <div class='box link-box'>
         <div class='title'>!-language MENU-!</div>
         <a href='?view=front'>!-language FRONT-!</a>
@@ -56,5 +54,5 @@
       !-include admin_menu-!
       !-endblock-!
     </div>
-    <div id='root'>
+    <div id='root' onclick=''>
       !-include report-!

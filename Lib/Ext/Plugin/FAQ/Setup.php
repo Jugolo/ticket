@@ -6,7 +6,7 @@ use Lib\Database;
 class Setup{
   public static function install(){
     $db = Database::get();
-    $db->query("CREATE TABLE `faq` (
+    $db->query("CREATE TABLE `".DB_PREFIX."faq` (
       `id` int(11) NOT NULL AUTO_INCREMENT,
       `name` varchar(255) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
       `dec` text CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
@@ -16,7 +16,7 @@ class Setup{
   
   public static function uninstall(){
     $db = Database::get();
-    $db->query("DELETE FROM `access` WHERE `name`='FAQ_CHANGE'");
-    $db->query("DROP TABLE `faq`");
+    $db->query("DELETE FROM `".DB_PREFIX."access` WHERE `name`='FAQ_CHANGE'");
+    $db->query("DROP TABLE `".DB_PREFIX."faq`");
   }
 }
