@@ -10,7 +10,4 @@
   <events>
     <event src="Event" />
   </events>
-  <cronworks>
-    <cronwork call='FAQ::test' interval='73736' />
-  </cronworks>
 </plugin>

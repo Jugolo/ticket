@@ -8,6 +8,7 @@ use Lib\Report;
 use Lib\Log;
 use Lib\Page;
 use Lib\Language\Language;
+use Lib\User\User;
 
 class PageView implements P{
   public function loginNeeded() : string{
@@ -24,7 +25,7 @@ class PageView implements P{
     ];
   }
   
-  public function body(Tempelate $tempelate, Page $page){
+  public function body(Tempelate $tempelate, Page $page, User $user){
     Language::load("tempelate");
     if(!empty($_GET["select"]))
       $this->select($_GET["select"]);

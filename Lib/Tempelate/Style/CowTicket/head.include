@@ -13,6 +13,21 @@
     <div id="root-head" onclick=''>
       <div id="root-head-left">
         <span class='mobile' onclick='System.toogleMenu()'>&#9776;</span>
+        !-if show_lang_menu-!
+        <span class='lang-menu'>
+          <div class='head' data-code='!-current_lang_code-!' style='background-image: url("data:image/png;base64,!-current_lang_flag-!");'>
+          
+          </div>
+          <div class='list'>
+            !-foreach lang_list as langlist-!
+            <div class='lang-item' data-langcode='!-langlist["nativecode"]-!'>
+            <span class='flag' style='background-image: url("data:image/png;base64,!-langlist["flag"]-!");'></span>
+            !-langlist["name"]-!
+            </div>
+            !-endblock-!
+          </div>
+        </span>
+        !-endblock-!
         !-if loggedIn-!
         <span class='notify' onclick='System.notify.showList(this);'>
           N<span class='count'>0</span>
@@ -43,9 +58,7 @@
         <div class='title'>!-language MENU-!</div>
         <a href='?view=front'>!-language FRONT-!</a>
         !-if loggedIn-!
-        !-if config cat_open != 0-!
         <a href='?view=apply'>!-language APPLY-!</a>
-        !-endblock-!
         <a href='?view=tickets'>!-language TICKET-!</a>
         !-endblock-!
         !-plugin menu.after-!
@@ -55,4 +68,11 @@
       !-endblock-!
     </div>
     <div id='root' onclick=''>
+      !-if nav-!
+      <div class='navbar'>
+		!-foreach nav as data-!
+          <a href='!-data['link']-!'>!-data["txt"]-!</a>		
+		!-endblock-!
+	  </div>
+      !-endblock-!
       !-include report-!

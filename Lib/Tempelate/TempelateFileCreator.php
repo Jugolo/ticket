@@ -15,7 +15,7 @@ class TempelateFileCreator{
         return true;
       }
       
-      public function get(\\Lib\\Tempelate\\TempelateData \$data, \\Lib\\Tempelate\\TempelateDatabase \$db, \\Lib\\Tempelate \$tempelate){
+      public function get(\\Lib\\Tempelate\\TempelateData \$data, \\Lib\\Tempelate\\TempelateDatabase \$db, \\Lib\\Tempelate \$tempelate, \\Lib\\User\\User \$user){
         \$context = '';
         {$body}
         return \$context;

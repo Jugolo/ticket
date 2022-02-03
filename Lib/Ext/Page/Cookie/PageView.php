@@ -6,6 +6,7 @@ use Lib\Tempelate;
 use Lib\Page;
 use Lib\Language\Language;
 use Lib\Plugin\Plugin;
+use Lib\User\User;
 
 class PageView implements p{
   public function loginNeeded() : string{
@@ -20,7 +21,7 @@ class PageView implements p{
     return [];
   }
   
-  public function body(Tempelate $tempelate, Page $page){
+  public function body(Tempelate $tempelate, Page $page, User $user){
     Language::load("about_cookie");
     
     $list = new CookieListAdd();

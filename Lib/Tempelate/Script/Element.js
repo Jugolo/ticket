@@ -15,7 +15,7 @@ EM.prototype.parent = function(){
 
 EM.prototype.value = function(){
   if(arguments.length > 0){
-    if(this.dom instanceof HTMLInputElement){
+    if(this.dom instanceof HTMLInputElement || this.dom instanceof HTMLOptionElement){
       this.dom.value = arguments[0];
       return true;
     }
@@ -24,7 +24,7 @@ EM.prototype.value = function(){
     return true;
   }
     
-  if(this.dom instanceof HTMLInputElement)
+  if(this.dom instanceof HTMLInputElement || this.dom instanceof HTMLOptionElement)
     return this.dom.value;
   return this.dom.innerHTML;
 };
@@ -46,6 +46,11 @@ EM.prototype.isVisible = function(){
 };
 
 EM.prototype.attribute = function(...arg){
+  if(arg.length == 1 && typeof arg[0] == "object"){
+    for(key in arg[0])
+      this.attribute(key, arg[0][key]);
+    return;
+  }
   if(arg.length == 2)
     this.dom.setAttribute(arg[0], arg[1]);
   
@@ -70,6 +75,10 @@ EM.prototype.addClass = function(c){
 
 EM.prototype.removeClass = function(c){
   this.dom.classList.remove(c);
+};
+
+EM.prototype.classExists = function(n){
+  return this.dom.classList.contains(n);  
 };
 
 EM.prototype.append = function(dom){
@@ -152,9 +161,10 @@ const element = (function(){
             }
           };
         }
-        
-        if(name == "count")
-          return dom.length;
+          
+        if(name == "length"){
+          return dom.length;   
+        }
       },
       getPrototypeOf : function(){
         return EM.prototype;
@@ -167,7 +177,7 @@ const element = (function(){
   };
     
   element.options = {
-      "on.click.cursor" : "pointer"
+      "on.click.cursor" : null
   };
   
   return element;

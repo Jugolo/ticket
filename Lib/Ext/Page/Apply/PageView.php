@@ -10,6 +10,7 @@ use Lib\Page;
 use Lib\Ticket\Ticket;
 use Lib\Language\Language;
 use Lib\File\FileExtension;
+use Lib\User\User;
 
 class PageView implements P{
   public function loginNeeded() : string{
@@ -24,18 +25,18 @@ class PageView implements P{
     return [];
   }
   
-  public function body(Tempelate $tempelate, Page $page){
+  public function body(Tempelate $tempelate, Page $page, User $user){
     Language::load("apply");
-    if(empty($_GET["to"]) || !($data = $this->data())){
-      $this->select_to($tempelate);
+    if(empty($_GET["to"]) || !($data = $this->data($user))){
+      $this->select_to($tempelate, $user);
       return;
     }
   
     if($data["age"]){
-      if(($respons = Age::controle($data["age"], $data["name"])) != Age::NO_ERROR){
+      if(($respons = Age::controle($user, $data["age"], $data["name"])) != Age::NO_ERROR){
         switch($respons){
           case AGE::GET_AGE:
-            Age::get_age($data["name"], $tempelate, $page);
+            Age::get_age($user, $data["name"], $tempelate, $page);
             return;
           default:
             header("location: ?view=apply");
@@ -45,7 +46,7 @@ class PageView implements P{
     }
   
     if(!empty($_GET["done"])){
-      $this->controle_apply($data);
+      $this->controle_apply($data, $user);
     }
     
     $tempelate->put("name",        $data["name"]);
@@ -76,7 +77,7 @@ class PageView implements P{
     $tempelate->render("apply");
   }
   
-  private function controle_apply(array $data){
+  private function controle_apply(array $data, User $user){
     $db = Database::get();
     $errcount = 0;
     $query = $db->query("SELECT * FROM `".DB_PREFIX."category_item` WHERE `cid`='".$data["id"]."'");
@@ -141,27 +142,34 @@ class PageView implements P{
       header("location: ?view=apply&to=".$data["id"]);
       exit;
     }else{
-      $id = Ticket::createTicket(user["id"], $data["id"], $fields);
+      $id = Ticket::createTicket($user->id(), $data["id"], $fields);
       Report::okay(Language::get("TICKET_SAVED"));
       header("location: ?view=tickets&ticket_id=".$id);
       exit;
     }
   }
   
-  private function select_to(Tempelate $tempelate){
+  private function select_to(Tempelate $tempelate, User $user){
     if(!empty($_GET["to"])){
       notfound();
       return;
     }
     
-    $query = Database::get()->query("SELECT `id`, `name`, `age` FROM `".DB_PREFIX."catogory` WHERE `open`='1' ORDER BY `sort_ordre` ASC");
+    $query = Database::get()->query("SELECT cat.* FROM `".DB_PREFIX."catogory` AS cat
+                                     LEFT JOIN `".DB_PREFIX."category_access` AS access ON cat.id=access.cid
+                                     LEFT JOIN `".DB_PREFIX."grup_member` AS member ON access.gid=member.gid
+                                     WHERE member.uid='".$user->id()."'
+                                     AND access.name='APPLY_CAT'
+                                     AND cat.open='1'
+                                     ORDER BY cat.sort_ordre ASC");
     
     $options = [];
     $count = 0;
     $lastID = 0;
     while($row = $query->fetch()){
-      if($row->age && !empty(user["birth_day"])){
-        if(Age::calculate(user["birth_day"], user["birth_month"], user["birth_year"]) < $row->age){
+	  $birth = $user->birth();
+      if($row->age && $birth){
+        if($birth->age() < $row->age){
          continue; 
         }
       }
@@ -175,7 +183,7 @@ class PageView implements P{
          
     if($count == 0){
       $tempelate->put("apply_error", Language::get("NO_CAT"));
-      $tempelate->render("apply_error", $page);
+      $tempelate->render("apply_error");
       return;   
     }
     
@@ -188,9 +196,15 @@ class PageView implements P{
     $tempelate->render("select_to");
   }
   
-  private function data(){
+  private function data(User $user) : ?array{
     $db = Database::get();
-    if($data = $db->query("SELECT * FROM `".DB_PREFIX."catogory` WHERE `id`='".$db->escape($_GET["to"])."'")->fetch()){
+    if($data = $db->query("SELECT cat.* FROM `".DB_PREFIX."catogory` AS cat
+                           LEFT JOIN `".DB_PREFIX."category_access` AS access ON cat.id=access.cid
+                           LEFT JOIN `".DB_PREFIX."grup_member` AS member ON access.gid=member.gid
+                           WHERE cat.id='".$db->escape($_GET["to"])."'
+                           AND member.uid='".$user->id()."'
+                           AND access.name='APPLY_CAT'
+                          ")->fetch()){
       return $data->toArray();
     }
     return null;

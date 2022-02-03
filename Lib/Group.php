@@ -12,9 +12,9 @@ class Group{
   public static function delete(int $id){
     $db = Database::get();
     //first wee ensure no user stay width out a group.
-    $db->query("UPDATE `".DB_PREFIX."user` SET `groupid`='".Config::get("standart_group")."' WHERE `groupid`='{$id}'");
+    $db->query("DELETE FROM `".DB_PREFIX."grup_member` WHERE `gid`='".$id."'");
     //wee delete all access to the deleted group
-    Access::deleteGroupAccess($id);
+    $db->query("DELETE FROM `".DB_PREFIX."access` WHERE `gid`='".$id."'");
     //now we can delete the group
     $db->query("DELETE FROM `".DB_PREFIX."group` WHERE `id`='{$id}'");
   }

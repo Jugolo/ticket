@@ -138,11 +138,6 @@ class Install{
                                             (2, 'CATEGORY_ITEM_DELETE'),
                                             (2, 'CATEGORY_SETTING'),
                                             (2, 'CATEGORY_SORT'),
-                                            (2, 'TICKET_OTHER'),
-                                            (2, 'TICKET_CLOSE'),
-                                            (2, 'TICKET_DELETE'),
-                                            (2, 'COMMENT_DELETE'),
-                                            (2, 'TICKET_LOG'),
                                             (2, 'USER_GROUP'),
                                             (2, 'USER_PROFILE'),
                                             (2, 'USER_DELETE'),
@@ -158,9 +153,9 @@ class Install{
                                             (2, 'SYSTEM_NAME'),
                                             (2, 'SYSTEMLOG_SHOW'),
                                             (2, 'TEMPELATE_SELECT'),
-                                            (2, 'TICKET_SEEN'),
                                             (2, 'PLUGIN_INSTALL'),
-                                            (2, 'PLUGIN_UNINSTALL');");
+                                            (2, 'PLUGIN_UNINSTALL'),
+                                            (2, 'CATEGORY_ACCESS');");
     $db->query("INSERT INTO `".DB_PREFIX."config` VALUES ('version', '".Main::SETUP_VERSION."'),
                                             ('standart_group', '1'),
                                             ('cat_open', '0'),
@@ -171,7 +166,7 @@ class Install{
     $db->query("INSERT INTO `".DB_PREFIX."cronwork` (`id`, `cronwork`, `next`, `interval`) VALUES (NULL, 'Lib\\\\Cronwork\\\\Image::gc', 0, 2052000)");
     $db->query("INSERT INTO `".DB_PREFIX."cronwork` (`id`, `cronwork`, `next`, `interval`) VALUES (NULL, 'Lib\\\\Ticket\\\\TicketDeleter::gc', '0', '2052000');");
     $db->query("INSERT INTO `".DB_PREFIX."file_group` (`id`, `name`) VALUES (NULL, '@language.IMAGE');");
-    $db->query("INSERT INTO `".DB_PREFIX."ticket_extension` (`gid`, `name`, `mimetype`) VALUES
+    $db->query("INSERT INTO `".DB_PREFIX."file_extension` (`gid`, `name`, `mimetype`) VALUES
                                                             ('1', 'jpg', 'image/jpg'),
                                                             ('1', 'jpeg', 'image/jpg'),
                                                             ('1', 'png', 'image/png');");
@@ -183,7 +178,7 @@ class Install{
       $_POST["email"],
       true
       );
-    $db->query("UPDATE `".DB_PREFIX."user` SET `groupid`='2' WHERE `id`='{$id}'");
+    $db->query("INSERT INTO `".DB_PREFIX."grup_member` (`gid`, `uid`) VALUES ('2', '{$id}');");
     if(!is_dir("Lib/Temp"))
       mkdir("Lib/Temp");
     Log::system("LOG_SYSTEM_INSTALL");
@@ -229,6 +224,7 @@ class Install{
                              ) ENGINE=InnoDB DEFAULT CHARSET=utf8;",
         "comment"  => "CREATE TABLE IF NOT EXISTS `{$prefix}comment` (
                          `id` int(11) NOT NULL AUTO_INCREMENT,
+                         `cid` int(11) NOT NULL,
                          `tid` int(11) NOT NULL,
                          `uid` int(11) NOT NULL,
                          `public` int(1) NOT NULL,
@@ -295,11 +291,13 @@ class Install{
                       ) ENGINE=InnoDB DEFAULT CHARSET=utf8;",
          "ticket_track" => "CREATE TABLE IF NOT EXISTS `{$prefix}ticket_track` (
                               `uid` int(11) NOT NULL,
+                              `cid` int(11) NOT NULL,
                               `tid` int(11) NOT NULL,
                               `visit` int(11) NOT NULL
                             ) ENGINE=InnoDB DEFAULT CHARSET=utf8;",
          "ticket_value" => "CREATE TABLE IF NOT EXISTS `{$prefix}ticket_value` (
                               `id` int(11) NOT NULL AUTO_INCREMENT,
+                              `cid` int(11) NOT NULL,
                               `hid` int(11) NOT NULL,
                               `text` varchar(255) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
                               `type` int(11) NOT NULL,
@@ -313,7 +311,6 @@ class Install{
                      `email` varchar(255) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
                      `salt` varchar(255) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
                      `isActivatet` int(1) NOT NULL,
-                     `groupid` int(11) NOT NULL,
                      `birth_day` int(11) DEFAULT NULL,
                      `birth_month` int(11) DEFAULT NULL,
                      `birth_year` int(11) DEFAULT NULL,
@@ -352,7 +349,18 @@ class Install{
                       `name` varchar(255) COLLATE utf8mb4_bin NOT NULL,
                       `created` int(11) NOT NULL,
                       PRIMARY KEY (`id`)
-                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;"
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;",
+         "group_member" => "CREATE TABLE IF NOT EXISTS `{$prefix}grup_member` (
+                              `id` int(11) NOT NULL AUTO_INCREMENT,
+                              `gid` int(11) NOT NULL,
+                              `uid` int(11) NOT NULL,
+                              PRIMARY KEY (`id`)
+                           ) ENGINE=InnoDB AUTO_INCREMENT=30 DEFAULT CHARSET=utf8mb4;",
+         "category_access" => "CREATE TABLE IF NOT EXISTS `{$prefix}category_access` (
+                                 `gid` int(11) NOT NULL,
+                                 `cid` int(11) NOT NULL,
+                                 `name` varchar(255) NOT NULL
+                           ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;"
       ];
     $db = Database::get();
     

@@ -13,6 +13,44 @@
   margin-top:15px;
 }
 
+#root-head-left .lang-menu{
+  display: inline-block;
+}
+
+#root-head-left .lang-menu .head{
+  width: 20px;
+  height: 20px;
+  background-size: 100% 100%;
+  border-radius: 100px;
+  cursor: pointer;
+}
+
+#root-head-left .lang-menu .list{
+  position: absolute;
+  background-color: white;
+  z-index: 2;
+  padding: 5px;
+  margin-top: 5px;
+  width: auto;
+  display: none;
+}
+
+#root-head-left .lang-menu .list .lang-item{
+  margin: 3px;
+  cursor: pointer;
+}
+
+#root-head-left .lang-menu .list .lang-item:hover{
+  background-color: #F5F5F5;
+}
+
+#root-head-left .lang-menu .list .flag{
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  background-size: 100% 100%;
+}
+
 #root-head-right{
   float:right;
   margin-right:15px;

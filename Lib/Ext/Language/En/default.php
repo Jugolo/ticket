@@ -6,7 +6,7 @@ $lang = [
   "PROFILE"           => "Profile",
   "MENU"              => "Menu",
   "FRONT"             => "Front",
-  "APPLY"             => "Apply",
+  "APPLY"             => "Create ticket",
   "TICKET"            => "Ticket",
   "USERNAME"          => "Username",
   "PASSWORD"          => "Password",
@@ -31,4 +31,5 @@ $lang = [
   "MISSING_B_Y"       => "Missing birth year",
   "WRONG_YEAR"        => "Please controle the year",
   "WRONG_DAY"         => "Please controle the day",
+  "ACCESS_DENIAD"     => "Access denaid",
   ];

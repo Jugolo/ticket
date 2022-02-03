@@ -5,7 +5,9 @@ class Loader{
   public static function set(){
     spl_autoload_register(function($class){
       if(!class_exists($class)){
-        include BASE.str_replace("\\", "/", $class).".php";
+		  $path = BASE.str_replace("\\", "/", $class).".php";
+		  if(file_exists($path))
+			  include $path;
       }
     });
   }

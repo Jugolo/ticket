@@ -15,6 +15,7 @@ use Lib\Tempelate\TempelateStackTrace;
 use Lib\Cache;
 use Lib\Page;
 use Lib\Language\Language;
+use Lib\User\User;
 
 class Tempelate{
   private $stack = [];
@@ -24,12 +25,14 @@ class Tempelate{
   private $controler;
   private $data;
   private $info;
+  private $user;
   
-  public function __construct(string $name, Page $page){
+  public function __construct(string $name, Page $page, User $user){
     $this->db        = new TempelateDatabase();
     $this->name      = $name;
     $this->main      = new TempelateDirLoader($this->getMainDir($name));
     $this->controler = TempelateControler::createInstance($this);
+    $this->user      = $user;
     if(!$this->main->exists())
       throw new TempelateFileNotFound($this->main->getDir()." was not found");
     $this->initTempelateSetting();
@@ -107,7 +110,7 @@ class Tempelate{
   }
   
   private function handleTempelateObject($obj) : string{
-    return $obj->get($this->data, $this->db, $this);
+    return $obj->get($this->data, $this->db, $this, $this->user);
   }
   
   private function parseSource(TempelateFileLoader $loader, TempelateStackTrace $trace) : string{

@@ -10,6 +10,7 @@ use Lib\Access;
 use Lib\Language\Language;
 use Lib\Report;
 use Lib\Bbcode\Parser;
+use Lib\User\User;
 
 class PageMain implements PageView{
   private $tempelateDir = "Lib/Ext/Plugin/FAQ/Tempelate/";
@@ -25,13 +26,13 @@ class PageMain implements PageView{
     return [];
   }
   
-  public function body(Tempelate $tempelate, Page $page){
+  public function body(Tempelate $tempelate, Page $page, User $user){
     $this->tempelateDir .= $tempelate->getMainName()."/Pages/";
     //exit($this->tempelateDir);
-    if(!Request::isEmpty(Request::GET, "create") && Access::userHasAccess("FAQ_CREATE")){
+    if(!Request::isEmpty(Request::GET, "create") && $user->access()->has("FAQ_CREATE")){
       $this->create($tempelate, $page);
     }elseif(!Request::isEmpty(Request::GET, "item") && $data = $this->getItemData(Request::toInt(Request::GET, "item"))){
-      $this->item($tempelate, $data);
+      $this->item($tempelate, $data, $user);
     }else{
       $db = Database::get();
       $query = $db->query("SELECT `id`, `name` FROM `".DB_PREFIX."faq`");
@@ -44,11 +45,11 @@ class PageMain implements PageView{
     }
   }
   
-  private function item(Tempelate $tempelate, $data){
-    if(!Request::isEmpty(Request::GET, "change") && Access::userHasAccess("FAQ_CREATE")){
+  private function item(Tempelate $tempelate, $data, User $user){
+    if(!Request::isEmpty(Request::GET, "change") && $user->access()->has("FAQ_CREATE")){
       $this->changeItem($tempelate, $data);
     }
-    if(!Request::isEmpty(Request::GET, "delete") && Access::userHasAccess("FAQ_CREATE")){
+    if(!Request::isEmpty(Request::GET, "delete") && $user->access()->has("FAQ_CREATE")){
       $this->delete($data->id);
     }
     $tempelate->put("title", $data->name);

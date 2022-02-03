@@ -14,7 +14,10 @@ class TempelateDatabase{
   }
   
   public function getRaw(string $key){
-    return array_key_exists($key, $this->data) ? $this->data[$key] : ($this->db ? $this->db->getRaw($key) : "");
+    $value = array_key_exists($key, $this->data) ? $this->data[$key] : ($this->db ? $this->db->getRaw($key) : "");
+	if($value == null)
+		return "";
+	return $value;
   }
   
   public function toArray($value) : array{
@@ -23,7 +26,7 @@ class TempelateDatabase{
   
   public function has(string $key) : bool{
     if(array_key_exists($key, $this->data))
-      return $this->data[$key];
+      return true;
     
     if($this->db)
       return $this->db->has($key);

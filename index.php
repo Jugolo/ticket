@@ -14,7 +14,6 @@ use Lib\Error;
 use Lib\Page;
 
 include 'Lib/startup.php';
-
 function updateUserGroup(Lib\Database\DatabaseFetch $user, $id){
   Database::get()->query("UPDATE `user` SET `groupid`='".(int)$id."' WHERE `id`='".(int)$user->id."'");
 }
@@ -43,10 +42,9 @@ function getStandartGroup(){
 try{
   $tempelate->put("session_id", session_id());
   if(defined("user")){
-    $tempelate->put("username", user["username"]);
+    $tempelate->put("username", $user->username());
   }
   $page->show(empty($_GET["view"]) ? "front" : $_GET["view"], $tempelate);
-  echo $tempelate->getSource();
 }catch(TempelateException $e){
   Error::tempelateError($e);
 }

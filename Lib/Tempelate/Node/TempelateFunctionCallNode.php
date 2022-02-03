@@ -24,6 +24,6 @@ class TempelateFunctionCallNode implements TempelateNode{
   
   public function toString() : string{
     $arg = count($this->arg) == 0 ? "" : ", ".implode(", ", $this->arg);
-    return "call_user_func(\$data->toFunc({$this->node->toString()}){$arg})";
+    return "\$data->notNull(call_user_func(\$data->toFunc({$this->node->toString()}){$arg}))";
   }
 }

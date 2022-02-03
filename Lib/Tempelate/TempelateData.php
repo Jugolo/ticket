@@ -52,7 +52,10 @@ class TempelateData{
   }
   
   public function arrayGet($variabel, $key){
-    return is_array($variabel) && array_key_exists($key, $variabel) ? $variabel[$key] : "";
+    $value = is_array($variabel) && array_key_exists($key, $variabel) ? $variabel[$key] : "";
+    if($value == null)
+		return "";
+	return $value;
   }
   
   public function toFunc($func){
@@ -68,5 +71,9 @@ class TempelateData{
         throw new TempelateException("unknoen include style file '{$inc}'", $file, $line);
       return file_get_contents($inc);
     }, $context);
+  }
+  
+  public function notNull($obj){
+	  return $obj == null ? "" : $obj;
   }
 }

@@ -1,6 +1,6 @@
 #root{
   position:absolute;
-  top: 50px;
+  top: 51px;
   left: 160px;
   right: 0px;
   bottom: 0px;
@@ -31,6 +31,17 @@
   border-radius: 10px;
 }
 
+#root .box.singlelink a{
+  text-decoration: none;
+  background-color: #2C2525;
+  border-radius: 10px;
+  display: block;
+  margin: 10px;
+  padding: 20px;
+  color: white;
+  text-align: center;
+}
+
 #root-okay{
   margin:10px;
   padding:10px;
@@ -47,4 +58,42 @@
   border-radius: 10px;
   text-align: center;
   font-weight: bolder;
+}
+
+#root .navbar{
+  background-color: white;
+  margin-bottom: 6px;
+  display: inline-flex;
+  overflow: hidden;
+}
+
+#root .navbar a{
+  background-color: #EAEAEA;
+  padding: 10px;
+  margin: 0px;
+  position: relative;
+  text-decoration: none;
+  transition: background 0.2s linear;
+}
+
+#root .navbar a:after, #root .navbar a:before {
+  background: #EAEAEA;
+  bottom: 0;
+  clip-path: polygon(50% 50%, -50% -50%, 0 100%);
+  content: "";
+  left: 100%;
+  position: absolute;
+  top: 0;
+  transition: background 0.2s linear;
+  width: 1em;
+  z-index: 1;
+}
+
+#root .navbar a:before {
+  background: #cbd2d9;
+  margin-left: 1px;
+}
+
+#root .navbar a:last-child {
+  border-right: none;
 }

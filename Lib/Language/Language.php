@@ -59,6 +59,14 @@ class Language{
     });
   }
   
+  public static function getFlagBase64() : string{
+	  if(!self::$stack)
+		return "";
+	  return self::render(function($stack){
+		 return $stack->getFlagBase64(); 
+	  });
+  }
+  
   private static function render($callback){
     for($i=count(self::$stack)-1;$i>=0;$i--){
       $return = call_user_func($callback, self::$stack[$i]);

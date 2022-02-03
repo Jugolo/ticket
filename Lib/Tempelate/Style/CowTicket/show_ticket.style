@@ -102,7 +102,7 @@
       </div>
       <div class='clear'></div>
     </div>
-    !-if not owen and access COMMENT_DELETE-!
+    !-if not owen and COMMENT_DELETE-!
     <div class='comment-admin'>
       <a href='?view=tickets&ticket_id=!-ticket_id-!&deleteComment=!-comment["id"]-!'>!-language DELETE-!</a>
     </div>

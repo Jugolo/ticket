@@ -5,6 +5,7 @@ use Lib\Controler\Page\PageView as P;
 use Lib\Page;
 use Lib\Tempelate;
 use Lib\Language\Language;
+use Lib\User\User;
 
 class PageView implements P{
   public function loginNeeded() : string{
@@ -19,7 +20,7 @@ class PageView implements P{
     return [];
   }
   
-  public function body(Tempelate $tempelate, Page $page){
+  public function body(Tempelate $tempelate, Page $page, User $user){
     Language::load("agree");
     $tempelate->put("rules", [
       Language::get("INFORMATION") => Language::get("INFORMATION_DEC"),

@@ -13,23 +13,32 @@ use Lib\Language\Language;
 
 class Auth{
   
-  public static function controleAuth(){
-    if(!self::autologin()){
-      if(!empty($_POST["login"]))
-        self::doLogin();
-      elseif(!empty($_POST["createaccount"]))
-        self::doCreate();
-      elseif(!empty($_GET["salt"]) && !empty($_GET["email"]))
-        self::doActivate();
+  public static function controleAuth() : User{
+	if($user = self::autologin())
+		return $user;
+    
+    if(!empty($_POST["login"]) && $user = self::doLogin())
+      return $user;
+      
+    if(!empty($_POST["createaccount"])){
+      self::doCreate();
+      return null;
     }
+    
+    if(!empty($_GET["salt"]) && !empty($_GET["email"])){
+      self::doActivate();
+      return null;
+    }
+    
+    return new User(null);
   }
   
-  public static function controleDetail(string $username, string $email){
+  public static function controleDetail(string $username, string $email, int $id = -1){
     $db = Database::get();
     $query = $db->query("SELECT LOWER(`username`) AS username, LOWER(`email`) AS email
                          FROM `".DB_PREFIX."user` 
                          WHERE (LOWER(`email`)='{$db->escape(strtolower($email))}' OR LOWER(`username`)='{$db->escape(strtolower($username))}')
-                         ".(defined("user") ? " AND `id`<>'".user["id"]."'" : ""));
+                         ".($id != -1 ? " AND `id`<>'".$id."'" : ""));
     if($query->count() != 0){
       $row = $query->fetch();
       $query->free();
@@ -59,7 +68,6 @@ class Auth{
         `email`,
         `salt`,
         `isActivatet`,
-        `groupid`,
         `lang`
       ) VALUES (
         '".$db->escape($username)."',
@@ -67,9 +75,13 @@ class Auth{
         '".$db->escape($email)."',
         '".$db->escape($salt)."',
         '".($isActivated ? '1' : '0')."',
-        '".Config::get("standart_group")."',
         '".(defined("force_lang") ? force_lang : Language::getCode())."'
       );");
+    $db->query("INSERT INTO `".DB_PREFIX."grup_member` VALUES (
+        NULL,
+        '".Config::get("standart_group")."',
+        '".$id."'
+    );");
     Notification::getNotification(function(string $name) use($db, $id){
         $db->query("INSERT INTO `".DB_PREFIX."notify_setting` VALUES ('{$id}', '{$db->escape($name)}');");
     });
@@ -92,7 +104,7 @@ class Auth{
   }
   
   private static function doLogin(){
-    LanguageDetector::detect();
+	LanguageDetector::detect();
     Language::load("auth");
     $count = Report::count("ERROR");
     
@@ -171,9 +183,9 @@ class Auth{
     }
   }
   
-  private static function autologin() : bool{
+  private static function autologin() : ?User{
     if(empty($_SESSION["uid"]) || !is_numeric($_SESSION["uid"])){
-      return false;
+      return null;
     }
     
     $db = Database::get();
@@ -181,10 +193,10 @@ class Auth{
     $user = $db->query("SELECT * FROM `".DB_PREFIX."user` WHERE `id`='".intval($_SESSION["uid"])."' AND `isActivatet`='1'")->fetch();
     if(!$user){
       unset($_SESSION["uid"]);
-      return false;
+      return null;
     }
-    define("user", $user->toArray());
-    return true;
+    
+    return new User($user->toArray());
   }
   
   private static function doActivate(){

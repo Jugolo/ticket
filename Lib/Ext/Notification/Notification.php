@@ -29,9 +29,10 @@ class Notification{
   }
   
   public static function ajax(){
+	global $user;
     $ajax = [];
     
-    if(defined("user")){
+    if($user->isLoggedIn()){
       if(!defined("NOTIFY_LANG")){
         Language::load("notifi");
         define("NOTIFY_LANG", true);
@@ -39,7 +40,7 @@ class Notification{
       $db = Database::get();
       $query = $db->query("SELECT `id`, `link`, `message`, `arg`, `seen`
                            FROM `".DB_PREFIX."notify`                          
-                           WHERE `uid`='".user["id"]."'
+                           WHERE `uid`='".$user->id()."'
                            AND `created` > '".strtotime("-1 month")."'
                            ".(!empty($_POST["notify_id"]) ? " AND `id`>'".$db->escape($_POST["notify_id"])."'" : "")."
                            ORDER BY `id` DESC");

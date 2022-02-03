@@ -19,36 +19,42 @@ use Lib\Language\Language;
 use Lib\File\FileExtension;
 use Lib\Category;
 use Lib\Request;
+use Lib\User\User;
+use Lib\CatAccess;
 
 class TicketView{
-  public static function body(DatabaseFetch $data, Tempelate $tempelate, Page $page){
+  public static function body(DatabaseFetch $data, Tempelate $tempelate, Page $page, User $user){
     Language::load("ticket_view");
-    Track::track($data->id, $data->cid, user["id"]);
+    Track::track($data->id, $data->cid, $user->id());
     NewTicket::markRead($data->id);
     NewComment::markRead($data->id);
-    //$group = new Group(user["groupid"]);
     $db = Database::get();
+    $access = new CatAccess($data->cid, $user);
+    
     if(!empty($_POST["create"])){
-      self::createComments($data, $tempelate);
+      self::createComments($data, $tempelate, $user);
     }
-    if(Access::userHasAccess("TICKET_CLOSE") && !empty($_GET["close"]) && $data->uid != user["id"]){
-      self::changeOpningState($data->open != 1, $data->id);
+    if($access->has("TICKET_CLOSE") && !empty($_GET["close"]) && $data->uid != $user->id()){
+      self::changeOpningState($data->open != 1, $data->id, $user);
     }
-    if(Access::userHasAccess("TICKET_DELETE") && !empty($_GET["delete"]) && $data->uid != user["id"]){
-      self::deleteTicket($data);
+    if($access->has("TICKET_DELETE") && !empty($_GET["delete"]) && $data->uid != $user->id()){
+      self::deleteTicket($data, $user);
     }
-    if(Access::userHasAccess("COMMENT_DELETE") && !empty($_GET["deleteComment"]) && $data->uid != user["id"]){
-      self::deleteComment(intval($_GET["deleteComment"]), $data->id);
+    if($access->has("COMMENT_DELETE") && !empty($_GET["deleteComment"]) && $data->uid != $user->id()){
+      self::deleteComment(intval($_GET["deleteComment"]), $data->id, $user);
     }
     if(!empty($_GET["dawnload"]) && is_numeric($_GET["dawnload"]))
       self::dawnload($data->id, (int)$_GET["dawnload"]);
     
+    $tempelate->put("TICKET_CLOSE",    $access->has("TICKET_CLOSE"));
+    $tempelate->put("TICKET_DELETE",   $access->has("TICKET_DELETE"));
+    $tempelate->put("COMMENT_DELETE",  $access->has("COMMENT_DELETE"));
     $tempelate->put("ticket_id",       $data->id);
     $tempelate->put("ticket_url",      "?view=tickets&ticket_id=".$data->id);
     $tempelate->put("ticket_username", $data->username);
     $tempelate->put("ticket_open",     $data->open);
     $tempelate->put("ticket_uid",      $data->uid);
-    $tempelate->put("owen",            $data->uid == user["id"]);
+    $tempelate->put("owen",            $data->uid == $user->id());
     
     if($data->age){
       $tempelate->put("age", \Lib\Age::calculate($data->birth_day ? : 0, $data->birth_month ? : 0, $data->birth_year ? : 0));
@@ -60,8 +66,8 @@ class TicketView{
       $ticket_data[] = $row->toArray();
     $tempelate->put("ticket_data", $ticket_data);
     
-    if(user["id"] != $data->uid){
-      if(Access::userHasAccess("TICKET_LOG")){
+    if($user->id() != $data->uid){
+      if($access->has("TICKET_LOG")){
         $log = Log::getTicketLog($data->id);
         $l = [];
         $log->render(function($time, $message) use(&$l){
@@ -72,7 +78,7 @@ class TicketView{
         });
         $tempelate->put("log", $l);
       }
-      if(Access::userHasAccess("TICKET_SEEN")){
+      if($access->has("TICKET_SEEN")){
         $seen = [];
         $query = $db->query("SELECT user.username, ticket_track.visit
                              FROM `".DB_PREFIX."user` AS user
@@ -88,7 +94,7 @@ class TicketView{
       }
     }
     
-    self::getComments($data, $tempelate);
+    self::getComments($data, $tempelate, $user);
     
     $tempelate->render("show_ticket");
   }
@@ -113,7 +119,7 @@ class TicketView{
     }
   }
   
-  private static function deleteComment(int $id, int $tid){
+  private static function deleteComment(int $id, int $tid, User $user){
     $result = Database::get()->query("SELECT comment.id, comment.tid, user.username 
                                       FROM `".DB_PREFIX."comment` AS comment
                                       LEFT JOIN `".DB_PREFIX."user` AS user ON user.id=comment.uid
@@ -122,42 +128,44 @@ class TicketView{
       Report::error("Unknown comment");
       return;
     }
-    Log::ticket($result->tid, "LOG_COMMENT_DELETE", user["username"], $result->username);
+    Log::ticket($result->tid, "LOG_COMMENT_DELETE", $user->username(), $result->username);
     Plugin::trigger_event("system.comment.delete", $result->id);
     Report::okay(Language::get("COMMENT_DELETED"));
   }
   
-  private static function deleteTicket($data){
+  private static function deleteTicket($data, User $user){
     $db = Database::get();
     $db->query("DELETE FROM `".DB_PREFIX."comment` WHERE `tid`='{$data->id}'");
     $db->query("DELETE FROM `".DB_PREFIX."ticket` WHERE `id`='{$data->id}'");
     $db->query("DELETE FROM `".DB_PREFIX."ticket_track` WHERE `tid`='{$data->id}'");
     $db->query("DELETE FROM `".DB_PREFIX."ticket_value` WHERE `hid`='{$data->id}'");
-    Log::system("LOG_TICKET_DELETE", user["username"], Category::getNameFromId($data->cid), $data->username);
+    $db->query("UPDATE `".DB_PREFIX."catogory` SET `ticket_count`=ticket_count-1 WHERE `id`='{$data->cid}'");
+    Log::system("LOG_TICKET_DELETE", $user->username(), Category::getNameFromId($data->cid), $data->username);
     Report::okay(Language::get("TICKET_DELETED"));
+    Plugin::trigger_event("system.ticket.delete", $data->id, $data->cid);
     header("location: ?view=tickets");
     exit;
   }
   
-  private static function changeOpningState(bool $open, $id){
+  private static function changeOpningState(bool $open, $id, User $user){
     if($open){
-      Ticket::open($id, user["id"]);
+      Ticket::open($id, $user->id());
       Report::okay(Language::get("TICKET_OPEN"));
     }else{
-      Ticket::close($id, user["id"]);
+      Ticket::close($id, $user->id());
       Report::okay(Language::get("TICKET_CLOSED"));
     }
     header("location: ?view=tickets&ticket_id=".$id);
     exit;
   }
   
-  private static function createComments(DatabaseFetch $data, Tempelate $tempelate){
+  private static function createComments(DatabaseFetch $data, Tempelate $tempelate, User $user){
     if($data->open != 1){
       Report::error(Language::get("COMMENT_CLOSED"));
     }elseif(empty($_POST["comments"])){
       Report::error(Language::get("MISSING_MESSAGE"));
     }else{
-      Ticket::createComment($data->id, $data->cid, user["id"], $_POST["comments"], $data->uid == user["id"] || !empty($_POST["public"]));
+      Ticket::createComment($data->id, $data->cid, $user->id(), $_POST["comments"], $data->uid == $user->id() || !empty($_POST["public"]), $user);
       Report::okay(Language::get("COMMENT_SAVED"));
       header("location: #");
       exit;
@@ -216,12 +224,12 @@ class TicketView{
     $tempelate->put("pages", $pages);
   }
   
-  private static function getComments(DatabaseFetch $data, Tempelate $tempelate){
+  private static function getComments(DatabaseFetch $data, Tempelate $tempelate, User $user){
     $db = Database::get();
     $sql = "SELECT comment.id, user.id AS uid, comment.parsed_message, comment.public, comment.created, user.username
                          FROM `".DB_PREFIX."comment` AS comment
                          LEFT JOIN `".DB_PREFIX."user` AS user ON user.id=comment.uid
-                         WHERE `tid`='{$data->id}'".($data->uid == user["id"] ? " AND comment.public='1'" : "");
+                         WHERE `tid`='{$data->id}'".($data->uid == $user->id() ? " AND comment.public='1'" : "");
     $page = self::getPage();
     self::pageSelect($tempelate, $sql, $page);
     

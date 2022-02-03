@@ -45,8 +45,9 @@ class Category{
     }
     if(!Plugin::trigger_event("system.category.delete", $data->id, $data->name))
       return false;
+    
     if($data->open == 1){
-      Config::set("cat_open", intval(Config::get("cat_open"))-1);
+      Config::set("cat_open", (int)Config::get("cat_open")-1);
     }
     
     if(Cache::exists("category_names"))
@@ -58,8 +59,6 @@ class Category{
     $db->query("DELETE FROM `".DB_PREFIX."comment` WHERE `cid`='{$id}'");
     $db->query("DELETE FROM `".DB_PREFIX."catogory` WHERE `id`='{$id}'");
     $db->query("DELETE FROM `".DB_PREFIX."category_item` WHERE `cid`='{$id}'");
-    
-    Log::system("LOG_CAT_DELETED", defined("user") ? user["username"] : "unknown", $data->name);
     return true;
   }
 }

@@ -3,11 +3,14 @@ namespace Lib;
 
 use Lib\Controler\Page\PageView;
 use Lib\Language\Language;
+use Lib\User\User;
 
 class Page{
   private $controlers = [];
+  private $user;
   
-  public function __construct(){
+  public function __construct(User $user){
+	$this->user = $user;
     //load all files 
     $dir = "Lib/Ext/Page/";
     $stream = opendir($dir);
@@ -25,7 +28,7 @@ class Page{
       return false;
   
     $page = $this->controlers[$identify];
-    if($page->loginNeeded() == "YES" && !defined("user") || $page->loginNeeded() == "NO" && defined("user"))
+    if($page->loginNeeded() == "YES" && !$this->user->isLoggedIn() || $page->loginNeeded() == "NO" && $this->user->isLoggedIn())
       return false;
     
     return $this->hasAccess($page->access());
@@ -36,13 +39,13 @@ class Page{
       $this->notfound($tempelate);
     
     $page = $this->controlers[$identify];
-    if($page->loginNeeded() == "YES" && !defined("user") || $page->loginNeeded() == "NO" && defined("user"))
+    if($page->loginNeeded() == "YES" && !$this->user->isLoggedIn() || $page->loginNeeded() == "NO" && $this->user->isLoggedIn())
       $this->accessdenid($tempelate);
     
     if(!$this->hasAccess($page->access()))
       $this->accessdenid($tempelate);
     
-    $page->body($tempelate, $this);
+    $page->body($tempelate, $this, $this->user);
   }
   
   public function notfound(Tempelate $tempelate){
@@ -78,8 +81,9 @@ class Page{
   public function hasAccess(array $access){
     if(count($access) == 0)
       return true;
+    $acc = $this->user->access();
     foreach($access as $name){
-      if(Access::userHasAccess($name))
+      if($acc->has($name))
         return true;
     }
     return false;

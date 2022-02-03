@@ -28,6 +28,15 @@ a{
   clear:both;
 }
 
+.center{
+	text-align: center;
+}
+
+span.center{
+	display: inline-block;
+	width: 100%;
+}
+
 .label{
   display:inline-block;
   border:1px solid black;

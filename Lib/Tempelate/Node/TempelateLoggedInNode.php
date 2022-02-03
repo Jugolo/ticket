@@ -5,6 +5,6 @@ use Lib\Tempelate\TempelateNode;
 
 class TempelateLoggedInNode implements TempelateNode{
   public function toString() : string{
-    return "defined('user')";
+    return "\$user->isLoggedIn()";
   }
 }

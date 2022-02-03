@@ -1,14 +1,14 @@
-!-if access TICKET_CLOSE or access TICKET_DELETE-!
+!-if TICKET_CLOSE or TICKET_DELETE-!
 <div class='box'>
   <div class='title'>!-language ADMIN_TICKET-!</div>
   <table class='table-fill'>
-    !-if access TICKET_CLOSE-!
+    !-if TICKET_CLOSE-!
     <tr>
       <th>!-language CHANGE_OPENING-!</th>
       <td><a href='?view=tickets&ticket_id=!-ticket_id-!&close=true'>!-if ticket_open == 1-!!-language CLOSE-!!-else-!!-language OPEN-!!-endblock-!</a></td>
     </tr>
     !-endblock-!
-    !-if access TICKET_DELETE-!
+    !-if TICKET_DELETE-!
     <tr>
       <th>!-language DELETE_TICKET-!</th>
       <td><a href='?view=tickets&ticket_id=!-ticket_id-!&delete=true'>!-language DELETE-!</a></td>

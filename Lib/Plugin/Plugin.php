@@ -9,30 +9,34 @@ use Lib\Exception\TempelateFileNotFound;
 use Lib\Page;
 use Lib\Uri;
 use Lib\Controler\Page\PageView;
+use Lib\User\User;
 
 class Plugin{
-  private static $events = null;
+  private static $events = [];
+  private static $init = false;
   
   public static function init(Tempelate $tempelate){
-    if(self::isInit()){
+    if(self::$init){
       return;
     }
-    
-    self::$events = [
-      "system.comment.delete" => [
-        "Lib\\Ticket\\TicketDeleter::onCommentDelete"
-      ],
-      "ajax.update" => [
-        "Lib\\Ticket\\Track::ajaxUpdate",
-        "Lib\\Ext\\Notification\\Notification::ajax"
-      ]
-    ];
-    
+	
+	self::addEvent("system.comment.delete", "Lib\\Ticket\\TicketDeleter::onCommentDelete");
+	self::addEvent("system.ticket.delete",  "Lib\\Ext\\Notification\\NewTicket::onTicketDelete");
+	self::addEvent("ajax.update",           "Lib\\Ticket\\Track::ajaxUpdate");
+	self::addEvent("ajax.update",           "Lib\\Ext\\Notification\\Notification::ajax");
     self::loadPluginEvents($tempelate);
+    self::$init = true;
+  }
+  
+  
+  public static function addEvent(string $name, callable $func){
+	  if(!array_key_exists($name, self::$events))
+		  self::$events[$name] = [];
+	  self::$events[$name][] = $func;
   }
   
   public static function isInit() : bool{
-    return self::$events !== null;
+    return self::$init;
   }
   
   public static function install(string $path){
@@ -129,9 +133,8 @@ class Plugin{
     return $tempelate->render_plugin($name);
   }
   
-  public static function trigger_page(string $identify, Tempelate $tempelate, Page $page){
-    //exit($identify);
-    $result = PluginRender::render(function($path) use($identify, $tempelate, $page){
+  public static function trigger_page(string $identify, Tempelate $tempelate, Page $page, User $user){
+    $result = PluginRender::render(function($path) use($identify, $tempelate, $page, $user){
       if(!file_exists($path."info.xml"))
         return true;
       
@@ -142,7 +145,7 @@ class Plugin{
       foreach($xml->pages->page as $pages){
         if((string)$pages["event"] == $identify){
           if($pages["handler"]){
-            self::doPageHandler($path, (string)$pages["handler"], $identify, $tempelate, $page);
+            self::doPageHandler($path, (string)$pages["handler"], $identify, $tempelate, $page, $user);
           }
         }
       }
@@ -151,7 +154,7 @@ class Plugin{
     $page->notfound($tempelate);
   }
   
-  private static function doPageHandler(string $path, string $name, string $identify, Tempelate $tempelate, Page $page){
+  private static function doPageHandler(string $path, string $name, string $identify, Tempelate $tempelate, Page $page, User $user){
     $file = $path.str_replace(".", "/", $name).".php";
     if(!file_exists($file))
       return;//page handler file is not exists!!
@@ -168,13 +171,13 @@ class Plugin{
       return;
     
     $l = $obj->loginNeeded();
-    if($l == "YES" && !defined("user") || $l == "NO" && defined("user"))
+    if($l == "YES" && !$user->isLoggedIn() || $l == "NO" && $user->isLoggedIn())
       return;
     
     if(!$page->hasAccess($obj->access()))
       return;
     
-    $obj->body($tempelate, $page);
+    $obj->body($tempelate, $page, $user);
   }
   
   private static function loadPluginEvents(Tempelate $tempelate){

@@ -11,6 +11,7 @@ use Lib\Plugin\Plugin;
 use Lib\Log;
 use Lib\User\Info;
 use Lib\File\FileExtension;
+use Lib\User\User;
 
 class Ticket{
   public static function createTicket(int $uid, int $head, array $fields){
@@ -50,12 +51,12 @@ class Ticket{
         
         $field["value"] = $id;
       }
-      $sql[] = "(NULL, '{$ticket_id}', '{$head}', '{$db->escape($field["text"])}', '{$db->escape($field["type"])}', '{$db->escape($field["value"])}')";
+      $sql[] = "(NULL, '{$head}', '{$ticket_id}', '{$db->escape($field["text"])}', '{$db->escape($field["type"])}', '{$db->escape($field["value"])}')";
     }
     
     $db->query("INSERT INTO `".DB_PREFIX."ticket_value` VALUES ".implode(", ", $sql).";");
     $name = Category::getNameFromId($head);
-    NewTicket::notify($ticket_id, $name);
+    NewTicket::notify($ticket_id, $head, $name);
     self::sendEmailOnNewTicket($uid, $name, $ticket_id);
     return $ticket_id;
   }
@@ -74,15 +75,15 @@ class Ticket{
     Plugin::trigger_event("system.ticket.close", $id, $uid, $username);
   }
   
-  public static function createComment(int $tid, int $cid, int $uid, string $message, bool $public = true){
+  public static function createComment(int $tid, int $cid, int $uid, string $message, bool $public, User $user){
     $parser = new Parser($message);
     $db = Database::get();
     //exit("<!DOCTYPE html> <html><head><meta charset='utf8'></head><body>".$db->escape($parser->getHtml())."</body></html>");
     $isPublic = $public ? "1" : "0";
     $cid = $db->query("INSERT INTO `".DB_PREFIX."comment` VALUES (
                   NULL,
-                  '{$tid}',
                   '{$cid}',
+                  '{$tid}',
                   '{$uid}',
                   '{$isPublic}',
                   '".time()."',
@@ -92,40 +93,42 @@ class Ticket{
     $db->query("UPDATE `".DB_PREFIX."ticket` SET `admin_changed`='".time()."', ".($public ? "`comments`=comments+1, `user_changed`='".time()."'" : "`admin_comments`=admin_comments+1")." WHERE `id`='{$tid}'");
     NewComment::createNotify($tid, $uid, $public);
     Plugin::trigger_event("system.comment.created", $tid, $uid, $message, $public);
-    self::sendEmailOnNewComment($tid, $uid, $public);
+    self::sendEmailOnNewComment($tid, $uid, $public, $user);
   }
   
-  private static function sendEmailOnNewComment(int $tid, int $uid, bool $public){
+  private static function sendEmailOnNewComment(int $tid, int $uid, bool $public, User $user){
     $email = new Email("new_comment");
     $db = Database::get();
     $query = $db->query("SELECT user.username, user.email, catogory.name
-                         FROM `".DB_PREFIX."user` AS user
-                         LEFT JOIN `".DB_PREFIX."access` AS access ON access.gid=user.groupid
+                         FROM `swiftirc_user` AS user
+                         LEFT JOIN `".DB_PREFIX."grup_member` AS member ON member.uid=user.id
+                         LEFT JOIN `".DB_PREFIX."access` AS access ON access.gid=member.gid
                          LEFT JOIN `".DB_PREFIX."comment` AS comment ON comment.uid=user.id
                          LEFT JOIN `".DB_PREFIX."ticket` AS ticket ON ticket.id=comment.tid
                          LEFT JOIN `".DB_PREFIX."catogory` AS catogory ON catogory.id=ticket.cid
                          WHERE access.name='TICKET_OTHER'
                          AND comment.tid='{$tid}'
                          ".($public ? "" : "AND user.id <> ticket.uid")."
-                         AND user.id<>'".$uid."'
+                         AND user.id<>'{$uid}'
                          GROUP BY user.id");
-    
     while($row = $query->fetch()){
       $email->pushArg("creator", $row->username);
       $email->pushArg("category", $row->name);
-      $email->pushArg("my_username", defined("user") ? user["username"] : "unknown");
+      $email->pushArg("my_username", $user->username());
       $email->send($row->email);
     }
   }
   
   private static function sendEmailOnNewTicket(int $uid, string $catName, int $tid){
+	global $user;
     $email = new Email("new_ticket");
     $db = Database::get();
     $query = $db->query("SELECT user.username, user.email
                          FROM `".DB_PREFIX."user` AS user
-                         LEFT JOIN `".DB_PREFIX."access` AS access ON user.groupid=access.gid
+                         LEFT JOIN `".DB_PREFIX."grup_member` AS member ON user.id=member.uid
+                         LEFT JOIN `".DB_PREFIX."access` AS access ON member.gid=access.gid
                          WHERE access.name='TICKET_OTHER'
-                         AND user.id<>'".user["id"]."'");
+                         AND user.id<>'".$user->id()."'");
     $email->pushArg("ticket_category", $catName);
     while($row = $query->fetch()){
       $email->pushArg("username", $row->username);

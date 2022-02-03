@@ -6,15 +6,15 @@ use Lib\Template;
 use Lib\Database;
 use Lib\Report;
 use Lib\Tempelate;
-use Lib\Access as A;
+use Lib\User\User;
 use Lib\Page;
 use Lib\Language\Language;
 use Lib\Access\AccessTreeBuilder;
 use Lib\Plugin\Plugin;
 
 class Access{
-  public static function body(Tempelate $tempelate, Page $page){
-    if(empty($_GET["gid"]) || !A::userHasAccess("GROUP_ACCESS")){
+  public static function body(Tempelate $tempelate, Page $page, User $user){
+    if(empty($_GET["gid"]) || !$user->access()->has("GROUP_ACCESS")){
       return;
     }
     
@@ -27,8 +27,10 @@ class Access{
     }
     
     $group = [];
-    foreach(A::getRawAccess(intval($_GET["gid"])) as $value)
-      $group[$value] = true;
+    $db = Database::get();
+    $query = $db->query("SELECT `name` FROM `".DB_PREFIX."access` WHERE `gid`='".$db->escape($_GET["gid"])."'");
+    while($row = $query->fetch())
+		$group[$row->name] = true;
     
     if($group === null){
       Report::error(Language::get("UNKNOWN_GROUP"));
@@ -49,21 +51,21 @@ class Access{
     $append = [];
     $delete = [];
     $accesses = $builder->accessKeys();
-    
+    $db = Database::get();
     foreach($accesses as $access){
       if(!empty($group[$access]) && empty($_POST[$access]))
-        $delete[] = $access;
+        $delete[] = "`name`='".$db->escape($access)."'";
       elseif(empty($group[$access]) && !empty($_POST[$access]))
-        $append[] = $access;
+        $append[] = "('".$gid."', '".$db->escape($access)."')";
     }
     
     if(count($append) == 0 && count($delete) == 0){
       Report::error(Language::get("NO_UPDATE"));
     }else{
       if(count($append) > 0)
-        A::appendAccesses($gid, $append);
+        $db->query("INSERT INTO `".DB_PREFIX."access` VALUES ".implode(", ", $append));
       if(count($delete) > 0)
-        A::deleteAccesses($gid, $delete);
+        $db->query("DELETE FROM `".DB_PREFIX."access` WHERE `gid`='".$gid."' AND (".implode(" OR ", $delete).")");
       Report::okay(Language::get("ACCESS_UPDATED"));
     }
     header("location: ?view=handleGroup&sub=Access&gid=".$gid);
@@ -79,7 +81,6 @@ class Access{
     $tree = new AccessTreeBuilder();
     
     $cat    = Language::get("CATEGORY");
-    $ticket = Language::get("TICKET");
     $user   = Language::get("USER");
     $group  = Language::get("GROUP");
     $error  = Language::get("ERROR");
@@ -93,14 +94,7 @@ class Access{
     $tree->setItem($cat, "CATEGORY_APPEND",      "APPEND_INPUT");
     $tree->setItem($cat, "CATEGORY_ITEM_DELETE", "DELETE_INPUT");
     $tree->setItem($cat, "CATEGORY_SETTING",     "CHANGE_SETTING");
-    
-    $tree->createCategory($ticket);
-    $tree->setItem($ticket, "TICKET_OTHER",   "SHOW_TICKET");
-    $tree->setItem($ticket, "TICKET_CLOSE",   "C_O_TICKET");
-    $tree->setItem($ticket, "TICKET_DELETE",  "DELETE_TICKET");
-    $tree->setItem($ticket, "COMMENT_DELETE", "DELETE_COMMENTS");
-    $tree->setItem($ticket, "TICKET_LOG",     "S_TICKET_LOG");
-    $tree->setItem($ticket, "TICKET_SEEN",    "SEEN_TICKET");
+    $tree->setItem($cat, "CATEGORY_ACCESS",      "CATEGORY_ACCESS");
     
     $tree->createCategory($user);
     $tree->setItem($user, "USER_GROUP",    "CHANGE_U_GROUP");

@@ -16,6 +16,6 @@ class TempelateAccessNode implements TempelateNode{
   }
   
   public function toString() : string{
-    return "Lib\Access::userHasAccess('{$this->access}')";
+    return "\$user->access()->has('{$this->access}')";
   }
 }

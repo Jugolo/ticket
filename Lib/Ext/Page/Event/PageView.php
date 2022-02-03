@@ -6,6 +6,7 @@ use Lib\Tempelate;
 use Lib\Page;
 use Lib\Request;
 use Lib\Plugin\Plugin;
+use Lib\User\User;
 
 class PageView implements P{
   public function loginNeeded() : string{
@@ -20,10 +21,10 @@ class PageView implements P{
     return [];
   }
   
-  public function body(Tempelate $tempelate, Page $page){
+  public function body(Tempelate $tempelate, Page $page, User $user){
     if(Request::isEmpty(Request::GET, "event")){
       $page->notfound($tempelate);
     }
-    Plugin::trigger_page("page.".Request::toString(Request::GET, "event"), $tempelate, $page);
+    Plugin::trigger_page("page.".Request::toString(Request::GET, "event"), $tempelate, $page, $user);
   }
 }

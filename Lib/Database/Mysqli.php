@@ -36,8 +36,21 @@ class Mysqli extends DatabaseDriver{
     $this->db->close();
   }
   
+  public function insert(string $table, array $fields) : int{
+	  $values = [];
+	  
+	  foreach($fields as $key => $value){
+		  $values[] = $this->escape($value);
+	  }
+	  
+	  if($id = $this->query("INSERT INTO `".DB_PREFIX.$table."` (`".implode("`, `", array_keys($fields))."`) VALUES ('".implode("', '", $values)."');"))
+		return $id;
+	  return -1;
+  }
+  
   public function query(string $query){
     if(!defined("ERROR") && $this->hasError()){
+	  exit($this->db->error);
       return false;
     }
     
@@ -64,7 +77,6 @@ class Mysqli extends DatabaseDriver{
       trigger_error($this->db->connect_error, E_USER_ERROR);
     }elseif($this->db->error){
       $err = $this->db->error;
-      $this->set();
       trigger_error("[database error]".$err, E_USER_ERROR);
     }
   }

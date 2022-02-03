@@ -1,0 +1,9 @@
+.single-list div{
+  border-bottom: 1px solid black;
+  padding: 10px;
+  text-align: center;
+}
+
+.single-list div:last-child{
+  border-bottom: 0px;
+}

@@ -10,7 +10,7 @@ use Lib\Log;
 use Lib\Email;
 use Lib\Tempelate;
 use Lib\Page;
-use Lib\Access;
+use Lib\User\User;
 use Lib\Language\Language;
 use Lib\Request;
 
@@ -27,33 +27,33 @@ class PageView implements P{
     return [];
   }
   
-  public function body(Tempelate $tempelate, Page $page){
+  public function body(Tempelate $tempelate, Page $page, User $user){
     Language::load("profile");
     Language::load("ticket_overview");
-    $user = $this->getUser();
-    if(!$user){
+    $owner = $this->getUser($user);
+    if(!$owner){
       Report::error(Language::get("NOT_FOUND"));
       header("location: ?view=users");
       exit;
     }
     
-    if($user->id == user["id"]){
+    if($owner->id == $user->id()){
       if(!empty($_POST["update"])){
-        $this->updateProfile();
+        $this->updateProfile($user);
       }elseif(!empty($_POST["pass"])){
-        $this->updatePass();
+        $this->updatePass($user);
       }elseif(!empty($_POST["birth"])){
-        $this->updateAge();
+        $this->updateAge($user);
       }
     }else{
-      if($user->isActivatet == 0){
-        if(Access::userHasAccess("USER_ACTIVATE") == 1 && !empty($_GET["activate"])){
-          $this->activateUser($user->id);
+      if($owner->isActivatet == 0){
+        if($user->access()->has("USER_ACTIVATE") && !empty($_GET["activate"])){
+          $this->activateUser($owner->id, $user);
         }
         $tempelate->put("not_activate", true);
       }
-      if(Access::userHasAccess("USER_PROFILE") == 1){
-        $log = Log::getUserLog($user->id);
+      if($user->access()->has("USER_PROFILE")){
+        $log = Log::getUserLog($owner->id);
         $logs = [];
         $log->render(function($time, $message) use(&$logs){
           $logs[] = [
@@ -64,15 +64,15 @@ class PageView implements P{
         $tempelate->put("logs", $logs);
       }
       
-      if(Access::userHasAccess("TICKET_OTHER")){
+      if($user->access()->has("TICKET_OTHER")){
         $tempelate->put("page_prefix", "?view=profile&user=".$_GET["user"]);
         $db = Database::get();
         $page = self::getPage();
         $sql = "SELECT ticket.id, catogory.name, ticket.open, ticket_track.visit, ticket.admin_changed, ticket.created
                 FROM `".DB_PREFIX."ticket` AS ticket
                 LEFT JOIN `".DB_PREFIX."catogory` AS catogory ON catogory.id=ticket.cid
-                LEFT JOIN `".DB_PREFIX."ticket_track` AS ticket_track ON ticket_track.tid=ticket.id AND ticket_track.uid='".user["id"]."'
-                WHERE ticket.uid='{$user->id}'
+                LEFT JOIN `".DB_PREFIX."ticket_track` AS ticket_track ON ticket_track.tid=ticket.id AND ticket_track.uid='".$user->id()."'
+                WHERE ticket.uid='{$owner->id}'
                 ORDER BY ticket.admin_changed DESC";
         
         self::pageSelect($tempelate, $sql, $page);
@@ -90,16 +90,28 @@ class PageView implements P{
       }
     }
     
-    $tempelate->put("profile_username", $user->username);
-    $tempelate->put("uid",              $user->id);
-    $tempelate->put("email",            $user->email);
-    $tempelate->put("age",              $user->birth_day ? Age::calculate($user->birth_day, $user->birth_month, $user->birth_year) : "Unknown");
-    $tempelate->put("day",              $user->birth_day);
-    $tempelate->put("month",            $user->birth_month);
-    $tempelate->put("year",             $user->birth_year);
-    $tempelate->put("group",            $user->name);
+    $tempelate->put("profile_username", $owner->username);
+    $tempelate->put("uid",              $owner->id);
+    $tempelate->put("email",            $owner->email);
+    $tempelate->put("age",              $owner->birth_day ? Age::calculate($owner->birth_day, $owner->birth_month, $owner->birth_year) : "Unknown");
+    $tempelate->put("day",              $owner->birth_day);
+    $tempelate->put("month",            $owner->birth_month);
+    $tempelate->put("year",             $owner->birth_year);
+    $tempelate->put("group",            $this->getGroup($owner->id));
     
-    $tempelate->render($user->id == user["id"] ? "owen_profile" : "other_profile");
+    $tempelate->render($owner->id == $user->id() ? "owen_profile" : "other_profile");
+  }
+  
+  private function getGroup(int $id) : string{
+	  $query = Database::get()->query("SELECT g.name 
+	                                   FROM `".DB_PREFIX."group` AS g
+	                                   LEFT JOIN `".DB_PREFIX."grup_member` AS m ON g.id=m.gid
+	                                   WHERE m.uid='".$id."'");
+	  $result = [];
+	  while($row = $query->fetch()){
+		  $result[] = $row->name;
+	  }
+	  return implode(", ", $result);
   }
   
   private static function pageSelect(Tempelate $tempelate, string $sql, int $page){
@@ -154,16 +166,15 @@ class PageView implements P{
     return $page;
   }
   
-  private function getUser(){
+  private function getUser(User $user){
     $db = Database::get();
     
-    return $db->query("SELECT user.*, g.name
-                       FROM `".DB_PREFIX."user` AS user
-                       LEFT JOIN `".DB_PREFIX."group` AS g ON g.id=user.groupid
-                       WHERE user.id='{$db->escape(!empty($_GET['user']) ? $_GET["user"] : user["id"])}'")->fetch();
+    return $db->query("SELECT *
+                       FROM `".DB_PREFIX."user`
+                       WHERE `id`='{$db->escape(!empty($_GET['user']) ? $_GET["user"] : $user->id())}'")->fetch();
   }
   
-  private function updateAge(){
+  private function updateAge(User $user){
     $error = Report::count("ERROR");
     
     if(empty($_POST["day"]) || !trim($_POST["day"]) || !is_numeric($_POST["day"])){
@@ -184,7 +195,7 @@ class PageView implements P{
                   `birth_day`   = '{$db->escape($_POST["day"])}',
                   `birth_month` = '{$db->escape($_POST["month"])}',
                   `birth_year`  = '{$db->escape($_POST["year"])}'
-                 WHERE `id`='".user["id"]."'");
+                 WHERE `id`='".$user->id()."'");
       Report::okay(Language::get("BIRTH_UPDATED"));
     }
     
@@ -192,7 +203,7 @@ class PageView implements P{
     exit;
   }
   
-  private function updatePass(){
+  private function updatePass(User $user){
     $count = Report::count("ERROR");
     Language::load("auth");
     
@@ -212,20 +223,20 @@ class PageView implements P{
       Report::error(Language::get("MISSING_CURRENT_PASS"));
     }
     
-    if($count == Report::count("ERROR") && Auth::salt_password($_POST["current_password"], user["salt"]) != user["password"]){
+    if($count == Report::count("ERROR") && Auth::salt_password($_POST["current_password"], $user->salt()) != $user->password()){
       Report::error(Language::get("WRONG_PASSWORD"));
     }
     
     if($count == Report::count("ERROR")){
       $db = Database::get();
-      $db->query("UPDATE `".DB_PREFIX."user` SET `password`='{$db->escape(Auth::salt_password($_POST["password"], user["salt"]))}' WHERE `id`='".user["id"]."'");
+      $db->query("UPDATE `".DB_PREFIX."user` SET `password`='{$db->escape(Auth::salt_password($_POST["password"], $user->salt()))}' WHERE `id`='".$user->id()."'");
       Report::okay(Language::get("PASSWORD_UPDATED"));                                         
     }
     header("location: #");
     exit;
   }
   
-  private function updateProfile(){
+  private function updateProfile(User $user){
     $error = Report::count("ERROR");
     Language::load("auth");
     if(empty($_POST["username"]) || !trim($_POST["username"])){
@@ -241,26 +252,26 @@ class PageView implements P{
     }
     
     if($error == Report::count("ERROR")){
-      if($data = Auth::controleDetail($_POST["username"], $_POST["email"])){
+      if($data = Auth::controleDetail($_POST["username"], $_POST["email"], $user->id())){
         Report::error(Language::get("P_DATA_TAKEN", [$data]));
       }else{
-        $password = Auth::salt_password($_POST["password"], user["salt"]);
-        if($password == user["password"]){
+        $password = Auth::salt_password($_POST["password"], $user->salt());
+        if($password == $user->password()){
           //wee find out what there has changed.
           $extra = "";
-          if(user["username"] !== $_POST["username"])
-            Log::user(user["id"], "LOG_EMAIL_CHANGE", user["username"], $_POST["username"]);
-          if(user["email"] !== $_POST["email"]){
-            Log::user(user["id"], "LOG_EMAIL_CHANGE", user["username"], user["email"], $_POST["email"]);
+          if($user->username() !== $_POST["username"])
+            Log::user($user->id(), "LOG_NICK_CHANGE", $user->username(), $_POST["username"]);
+          if($user->email() !== $_POST["email"]){
+            Log::user($user->id(), "LOG_EMAIL_CHANGE", $user->username(), $user->email(), $_POST["email"]);
             Report::error(Language::get("NEED_ACTIVATE_E"));
             $extra = ", `isActivatet`='0'";
-            $this->sendReActivateEmail($_POST["email"]);
+            $this->sendReActivateEmail($_POST["email"], $user);
           }
           $db = Database::get();
           $db->query("UPDATE `".DB_PREFIX."user` SET 
                        `username`='{$db->escape($_POST["username"])}',
                        `email`='{$db->escape($_POST["email"])}'{$extra}
-                      WHERE `id`='".user["id"]."'");
+                      WHERE `id`='".$user->id()."'");
           Report::okay(Language::get("ACCOUNT_UPDATED"));
         }else{
           Report::error(Language::get("MISSING_CONTROLE_PASS"));
@@ -271,17 +282,17 @@ class PageView implements P{
     exit;
   }
   
-  private function sendReActivateEmail(string $email){
+  private function sendReActivateEmail(string $email, User $user){
     $e = new Email("email_change");
-    $e->pushArg("username", user["username"]);
-    $e->pushArg("link",     geturl()."?salt=".urlencode(user["salt"])."&email=".urlencode($email));
+    $e->pushArg("username", $user->email());
+    $e->pushArg("link",     geturl()."?salt=".urlencode($user->salt())."&email=".urlencode($email));
     $e->send($email);
   }
   
-  private function activateUser(int $id){
+  private function activateUser(int $id, User $user){
     Database::get()->query("UPDATE `".DB_PREFIX."user` SET `isActivatet`='1' WHERE `id`='{$id}'");
     Report::okay(Language::get("USER_ACTIVATED"));
-    Log::user($id, "LOG_OTHER_ACTIVATE", user["username"]);
+    Log::user($id, "LOG_OTHER_ACTIVATE", $user->username());
     header("location: ?view=profile&user=".$_GET["user"]);
     exit;
   }

@@ -6,6 +6,7 @@ use Lib\Tempelate;
 use Lib\Log;
 use Lib\Page;
 use Lib\Language\Language;
+use Lib\User\User;
 
 class PageView implements P{
   public function loginNeeded() : string{
@@ -22,7 +23,7 @@ class PageView implements P{
       ];
   }
   
-  public function body(Tempelate $tempelate, Page $page){
+  public function body(Tempelate $tempelate, Page $page, User $user){
     Language::load("system_log");
     $logs = [];
     Log::getSystemLog()->render(function($time, $message) use(&$logs){

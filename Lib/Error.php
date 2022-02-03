@@ -31,8 +31,9 @@ class Error{
           '".$db->escape($errline)."',
           NOW()
         );");
-  
-      if(Access::userHasAccess("ERROR_SHOW"))
+      global $user;
+	  
+      if($user != null && $user->access()->has("ERROR_SHOW"))
         Report::error($errstr);
       });
   }

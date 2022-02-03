@@ -2,6 +2,7 @@
 namespace Lib;
 
 use Lib\Language\Language;
+use Lib\User\User;
 
 class Age{
   const TO_YOUNG = 1;
@@ -16,23 +17,25 @@ class Age{
     return $year;
   }
   
-  public static function controle(int $age, string $to) : int{
-    if(!defined("user")){
+  public static function controle(User $user, int $age, string $to) : int{
+    if(!$user->isLoggedIn()){
       return self::NOT_USER;
     }
     
-    if(!user["birth_day"] || !user["birth_month"] || !user["birth_year"]){
+    $uage = $user->birth();
+    
+    if(!$uage){
       return self::GET_AGE;
     }
     
-    if($age > self::calculate(user["birth_day"], user["birth_month"], user["birth_year"])){
+    if($age > $uage->age()){
       Report::error(Language::get("TICKET_YOUNG", $to));
       return self::TO_YOUNG;
     }
     return self::NO_ERROR;
   }
   
-  public static function get_age(string $to, Tempelate $tempelate, Page $page){
+  public static function get_age(User $user, string $to, Tempelate $tempelate, Page $page){
     if(!empty($_POST["save"])){
       $count = Report::count("ERROR");
       if(empty($_POST["bd"]) || !is_numeric($_POST["bd"]))
@@ -61,7 +64,7 @@ class Age{
                                         `birth_day`='{$day}',
                                         `birth_month`='{$month}',
                                         `birth_year`='{$year}'
-                                      WHERE `id`='".user["id"]."';");
+                                      WHERE `id`='".$user->id()."';");
               Report::okay("Birth data is saved");
               header("location: #");
               exit;

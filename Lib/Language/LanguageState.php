@@ -8,16 +8,25 @@ class LanguageState{
   private $dir;
   private $code;
   private $langs = [];
+  private $xml;
   
   public function __construct(string $dir){
     $this->dir = $dir;
     $dir = substr($dir, 0, strlen($dir)-1);
     $this->code = substr($dir, strrpos($dir, "/")+1);
     $self = $this;
+    $this->xml = new \SimpleXMLElement(file_get_contents($dir."/info.xml"));
   }
   
   public function code() : string{
     return $this->code;
+  }
+  
+  public function getFlagBase64(){
+	  $lang = $this->xml->data->lang_flag;
+	  if(!$lang)
+		return "";
+	  return base64_encode(file_get_contents($this->dir."/".$lang));
   }
   
   public function load(string $name){

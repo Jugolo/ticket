@@ -8,34 +8,36 @@ use Lib\Page;
 use Lib\Access;
 use Lib\Language\Language;
 use Lib\Request;
+use Lib\User\User;
 
 class TicketOverView{
-  public static function body(Tempelate $tempelate, Page $page){
+  public static function body(Tempelate $tempelate, Page $page, User $user){
     Language::load("ticket_overview");
     $db = Database::get();
     $sql = "SELECT ticket.id, ticket.uid, catogory.name, ticket.open, ticket_track.visit, ticket.created, ticket.user_changed, ticket.admin_changed, user.username
             FROM `".DB_PREFIX."ticket` AS ticket
             LEFT JOIN `".DB_PREFIX."catogory` AS catogory ON catogory.id=ticket.cid
-            LEFT JOIN `".DB_PREFIX."ticket_track` AS ticket_track ON ticket_track.tid=ticket.id AND ticket_track.uid='".user["id"]."'
-            LEFT JOIN `".DB_PREFIX."user` AS user ON user.id=ticket.uid";
-    
-    
-    if(!Access::userHasAccess("TICKET_OTHER")){
-      $sql .= " WHERE ticket.uid='".user["id"]."'";
-    }
-    
+            LEFT JOIN `".DB_PREFIX."user` AS user ON user.id=ticket.uid
+            LEFT JOIN `".DB_PREFIX."ticket_track` AS ticket_track ON ticket_track.tid=ticket.id AND ticket_track.uid='{$user->id()}'
+            ";
+    $list = self::getAvailableCat($user);
+    if(count($list) == 0){
+      $sql .= " WHERE ticket.uid='".$user->id()."'";
+    }else{
+		$sql .= " WHERE (ticket.uid='{$user->id()}' OR catogory.id='".implode("' OR catogory.id='", $list)."')";
+	}
     $page = self::getPage();
     
     self::pageSelect($tempelate, $sql, $page);
     
-    $sql .= " ORDER BY IF(ticket.uid='".user["id"]."', ticket.user_changed, ticket.admin_changed) DESC";
+    $sql .= " ORDER BY IF(ticket.uid='".$user->id()."', ticket.user_changed, ticket.admin_changed) DESC";
     
     $query = $db->query($sql." LIMIT ".ceil($page * 30).", 30");
     $result = [];
     while($row = $query->fetch()){
       $data = $row->toArray();
-      $data["read"]    = $row->visit >= ($row->uid == user["id"] ? $row->user_changed : $row->admin_changed);
-      $data["changed"] = date("H:i d/m/y", $row->uid == user["id"] ? $row->user_changed : $row->admin_changed);
+      $data["read"]    = $row->visit >= ($row->uid == $user->id() ? $row->user_changed : $row->admin_changed);
+      $data["changed"] = date("H:i d/m/y", $row->uid == $user->id() ? $row->user_changed : $row->admin_changed);
       $data["created"] = date("H:i d/m/y", $row->created);
       $result[] = $data;
     }
@@ -95,5 +97,19 @@ class TicketOverView{
       return 0;
     
     return $current;
+  }
+  
+  private static function getAvailableCat(User $user) : array{
+	  $query = Database::get()->query("SELECT cat.id
+	                                   FROM `".DB_PREFIX."catogory` AS cat
+	                                   LEFT JOIN `".DB_PREFIX."category_access` AS access ON cat.id=access.cid
+	                                   LEFT JOIN `".DB_PREFIX."grup_member` AS member ON access.gid=member.gid
+	                                   WHERE member.uid='{$user->id()}'
+	                                   AND access.name='TICKET_OTHER'
+	                                   GROUP BY cat.id");
+	  $list = [];
+	  while($row = $query->fetch())
+	    $list[] = $row->id;
+	  return $list;
   }
 }

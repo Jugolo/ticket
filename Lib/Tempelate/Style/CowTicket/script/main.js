@@ -225,7 +225,7 @@ window.onerror = function(msg){
 System.onload.push(function(){
   var profile = element("#profile-container");
   var button = element("#root-head-right .profile");
-  if(profile.count){
+  if(profile.length){
     button.on("click", function(){
       profile.style("display", "block");
       System.onclick.add(function g(h){
@@ -262,4 +262,24 @@ window.onload = function(){
   for(var i=0;i<System.onload.length;i++){
     System.onload[i]();
   }
+  
+  element("#root-head-left .lang-menu .head").on("click", function(){
+	 var elm = element("#root-head-left .lang-menu .list");
+	 if(elm.isVisible()){
+		 elm.style("display", "none");
+	 }else{
+		 elm.style("display", "block");
+	 }
+	 var self = this;
+	 System.onclick.add(function g(h){
+        if(!h.isIn(elm.getDom()) && !h.isIn(self.getDom())){
+          System.onclick.remove(g);
+          elm.style("display", "none");
+        }
+      });
+  });
+  
+  element("#root-head-left .lang-menu .list .lang-item").on("click", function(){
+	  window.location.href = "?view=front&lang="+this.dataGet("langcode");
+  });
 };

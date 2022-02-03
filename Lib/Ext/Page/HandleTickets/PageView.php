@@ -9,13 +9,13 @@ use Lib\Config;
 use Lib\Plugin\Plugin;
 use Lib\Tempelate;
 use Lib\Page;
-use Lib\Access;
 use Lib\Log;
 use Lib\Cache;
 use Lib\Category;
 use Lib\Exception\CategoryNotFound;
-use Lib\Language\Language;
 use Lib\File\FileExtension;
+use Lib\User\User;
+use Lib\Language\Language;
 
 class PageView implements P{
   public function loginNeeded() : string{
@@ -35,21 +35,21 @@ class PageView implements P{
     ];
   }
   
-  public function body(Tempelate $tempelate, Page $page){
+  public function body(Tempelate $tempelate, Page $page, User $user){
     Language::load("admin_ticket");
-    $ticket_access = Access::userHasAccesses([
+    $ticket_access = $user->access()->hasMuliAccess([
       "CATEGORY_APPEND",
       "CATEGORY_ITEM_DELETE",
       "CATEGORY_SETTING"
     ]);
     if(!empty($_GET["catogory"]) && $ticket_access){
-      $this->setting($tempelate, $page);
+      $this->setting($tempelate, $page, $user);
     }else{
-      $this->overview($tempelate, $page, $ticket_access);
+      $this->overview($tempelate, $page, $ticket_access, $user);
     }
   }
   
-  private function setting(Tempelate $tempelate, Page $page){
+  private function setting(Tempelate $tempelate, Page $page, User $user){
     $data = $this->getData();
     if(!$data){
       Report::error(Language::get("UNKNOWN_CAT"));
@@ -57,15 +57,19 @@ class PageView implements P{
       exit;
     }
     
-    if(!empty($_POST["append"]) && Access::userHasAccess("CATEGORY_APPEND")){
+    $access = $user->access();
+    if(!empty($_GET["access"]) && $access->has("CATEGORY_ACCESS"))
+		$this->handleAccess($tempelate, $data->toArray());
+    
+    if(!empty($_POST["append"]) && $access->has("CATEGORY_APPEND")){
       $this->appendInput($data->id);
     }
     
-    if(!empty($_POST["setting"]) && Access::userHasAccess("CATEGORY_SETTING")){
+    if(!empty($_POST["setting"]) && $access->has("CATEGORY_SETTING")){
       $this->updateSetting($data->id);
     }
     
-    if(!empty($_GET["delete"]) && Access::userHasAccess("CATEGORY_ITEM_DELETE")){
+    if(!empty($_GET["delete"]) && $access->has("CATEGORY_ITEM_DELETE")){
       $this->deleteInput($_GET["delete"], $data);
     }
     
@@ -91,7 +95,162 @@ class PageView implements P{
     $tempelate->put("category_id", $data->id);
     $tempelate->put("age", $data->age);
     
+    $tempelate->put("nav", [
+        [
+           "txt"  => Language::get("TICKET"),
+           "link" => "?view=handleTickets"
+        ],
+        [
+           "txt"  => Language::get("SETTING"),
+           "link" => "#"
+        ]
+    ]);
+    
     $tempelate->render("handle_ticket");
+  }
+  
+  private function getGroup(int $gid){
+	   return Database::get()->query("SELECT * FROM `".DB_PREFIX."group` WHERE `id`='".$gid."'")->fetch();
+  }
+  
+  private function getAccess(int $cid, int $gid) : array{
+	  $query = Database::get()->query("SELECT `name` FROM `".DB_PREFIX."category_access` WHERE `cid`='{$cid}' AND `gid`='{$gid}'");
+	  $list = [];
+	  while($row = $query->fetch())
+		$list[] = $row->name;
+	  return $list;
+  }
+  
+  private function handleAccess(Tempelate $tempelate, array $catData){
+	  $group = $_GET["access"];
+	  if($group == "null" || !($data = $this->getGroup((int)$group))){
+		  $this->selectGroup($tempelate, $catData);
+	  }
+	  
+	  $gaccess = $this->getAccess($catData["id"], $data->id);
+	  
+	  if(!empty($_POST["update"])){
+		  $insert = [];
+		  $delete = [];
+		  
+		  if(!empty($_POST["TICKET_OTHER"]) && !in_array("TICKET_OTHER", $gaccess))
+			$insert[] = "TICKET_OTHER";
+		  elseif(empty($_POST["TICKET_OTHER"]) && in_array("TICKET_OTHER", $gaccess))
+		    $delete[] = "TICKET_OTHER";
+		    
+		  if(!empty($_POST["TICKET_DELETE"]) && !in_array("TICKET_DELETE", $gaccess))
+			$insert[] = "TICKET_DELETE";
+		  elseif(empty($_POST["TICKET_DELETE"]) && in_array("TICKET_DELETE", $gaccess))
+		    $delete[] = "TICKET_DELETE";
+		    
+		  if(!empty($_POST["COMMENT_DELETE"]) && !in_array("COMMENT_DELETE", $gaccess))
+			$insert[] = "COMMENT_DELETE";
+		  elseif(empty($_POST["COMMENT_DELETE"]) && in_array("COMMENT_DELETE", $gaccess))
+		    $delete[] = "COMMENT_DELETE";
+		    
+		  if(!empty($_POST["TICKET_LOG"]) && !in_array("TICKET_LOG", $gaccess))
+			$insert[] = "TICKET_LOG";
+		  elseif(empty($_POST["TICKET_LOG"]) && in_array("TICKET_LOG", $gaccess))
+		    $delete[] = "TICKET_LOG";
+		    
+		  if(!empty($_POST["TICKET_SEEN"]) && !in_array("TICKET_SEEN", $gaccess))
+			$insert[] = "TICKET_SEEN";
+		  elseif(empty($_POST["TICKET_SEEN"]) && in_array("TICKET_SEEN", $gaccess))
+		    $delete[] = "TICKET_SEEN";
+		    
+		  if(!empty($_POST["APPLY_CAT"]) && !in_array("APPLY_CAT", $gaccess))
+			$insert[] = "APPLY_CAT";
+		  elseif(empty($_POST["APPLY_CAT"]) && in_array("APPLY_CAT", $gaccess))
+		    $delete[] = "APPLY_CAT";
+		    
+		  if(!empty($_POST["TICKET_CLOSE"]) && !in_array("TICKET_CLOSE", $gaccess))
+			$insert[] = "TICKET_CLOSE";
+		  elseif(empty($_POST["TICKET_CLOSE"]) && in_array("TICKET_CLOSE", $gaccess))
+		    $delete[] = "TICKET_CLOSE";  
+		    
+		  if(count($insert) == 0 && count($delete) == 0){
+			  Report::error(Language::get("NO_UPDATE"));
+			  header("location: #");
+			  exit;
+		  }
+		  
+		  if(count($insert) > 0){
+			  $sql = "INSERT INTO `".DB_PREFIX."category_access` (`gid`, `cid`, `name`) VALUES";
+			  for($i=0;$i<count($insert);$i++){
+				  $sql .= ($i == 0 ? " " : ", ")."('{$data->id}', '{$catData["id"]}', '{$insert[$i]}')";
+			  }
+			  Database::get()->query($sql.";");
+		  }
+		  
+		  if(count($delete) > 0){
+			  $sql = "DELETE FROM `".DB_PREFIX."category_access` WHERE `gid`='{$data->id}' AND `cid`='{$catData["id"]}' AND (";
+			  for($i=0;$i<count($delete);$i++){
+				  $sql .= ($i == 0 ? " " : " OR ")."`name`='{$delete[$i]}'";
+			  }
+			  Database::get()->query($sql.")");
+		  }
+		  
+		  Report::okay(Language::get("ACCESS_OPDATED"));
+	      header("location: #");
+	      exit;
+	  }
+      
+      $tempelate->put("a_apply_cat",      in_array("APPLY_CAT", $gaccess));
+      $tempelate->put("a_close_ticket",   in_array("TICKET_CLOSE", $gaccess));
+      $tempelate->put("a_show_other",     in_array("TICKET_OTHER", $gaccess));
+      $tempelate->put("a_delete_ticket",  in_array("TICKET_DELETE", $gaccess));
+      $tempelate->put("a_delete_comment", in_array("COMMENT_DELETE", $gaccess));
+      $tempelate->put("a_ticket_log",     in_array("TICKET_LOG", $gaccess));
+      $tempelate->put("a_ticket_seen",    in_array("TICKET_SEEN", $gaccess));
+      
+      $tempelate->put("g_name", $data->name);
+	  $tempelate->put("nav", [
+        [
+           "txt"  => Language::get("TICKET"),
+           "link" => "?view=handleTickets"
+        ],
+        [
+           "txt"  => Language::get("SETTING"),
+           "link" => "?view=handleTickets&catogory=".$catData["id"]
+        ],
+        [
+           "txt"  => Language::get("SELECT_GROUP"),
+           "link" => "?view=handleTickets&catogory=".$catData["id"]."&access=null"
+        ],
+        [
+           "txt"  => Language::get("ACCESS"),
+           "link" => "#"
+        ]
+      ]);  
+	  $tempelate->render("ticket_access");
+  }
+  
+  private function selectGroup(Tempelate $tempelate, array $data){
+	  $db = Database::get();
+	  
+	  $query = $db->query("SELECT `id`, `name` FROM `".DB_PREFIX."group`");
+	  $list = [];
+	  while($row = $query->fetch()){
+		  $list[] = [$row->id, $row->name];
+	  }
+	  
+	  $tempelate->put("catid", $data["id"]);
+	  $tempelate->put("group_list", $list);
+	  $tempelate->put("nav", [
+        [
+           "txt"  => Language::get("TICKET"),
+           "link" => "?view=handleTickets"
+        ],
+        [
+           "txt"  => Language::get("SETTING"),
+           "link" => "?view=handleTickets&catogory=".$data["id"]
+        ],
+        [
+           "txt"  => Language::get("SELECT_GROUP"),
+           "link" => "#"
+        ]   
+      ]);
+	  $tempelate->render("select_group");
   }
   
   public function updateSetting(int $id){
@@ -166,18 +325,19 @@ class PageView implements P{
     return $db->query("SELECT * FROM `".DB_PREFIX."catogory` WHERE `id`='{$db->escape($_GET["catogory"])}'")->fetch();
   }
   
-  private function overview(Tempelate $tempelate, Page $page, bool $ticket_access){
-    if(!empty($_POST["name"]) && Access::userHasAccess("CATEGORY_CREATE")){
-      $this->create($_POST["name"], $ticket_access);
+  private function overview(Tempelate $tempelate, Page $page, bool $ticket_access, User $user){
+	$access = $user->access();
+    if(!empty($_POST["name"]) && $access->has("CATEGORY_CREATE")){
+      $this->create($_POST["name"], $ticket_access, $user);
     }
-    if(!empty($_GET["open"]) && Access::userHasAccess("CATEGORY_CLOSE")){
-      $this->changeOpen(intval($_GET["open"]));
+    if(!empty($_GET["open"]) && $access->has("CATEGORY_CLOSE")){
+      $this->changeOpen(intval($_GET["open"]), $user);
     }
-    if(!empty($_GET["delete"]) && Access::userHasAccess("CATEGORY_DELETE")){
-      $this->delete(intval($_GET["delete"]), $tempelate, $page);
+    if(!empty($_GET["delete"]) && $access->has("CATEGORY_DELETE")){
+      $this->delete(intval($_GET["delete"]), $tempelate, $page, $user);
     }
     
-    if(Access::userHasAccess("CATEGORY_SORT")){
+    if($access->has("CATEGORY_SORT")){
       if(!empty($_GET["up"])){
         $this->moveUp(intval($_GET["up"]));
       }elseif(!empty($_GET["down"])){
@@ -193,11 +353,16 @@ class PageView implements P{
     $tempelate->put("last_sort", count($cat)-1);
     
     $tempelate->put("ticket_access", $ticket_access);
+    $tempelate->put("nav", [
+        [
+           "txt" => Language::get("TICKET")
+        ]
+    ]);
     
     $tempelate->render("handle_tickets");
   }
   
-  private function changeOpen(int $id){
+  private function changeOpen(int $id, User $user){
     $db = Database::get();
     $data = $db->query("SELECT `open`, `name`, `input_count` FROM `".DB_PREFIX."catogory` WHERE `id`='{$id}'")->fetch();
     if(!$data){
@@ -207,31 +372,33 @@ class PageView implements P{
     if($data->input_count > 0){
       $db->query("UPDATE `".DB_PREFIX."catogory` SET `open`='".($data->open == 1 ? '0' : '1')."' WHERE `id`='{$id}'");
       if($data->open == 1){
-        Config::set("cat_open", Config::get("cat_open")-1);
+        Config::set("cat_open", (int)Config::get("cat_open")-1);
         Report::okay(Language::get("CAT_CLOSED"));
-        Log::system("LOG_CAT_CLOSE", user["username"], $data->name);
+        Log::system("LOG_CAT_CLOSE", $user->username(), $data->name);
       }else{
         Report::okay(Language::get("CAT_OPNED"));
-        Log::system("LOG_CAT_OPEN", user["username"], $data->name);
+        Log::system("LOG_CAT_OPEN", $user->username(), $data->name);
         Config::set("cat_open", (int)Config::get("cat_open")+1);
       }
     }else{
-      Report::error(Language::get("CANT_OPEN_INPUT"));
+      Report::error(Language::get("CANT_OPEN_INPUT"));                 
     }
     
     header("location: ?view=".$_GET["view"]);
     exit;
   }
   
-  private function delete(int $id, Tempelate $tempelate, Page $page){
+  private function delete(int $id, Tempelate $tempelate, Page $page, User $user){
     //first wee get the count of ticket in this category
     $data = Database::get()->query("SELECT * FROM `".DB_PREFIX."catogory` WHERE `id`='{$id}'")->fetch();
     if($data->ticket_count > 0){
       $this->selectTicketMove($data, $tempelate, $page);
     }
     try{
-      if(Category::delete($id))
+      if(Category::delete($id)){
         Report::okay(Language::get("CAT_DELETED"));
+		Log::system("LOG_CAT_DELETED", $user->username(), $data->name);
+	  }
     }catch(CategoryNotFound $e){
       Report::error(Language::get("UNKNOWN_CAT"));
     }
@@ -263,14 +430,14 @@ class PageView implements P{
     exit;
   }
   
-  private function create(string $name, bool $access){
+  private function create(string $name, bool $access, User $user){
     if(in_array($name, Category::getNames())){
       Report::error(Language::get("CAT_NAME_EXISTS"));
       return;
     }
     $id = Category::create($name);
     Report::okay(Language::get("CAT_CREATED"));
-    Log::system("LOG_NEW_CAT", user["username"], $name);
+    Log::system("LOG_NEW_CAT", $user->username(), $name);
     if(Cache::exists("category_names"))
       Cache::delete("category_names");
     if($access)

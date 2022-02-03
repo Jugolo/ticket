@@ -44,6 +44,10 @@ class Cache{
     if(self::exists($name)){
       return false;
     }
+	
+	//at some point a temp folder is not exists. Create one 
+	if(!file_exists("Lib/Temp"))
+		mkdir("Lib/Temp");
     
     if(is_array($data))
       $data = "A".json_encode($data);

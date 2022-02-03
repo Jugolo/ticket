@@ -11,6 +11,7 @@ use Lib\Tempelate;
 use Lib\Config;
 use Lib\Exception\TempelateException;
 use Lib\Language\Language;
+use Lib\Language\LanguageLister;
 use Lib\Page;
 use Lib\Cronwork;
 
@@ -78,12 +79,7 @@ include 'config.php';
 if(!defined("DB_PREFIX"))
   define("DB_PREFIX", "");
 
-Auth::controleAuth();
-
-if(defined("user") && array_key_exists("lang", user))
-  Language::newState("Lib/Ext/Language/".user["lang"]."/");
-else
-  Lib\Language\LanguageDetector::detect();
+$user = Auth::controleAuth();
 
 if(file_exists("./Lib/Setup/Main.php")){
     Main::controle();
@@ -92,8 +88,8 @@ if(file_exists("./Lib/Setup/Main.php")){
 Cronwork::check();
 
 try{
-  $page = new Page();
-  $tempelate = new Tempelate(Config::get("tempelate"), $page);
+  $page = new Page($user);
+  $tempelate = new Tempelate(Config::get("tempelate"), $page, $user);
 }catch(TempelateException $e){
   Error::tempelateError($e);
   exit;
@@ -117,3 +113,11 @@ if(Ajax::isAjaxRequest()){
 }
 
 Plugin::trigger_event("system.started");
+
+$lang_list = LanguageLister::list();
+if(count($lang_list) > 1){
+	$tempelate->put("show_lang_menu", true);
+	$tempelate->put("current_lang_code", Language::getCode());
+	$tempelate->put("current_lang_flag", Language::getFlagBase64());
+	$tempelate->put("lang_list", $lang_list);
+}

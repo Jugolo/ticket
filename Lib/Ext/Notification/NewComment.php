@@ -7,6 +7,7 @@ use Lib\Plugin\Event;
 
 class NewComment{
   public static function createNotify(int $hid, int $creater, bool $isPublic){
+	global $user;
     $db = Database::get();
     $query = $db->query("SELECT notify_setting.uid
                          FROM `".DB_PREFIX."notify_setting` AS notify_setting
@@ -16,7 +17,7 @@ class NewComment{
                          GROUP BY comment.uid");
     $found = false;
     while($row = $query->fetch()){
-      if(!defined("user") || $row->uid != user["id"]){
+      if(!$user->isLoggedIn() || $row->uid != $user->id()){
         if($row->uid == $creater){
           if(!$isPublic){
            continue; 
@@ -28,7 +29,7 @@ class NewComment{
       }
     }
     
-    if(!$found && $creater != user["id"] && $isPublic){
+    if(!$found && $creater != $user->id() && $isPublic){
       $row = $db->query("SELECT COUNT(`uid`) AS uid
                            FROM `".DB_PREFIX."notify_setting` 
                            WHERE `uid`='{$creater}' 
@@ -45,17 +46,19 @@ class NewComment{
   }
   
   public static function markRead(int $hid){
-    Notification::markRead(user["id"], $hid, __CLASS__);
+	global $user;
+    Notification::markRead($user->id(), $hid, __CLASS__);
   }
   
   public static function send(int $uid, int $hid){
+	global $user;
     Notification::create(
       $uid,
       $hid,
       __CLASS__,
       "?view=tickets&ticket_id=".$hid,
       "NOTIFY_CREATE_COMMENT",
-      [defined("user") ? user["username"] : "unknwon"]
+      [defined("user") ? $user->username() : "unknwon"]
       );
   }
 }

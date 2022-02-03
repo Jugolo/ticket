@@ -6,11 +6,11 @@ use Lib\Tempelate;
 use Lib\Page;
 use Lib\Plugin\Plugin;
 use Lib\Database;
-use Lib\Access;
+use Lib\User\User;
 use Lib\Report;
-use Lib\Language\Language;
 use Lib\Exception\PluginInstallException;
 use Lib\Log;
+use Lib\Language\Language;
 
 class PageView implements P{
   public function loginNeeded() : string{
@@ -28,12 +28,13 @@ class PageView implements P{
       ];
   }
   
-  public function body(Tempelate $tempelate, Page $page){
+  public function body(Tempelate $tempelate, Page $page, User $user){
+	$access = $user->access();
     Language::load("plugin");
-    if(!empty($_GET["install"]) && Access::userHasAccess("PLUGIN_INSTALL"))
-      $this->install($_GET["install"]);
-    if(!empty($_GET["uninstall"]) && Access::userHasAccess("PLUGIN_UNINSTALL"))
-      $this->uninstall($_GET["uninstall"]);
+    if(!empty($_GET["install"]) && $access->has("PLUGIN_INSTALL"))
+      $this->install($_GET["install"], $user);
+    if(!empty($_GET["uninstall"]) && $access->has("PLUGIN_UNINSTALL"))
+      $this->uninstall($_GET["uninstall"], $user);
     
     $installed = $this->getInstalled();
     $dir = "Lib/Ext/Plugin/";
@@ -62,7 +63,7 @@ class PageView implements P{
     return $result;
   }
   
-  private function install(string $name){
+  private function install(string $name, User $user){
     //let see if the path exists
     $path = "Lib/Ext/Plugin/{$name}/";
     if(!is_dir($path)){
@@ -74,7 +75,7 @@ class PageView implements P{
       }else{
         try{
           Plugin::install($path);
-          Log::system("LOG_PLUGIN_I", user["username"], $name);
+          Log::system("LOG_PLUGIN_I", $user->username(), $name);
         }catch(PluginInstallException $e){
           Language::load("plugin_install");
           Report::error(Language::get($e->getMessage()));
@@ -85,13 +86,13 @@ class PageView implements P{
     exit;
   }
   
-  private function uninstall(string $name){
+  private function uninstall(string $name, User $user){
     $path = "Lib/Ext/Plugin/{$name}/";
     if(file_exists($path)){
       $installed = $this->getInstalled();
       if(!empty($installed[$path])){
         Plugin::uninstall($path);
-        Log::system("LOG_PLUGIN_U", user["username"], $name);
+        Log::system("LOG_PLUGIN_U", $user->username(), $name);
       }else{
         Report::error(Language::get("P_N_INSTALL"));
       }

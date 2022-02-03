@@ -1,3 +1,9 @@
+V4.2
+--New--
+Group is rewriting so any user can be member of more end one group
+Danish is append as language.
+When there is more end one language a language menu is added on the top menu
+
 V4.1 - 4.2.2020
 --New--
 File upload: Its now posiple to allow file uploads in ticket

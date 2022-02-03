@@ -8,7 +8,7 @@ use Lib\Report;
 use Lib\Cache;
 use Lib\Tempelate;
 use Lib\Page;
-use Lib\Access;
+use Lib\User\User;
 use Lib\Language\Language;
 
 class PageView implements P{
@@ -24,25 +24,24 @@ class PageView implements P{
     return "front";
   }
   
-  public function body(Tempelate $tempelate, Page $page){
+  public function body(Tempelate $tempelate, Page $page, User $user){
     Language::load("front");
-    if(defined("user") && !empty($_GET["logout"]) && $_GET["logout"] == session_id()){
+    if($user->isLoggedIn() && !empty($_GET["logout"]) && $_GET["logout"] == session_id()){
       session_destroy();
       header("location: ?view=front");
       exit;
     }
     
-    if(defined("user")){
-      if(Access::userHasAccess("SYSTEM_FRONT") && !empty($_GET["change"])){
-        $this->changeFront($tempelate);
-        return;
-      }
-      if(Access::userHasAccess("SYSTEM_NAME") && !empty($_GET["changeSystemName"])){
-         $this->changeSystemNameEditor($tempelate);
-         return;
-      }
+    $access = $user->access();
+    if($access->has("SYSTEM_FRONT") && !empty($_GET["change"])){
+      $this->changeFront($tempelate);
+      return;
     }
-    //Parser::getJavascript($tempelate);
+    if($access->has("SYSTEM_NAME") && !empty($_GET["changeSystemName"])){
+       $this->changeSystemNameEditor($tempelate);
+       return;
+    }
+    
     if(Cache::exists("front")){
       $tempelate->put("front", Cache::get("front"));
     }else{

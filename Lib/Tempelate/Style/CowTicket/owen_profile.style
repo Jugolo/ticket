@@ -7,7 +7,7 @@
     <table class='table-fill'>
       <tr>
         <th>!-language USERNAME-!</th>
-        <td><input type='text' name='username' class='input' value='!-username-!'></td>
+        <td><input type='text' name='username' class='input' value='!-profile_username-!'></td>
       </tr>
       <tr>
         <th>!-language EMAIL-!</th>

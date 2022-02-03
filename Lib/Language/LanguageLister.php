@@ -15,10 +15,13 @@ class LanguageLister{
       
       if(!self::isValid())
         continue;
-      
+      $current_dir = substr(self::$current, 0, strlen(self::$current)-1);
       $list[] = [
-          "dir"  => self::$current,
-          "code" => (string)self::$xml->data->lang_code
+          "dir"        => self::$current,
+          "code"       => (string)self::$xml->data->lang_code,
+          "flag"       => self::$xml->data->lang_flag ? base64_encode(file_get_contents(self::$current.self::$xml->data->lang_flag)) : "",
+          "name"       => (string)self::$xml->data->lang_name,
+          "nativecode" => substr($current_dir, strrpos($current_dir, "/")+1)
         ];
     }
     return $list;

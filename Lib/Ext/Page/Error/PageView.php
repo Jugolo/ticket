@@ -7,7 +7,7 @@ use Lib\Database\DatabaseFetch;
 use Lib\Report;
 use Lib\Tempelate;
 use Lib\Page;
-use Lib\Access;
+use Lib\User\User;
 use Lib\Language\Language;
 
 class PageView implements P{
@@ -23,7 +23,7 @@ class PageView implements P{
     return ["ERROR_SHOW"];
   }
   
-  function body(Tempelate $tempelate, Page $pageObj){
+  function body(Tempelate $tempelate, Page $pageObj, User $user){
     Language::load("error");
     if(!empty($_GET["id"]) && $data = $this->getData(intval($_GET["id"]))){
       $this->showError($data, $tempelate);
@@ -50,7 +50,7 @@ class PageView implements P{
     
     $query = $db->query("SELECT `id`, `errstr` FROM `".DB_PREFIX."error` LIMIT {$page}, 30");
     
-    if(!empty($_POST["delete"]) && !empty($_POST["errorSelect"]) && Access::userHasAccess("ERROR_DELETE")){
+    if(!empty($_POST["delete"]) && !empty($_POST["errorSelect"]) && $user->access()->has("ERROR_DELETE")){
       $this->deleteErrors();
       header("location: #");
       exit;

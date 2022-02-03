@@ -9,6 +9,9 @@ class LanguageDetector{
     $saved = LanguageLister::list();
     if(count($saved) == 0)
       Error::systemError("No language found in the language dir");
+      
+    if(self::fromCookie())
+		return;
     
     if(!empty($_SERVER["HTTP_ACCEPT_LANGUAGE"])){
       $http = explode(",", trim($_SERVER["HTTP_ACCEPT_LANGUAGE"]));
@@ -33,6 +36,18 @@ class LanguageDetector{
     }
     
     Language::newState("Lib/Ext/Language/".Config::get("standart_language")."/");
+  }
+  
+  private static function fromCookie() : bool{
+	  if(empty($_COOKIE["lang"]))
+		return false;
+
+      $dir = "Lib/Ext/Language/".$_COOKIE["lang"]."/";
+      if(!file_exists($dir) || !is_dir($dir))
+		return false;
+		
+	  Language::newState($dir);
+	  return true;
   }
   
   private static function getValue(array $array) : string{

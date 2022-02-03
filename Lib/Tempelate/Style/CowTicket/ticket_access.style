@@ -1,0 +1,42 @@
+!-include head-!
+<div class='box'>
+  <div class='title'>!-language CHANGE_ACCESS g_name-!</div>
+  <form method='POST' action='#'>
+    <table style='width: 100%'>
+      <tr>
+        <th>!-language APPLY_CAT-!</th>
+        <td><input type='checkbox' name='APPLY_CAT'!-if a_apply_cat-! checked!-endblock-!></td>
+      </tr>
+      <tr>
+        <th>!-language SHOW_TICKET-!</th>
+        <td><input type='checkbox' name='TICKET_OTHER'!-if a_show_other-! checked!-endblock-!></td>
+      </tr>
+      <tr>
+        <th>!-language DELETE_TICKET-!</th>
+        <td><input type='checkbox' name='TICKET_DELETE'!-if a_delete_ticket-! checked!-endblock-!></td>
+      </tr>
+      <tr>
+        <th>!-language CLOSE_TICKET-!</th>
+        <td><input type='checkbox' name='TICKET_CLOSE'!-if a_close_ticket-! checked!-endblock-!></td>
+      </tr>
+      <tr>
+        <th>!-language DELETE_COMMENTS-!</th>
+        <td><input type='checkbox' name='COMMENT_DELETE'!-if a_delete_comment-! checked!-endblock-!></td>
+      </tr>
+      <tr>
+        <th>!-language S_TICKET_LOG-!</th>
+        <td><input type='checkbox' name='TICKET_LOG'!-if a_ticket_log-! checked!-endblock-!></td>
+      </tr>
+      <tr>
+        <th>!-language SEEN_TICKET-!</th>
+        <td><input type='checkbox' name='TICKET_SEEN'!-if a_ticket_seen-! checked!-endblock-!></td>
+      </tr>
+      <tr>
+        <td colspan='2'>
+          <input type='submit' name='update' value='Update access' style='width: 100%'>
+        </td>
+      </tr>
+    </table>
+  </form>
+</div>
+!-include buttom-!

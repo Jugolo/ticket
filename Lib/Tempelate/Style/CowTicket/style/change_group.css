@@ -1,3 +1,27 @@
-tr.current{
-  background-color: #A55959;
+.group-select:after{
+	display: inline-block;
+	content: "";
+	clear:both;
+}
+
+.group-select{
+	height: 270px;
+}
+
+.group-select select{
+	width: 100%;
+	height: 250px;
+}
+
+.group-select .item{
+	float: left;
+	height: 250px;
+}
+
+.group-select .left{
+	width: 50%;
+}
+
+.group-select .right{
+	width: 50%;
 }
