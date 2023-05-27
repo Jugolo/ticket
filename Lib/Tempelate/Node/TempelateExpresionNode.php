@@ -11,6 +11,6 @@ class TempelateExpresionNode implements TempelateNode{
   }
   
   public function toString() : string{
-    return "\$context .= htmlentities({$this->node->toString()});";
+    return "\$context .= htmlentities(\$data->notNull({$this->node->toString()}));";
   }
 }
